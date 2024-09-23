@@ -1,0 +1,21 @@
+{
+  "name": "bc-mod",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "esbuild src/index.ts --bundle --outfile=dist/bundle.js --watch --loader:.ts=ts",
+    "build": "esbuild src/index.ts --outfile=dist/bundle.js --bundle --loader:.ts=ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "bc-stubs": "^107.0.0",
+    "esbuild": "^0.23.1",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "bondage-club-mod-sdk": "^1.2.0"
+  }
+}

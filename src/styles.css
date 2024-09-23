@@ -1,0 +1,185 @@
+* {
+    margin: 0; 
+    padding: 0;
+}
+
+:root {
+    --blue-color: rgb(72,70,109);
+}
+
+.dogsMessageBlock .current-time {
+    display: none;
+}
+
+.dogsMessageBlock:hover .current-time {
+    display: inline;
+}
+
+#dogsPopupContainer {
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    height: 100%; 
+    font-family: Comfortaa;
+    z-index: 100;
+}
+
+#dogsPopup {
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    background: var(--blue-color); 
+    z-index: 200; 
+    padding: 10px 0px;
+    border: 2px solid rgb(72,70,109);
+    border-radius: 5px;
+}
+
+#dogsPopup input:focus {
+    border: 2px solid white !important;
+}
+
+.dogsSquare {
+    cursor: pointer;
+    position: relative;
+    font-family: Comfortaa;
+    padding: 6px;
+    color: white; 
+    border: none; 
+    background: rgb(107, 105, 158);
+    transition-duration: 0.4s;
+}
+
+.dogsSquare::before {
+    content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 0;
+	height: 100%;
+	background: rgba(255, 255, 255, 0.4);
+	transition-duration: 0.4s;
+}
+
+.dogsSquare:hover::before {
+    width: 100%;
+}
+
+.dogsBtn {
+    cursor: pointer; 
+    font-size: 2vw; 
+    font-family: Comfortaa;
+    padding: 3px 8px; 
+    color: white; 
+    border: none;
+    border-radius: 4px; 
+    background: rgb(107, 105, 158); 
+    transition-duration: 0.4s;
+}
+
+.dogsBtn:hover {
+    background: rgb(121, 119, 177); 
+    transition-duration: 0.4s;
+}
+
+.dogsTextEdit {
+    cursor: pointer;
+    outline: none; 
+    font-family: Comfortaa; 
+    color: white; 
+    background: rgb(107, 105, 158); 
+    border: none; border-radius: 2px;
+    width: 80%; 
+    padding: 6px;
+}
+
+.dogsTextEdit::placeholder {
+    color: rgb(216, 216, 216);
+}
+
+.dogsTextEdit::-webkit-scrollbar {
+    background: rgb(107 15 183);
+}
+
+.dogsTextEdit::-webkit-scrollbar-thumb {
+    background: #ffffff;
+}
+
+.dogsTextEdit:focus {
+    border: 2px solid white !important;
+}
+
+#dogsPopup input:focus {
+    border: 2px solid white !important;
+}
+
+.dogsCheckBox {
+    display: flex;
+    align-items: center;
+    gap: 0 5px;
+}
+
+.dogsCheckBox-btn {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5vw;
+    height: 2.5vw;
+    min-width: 8px;
+    min-height: 8px;
+    max-width: 18px;
+    max-height: 18px;
+    background: white;
+    border: 2px solid #8b3fd2;
+    border-radius: 100px;
+    transition-duration: 0.4s;
+}
+
+.dogsCheckBox-btn:hover {
+    border: 2px solid #5713ba;
+    transition-duration: 0.4s;
+}
+
+.dogsCheckBox-btn[checked="true"] {
+    background: #5713ba;
+    border-color: #5713ba;
+    transition-duration: 0.4s;
+}
+
+.dogsCheckBox-btn[checked="true"]:hover {
+    background: #7331d6;
+    border-color: #7331d6;
+    transition-duration: 0.4s;
+}
+
+.dogsCheckBox-btn[checked="true"]::before {
+    content: "✔";
+    color: white;
+    font-size: 15px;
+}
+
+#dogsFullScreen {
+    margin: auto; 
+    top: 0; 
+    bottom: 0; 
+    left: 0; 
+    right: 0;
+    position: absolute; 
+    width: 100vw; 
+    height: 50vw; 
+    max-height: 100vh;
+    background: var(--blue-color); 
+    font-family: Comfortaa;
+    z-index: 10;
+}
+
+.adaptive-font-size {
+    font-size: clamp(10px, 2vw, 20px);
+}
+
+.disabled {
+    opacity: 0.6; 
+    pointer-events: none;
+}
+
