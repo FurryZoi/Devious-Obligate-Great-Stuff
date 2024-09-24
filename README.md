@@ -4,8 +4,6 @@ Adds devious stuff in BC
 ### FUSAM (Recommended)
 https://sidiousious.gitlab.io/bc-addon-loader
 ### Tampermonkey
-https://github.com/dDeepLb/Themed-BC/raw/main/loader.user.js
+https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/raw/main/tampermonkey-userscript.js
 ### Bookmark
-``` javascript
-javascript:(()=>{fetch('https://ddeeplb.github.io/Themed-BC/themed.js').then(r=>r.text()).then(r=>eval(r));})();
-```
+https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/raw/main/bookmark-userscript.js

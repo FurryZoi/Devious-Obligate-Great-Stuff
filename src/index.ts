@@ -3,7 +3,6 @@ import { loadRemoteControl } from "@/modules/remoteControl";
 import { loadSettingsMenu } from "@/modules/settingsMenu";
 import { loadCommands } from "@/modules/commands";
 import { loadDeviousPadlock } from "@/modules/deviousPadlock";
-import { notify } from "@/modules/utils";
 import css from "./styles.css";
 
 export function getModVersion(): string {
