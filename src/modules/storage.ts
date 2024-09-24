@@ -51,7 +51,6 @@ export function initStorage(): void {
             const data = message.Dictionary.data;
             if (msg === "syncStorage") {
                 if (!sender.DOGS) {
-                    console.log("sync 1")
                     chatSendDOGSMessage("syncStorage", {
                         storage: modStorage,
                     }, sender.MemberNumber);
@@ -64,7 +63,6 @@ export function initStorage(): void {
     
     hookFunction("ChatRoomSync", -20, (args, next) => {
         next(args);
-        console.log("sync 2")
         chatSendDOGSMessage("syncStorage", {
             storage: modStorage,
         });
