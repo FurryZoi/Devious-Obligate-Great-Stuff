@@ -65,7 +65,7 @@ export function loadCommands(): void {
                     );
                 }
             }
-        },
+        }
     ]);
 
 }
