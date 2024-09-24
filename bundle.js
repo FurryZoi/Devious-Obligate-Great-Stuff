@@ -778,7 +778,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
           if (remoteControlState === "loading") {
             setRemoteControlState(null);
             setRemoteControlTarget(null);
-            chatSendLocal("The remote request <!timed out!>! Target player may be <!offline!> or not using <!BCC!>!");
+            chatSendLocal("The remote request <!timed out!>! Target player may be <!offline!> or not using <!DOGS!>!");
           }
         }, 5e3);
       }
