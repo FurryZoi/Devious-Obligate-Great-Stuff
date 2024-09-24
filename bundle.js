@@ -416,7 +416,6 @@ One of mods you are using is using an old version of SDK. It will work for now b
         const data2 = message.Dictionary.data;
         if (msg === "syncStorage") {
           if (!sender.DOGS) {
-            console.log("sync 1");
             chatSendDOGSMessage("syncStorage", {
               storage: modStorage
             }, sender.MemberNumber);
@@ -428,7 +427,6 @@ One of mods you are using is using an old version of SDK. It will work for now b
     });
     hookFunction("ChatRoomSync", -20, (args, next) => {
       next(args);
-      console.log("sync 2");
       chatSendDOGSMessage("syncStorage", {
         storage: modStorage
       });
@@ -1542,9 +1540,11 @@ One of mods you are using is using an old version of SDK. It will work for now b
   var style = document.createElement("style");
   style.innerHTML = styles_default;
   document.head.append(style);
-  initStorage();
-  loadSettingsMenu();
-  loadCommands();
-  loadRemoteControl();
-  loadDeviousPadlock();
+  waitFor(() => typeof window.Player?.MemberNumber === "number").then(() => {
+    initStorage();
+    loadSettingsMenu();
+    loadCommands();
+    loadRemoteControl();
+    loadDeviousPadlock();
+  });
 })();
