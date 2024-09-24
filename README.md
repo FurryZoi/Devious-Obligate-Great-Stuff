@@ -1,6 +1,6 @@
 # DOGS (Devious Obligate Great Stuff)
 Adds devious stuff in Bondage Club
-Features:
+### Features:
 - Devious Padlock - Extremal Padlock which can't be removed by cheats
 - Remote Control - Upgraded version of Universal Remote that give you more possibilities
 ## Installation
