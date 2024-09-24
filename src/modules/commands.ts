@@ -33,7 +33,7 @@ const commands: ICommand[] = [
                 if (remoteControlState === "loading") {
                     setRemoteControlState(null);
                     setRemoteControlTarget(null);
-                    chatSendLocal("The remote request <!timed out!>! Target player may be <!offline!> or not using <!BCC!>!");
+                    chatSendLocal("The remote request <!timed out!>! Target player may be <!offline!> or not using <!DOGS!>!");
                 }
             }, 5000);
         }
