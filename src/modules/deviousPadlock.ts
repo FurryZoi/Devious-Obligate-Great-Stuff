@@ -37,17 +37,6 @@ const chaosPadlockRestrictions = {
 	forceTitle: 1007
 };
 
-const chaosPadlockRestrictionsTexts = {
-	1000: "Forbid to use wardrobe",
-	1001: "Forbid to see",
-	1002: "Forbid to tie up others",
-	1003: "Forbid to change pose",
-	1004: "Forbid to walk",
-	1005: "Forbid to move",
-	1006: "Forbid to use Room Administration",
-	1007: "Force title"
-};
-
 
 function createDeviousPadlock(): void {
 	AssetFemale3DCG.forEach(ele => {
@@ -272,27 +261,26 @@ function getDeviousPadlockMenu(
 	const itemName = item.Craft?.Name ? item.Craft.Name : item.Asset.Description;
 	if (page === "main") {
 		const itemPreviewLink = `https://www.bondage-europe.com/${GameVersion}/BondageClub/Assets/Female3DCG/${group.Name}/Preview/${item.Asset.Name}.png`;
-		const padlockPreviewLink = deviousPadlockImage;
 
 		const centerBlock = document.createElement("div");
 		centerBlock.style = "display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%;";
 
 		const preview = document.createElement("div");
-		preview.style = "position: relative; width: 30%; height: 30%; max-width: 150px; max-height: 150px;";
+		preview.style = "position: relative; width: 20%; height: 20%; max-width: 150px; max-height: 150px;";
 
 		const previewItem = document.createElement("img");
 		previewItem.src = itemPreviewLink;
 		previewItem.style = "background: white; width: 100%; height: 100%;";
 
 		const previewPadlock = document.createElement("img");
-		previewPadlock.src = padlockPreviewLink;
+		previewPadlock.src = deviousPadlockImage;
 		previewPadlock.style = "z-index: 10; width: 20%; height: 20%; position: absolute; left: 2px; top: 2px;";
 
 		const description = document.createElement("p");
 		description.innerHTML = beautifyMessage(
 			`Padlock can be managed only by users who <!correspond!> to the <!access permissions!><br><span style="color: #ff0000;">Protected from cheats</span>`
 		);
-		description.style = "width: 100%; text-align: center; background: rgb(63 61 104); padding: 1vw; color: white; text-align: center; font-size: clamp(12px, 4vw, 24px); margin-top: 2vw;";
+		description.style = "width: 100%; text-align: center; background: rgb(63 61 104); padding: 1vw; color: white; text-align: center; font-size: clamp(12px, 3vw, 24px); margin-top: 1.5vw;";
 		
 		const owner = document.createElement("p");
 		owner.innerHTML = beautifyMessage(
@@ -300,14 +288,14 @@ function getDeviousPadlockMenu(
 				getPlayer(deviousPadlockMenuData.owner) ? `${getNickname(getPlayer(deviousPadlockMenuData.owner))} (${deviousPadlockMenuData.owner})` : `${deviousPadlockMenuData.owner}`
 			}!>`
 		);
-		owner.style = "width: 100%; text-align: center; background: rgb(63 61 104); padding: 1vw; color: white; text-align: center; font-size: clamp(12px, 4vw, 24px); margin-top: 2vw;";
+		owner.style = "width: 100%; text-align: center; background: rgb(63 61 104); padding: 1vw; color: white; text-align: center; font-size: clamp(12px, 3vw, 24px); margin-top: 1.5vw;";
 
 		const time = document.createElement("div");
-		time.style = "width: 100%; margin-top: 2vw; width: 100%; background: rgb(63 61 104); padding: 1vw; display: flex; flex-direction: column; align-items: center;";
+		time.style = "width: 100%; margin-top: 1.5vw; width: 100%; background: rgb(63 61 104); padding: 1vw; display: flex; flex-direction: column; align-items: center;";
 
 		const timeText = document.createElement("p");
 		timeText.textContent = "When should the lock be removed? (Leave this field empty for permanent 😉)";
-		timeText.style = "font-size: clamp(12px, 4vw, 24px); margin-top: 1vw; color: white; text-align: center;";
+		timeText.style = "font-size: clamp(12px, 3vw, 24px); margin-top: 1vw; color: white; text-align: center;";
 
 		const timeField = document.createElement("input");
 		timeField.type = "datetime-local";
@@ -315,7 +303,7 @@ function getDeviousPadlockMenu(
 		if (!canAccessChaosPadlock(group.Name, Player, target)) {
 			timeField.classList.add("disabled");
 		}
-		timeField.style = "background: rgb(99 96 147); margin-top: 1vw; width: 80%; height: 4vw; font-size: clamp(12px, 4vw, 24px);";
+		timeField.style = "background: rgb(99 96 147); margin-top: 1vw; width: 80%; height: 4vw; min-height: 15px; font-size: clamp(12px, 3vw, 24px);";
 		timeField.value = deviousPadlockMenuData.unlockTime
 			? deviousPadlockMenuData.unlockTime
 			: "";

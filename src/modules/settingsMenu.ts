@@ -47,7 +47,7 @@ export function loadSettingsMenu(): void {
 				);
 
 				drawWrappedText(
-					`Remote control lets allowed users to remotely change your appearance, now you don't need to be in the same room to change items of your friends. If remote control is disabled then no one can use it on you.`,
+					`Remote control lets allowed users to remotely change your appearance, now you don't need to be in the same room to change items of your friends. If remote control is disabled then no one can use it on you. Type "/dogs remote <member number>" to connect remotely.`,
 					1400, 250, "black", 50
 				);
 			},
@@ -127,7 +127,6 @@ export function loadSettingsMenu(): void {
 				);
 				Object.keys(settingsPages).forEach((pageKey, i) => {
 					const page = settingsPages[pageKey];
-					// console.log(page.icon)
 					DrawButton(
 						settingsButtonLeft, settingsButtonTop + i * settingsButtonsGap, settingsButtonWidth,
 						settingsButtonHeight, page.name, "White", page.icon()

@@ -1,5 +1,8 @@
 # DOGS (Devious Obligate Great Stuff)
-Adds devious stuff in BC
+Adds devious stuff in Bondage Club
+Features:
+- Devious Padlock                Extremal Padlock which can't be removed by cheats
+- Remote Control                 Upgraded version of Universal Remote that give you more possibilities
 ## Installation
 ### FUSAM (Recommended)
 https://sidiousious.gitlab.io/bc-addon-loader

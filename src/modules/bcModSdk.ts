@@ -5,7 +5,7 @@ const modSdk  = bcModSdk.registerMod({
     name: "DOGS",
     fullName: "Devious Obligate Great Stuff",
     version: getModVersion(),
-    repository: ""
+    repository: "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff.git"
 });
 
 export function hookFunction(functionName: string, priority: number, hook: PatchHook): () => void {
