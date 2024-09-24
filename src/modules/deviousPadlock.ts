@@ -26,18 +26,6 @@ const chaosPadlockAccessPermissionsList = [
 let deviousPadlockMenuData = null;
 let deviousPadlockMenuLastData = null;
 
-const chaosPadlockRestrictions = {
-	forbidWardrobe: 1000,
-	forbidSee: 1001,
-	forbidBondageOthers: 1002,
-	forbidPoses: 1003,
-	forbidWalk: 1004,
-	forbidMove: 1005,
-	forbidRoomAdmin: 1006,
-	forceTitle: 1007
-};
-
-
 function createDeviousPadlock(): void {
 	AssetFemale3DCG.forEach(ele => {
 		if(ele.Group === "ItemMisc") {
