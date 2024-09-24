@@ -1,10 +1,10 @@
 import bcModSdk, { PatchHook } from "bondage-club-mod-sdk";
-import { modVersion } from "@/index";
+import { getModVersion } from "@/index";
 
 const modSdk  = bcModSdk.registerMod({
     name: "DOGS",
     fullName: "Devious Obligate Great Stuff",
-    version: "1.0.0",
+    version: getModVersion(),
     repository: ""
 });
 

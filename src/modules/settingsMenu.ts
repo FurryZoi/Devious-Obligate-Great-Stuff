@@ -4,8 +4,10 @@
 // }
 import { beautifyMessage, drawCheckbox, drawWrappedText } from "./utils";
 import { hookFunction } from "./bcModSdk";
-import { staticPath } from "@/index";
 import { modStorage } from "./storage";
+import settingsRemoteControlImage from "@/images/settings-remote-control.png";
+import settingsDeviousPadlockImage from "@/images/settings-devious-padlock.png";
+import slaveryImage from "@/images/slavery.png";
 
 
 export function loadSettingsMenu(): void {
@@ -14,7 +16,7 @@ export function loadSettingsMenu(): void {
 	const settingsPages = {
 		remoteControl: {
 			name: "Remote control",
-			icon: () => `${staticPath}/src/images/settings-remote-control.png`,
+			icon: () => settingsRemoteControlImage,
 			draw: () => {
 				const remoteControlPermissionsTexts = {
 					0: "Friends and higher",
@@ -69,7 +71,7 @@ export function loadSettingsMenu(): void {
 		},
 		deviousPadlock: {
 			name: "Devious padlock",
-			icon: () => `${staticPath}/src/images/settings-devious-padlock.png`,
+			icon: () => settingsDeviousPadlockImage,
 			draw: () => {
 				DrawText(
 					"Devious Overwhelming Gear Script (DOGS) - Devious padlock",
@@ -99,7 +101,7 @@ export function loadSettingsMenu(): void {
 	PreferenceRegisterExtensionSetting({
 		Identifier: "DOGS",
 		ButtonText: "DOGS Settings",
-		Image: `${staticPath}/src/images/slavery.png`,
+		Image: slaveryImage,
 		click: () => {
 			if (MouseIn(1815, 75, 90, 90)) currentSettingsPage === null ? PreferenceSubscreenExtensionsClear() : currentSettingsPage = null;
 			const buttonsPositions = {};

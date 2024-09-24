@@ -1,4 +1,4 @@
-import { modVersion } from "@/index";
+import { getModVersion } from "@/index";
 import { chatSendDOGSMessage, getPlayer } from "./utils";
 import { hookFunction } from "./bcModSdk";
 
@@ -29,7 +29,7 @@ export function initStorage(): void {
     const data = {
         remoteControl: {},
         deviousPadlock: {},
-        version: modVersion,
+        version: getModVersion(),
     };
     
     if (typeof Player.ExtensionSettings.DOGS === "string") {

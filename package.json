@@ -1,10 +1,10 @@
 {
-  "name": "bc-mod",
+  "name": "DOGS",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "esbuild src/index.ts --bundle --outfile=dist/bundle.js --watch --loader:.ts=ts",
-    "build": "esbuild src/index.ts --outfile=dist/bundle.js --bundle --loader:.ts=ts"
+    "dev": "esbuild src/index.ts --bundle --outfile=dist/bundle.js --watch --loader:.ts=ts --loader:.css=text --loader:.png=base64",
+    "build": "esbuild src/index.ts --bundle --outfile=dist/bundle.js --loader:.ts=ts --loader:.css=text --loader:.png=base64"
   },
   "keywords": [],
   "author": "",

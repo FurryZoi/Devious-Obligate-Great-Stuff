@@ -1,9 +1,9 @@
-import { staticPath } from "@/index";
 import { hookFunction, patchFunction } from "./bcModSdk";
 import { modStorage } from "./storage";
 import { beautifyMessage, chatSendCustomAction, chatSendDOGSMessage, getNickname, getPlayer, notify, requestButtons, waitFor } from "./utils";
 import { remoteControlState } from "./remoteControl";
-
+import deviousPadlockImage from "@/images/devious-padlock.png";
+import backArrowImage from "@/images/back-arrow.png";
 
 
 const deviousPadlock = {
@@ -272,7 +272,7 @@ function getDeviousPadlockMenu(
 	const itemName = item.Craft?.Name ? item.Craft.Name : item.Asset.Description;
 	if (page === "main") {
 		const itemPreviewLink = `https://www.bondage-europe.com/${GameVersion}/BondageClub/Assets/Female3DCG/${group.Name}/Preview/${item.Asset.Name}.png`;
-		const padlockPreviewLink = `${staticPath}/src/images/devious-padlock.png`;
+		const padlockPreviewLink = deviousPadlockImage;
 
 		const centerBlock = document.createElement("div");
 		centerBlock.style = "display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%;";
@@ -461,7 +461,7 @@ function getDeviousPadlockMenu(
 
 		const backBtnIcon = document.createElement("img");
 		backBtnIcon.style = "width: 75%; height: auto;";
-		backBtnIcon.src = `${staticPath}/src/images/back-arrow.png`;
+		backBtnIcon.src = backArrowImage;
 		backBtn.append(backBtnIcon);
 
 		const note = document.createElement("textarea");
@@ -496,7 +496,7 @@ function getDeviousPadlockMenu(
 
 		const backBtnIcon = document.createElement("img");
 		backBtnIcon.style = "width: 75%; height: auto;";
-		backBtnIcon.src = `${staticPath}/src/images/back-arrow.png`;
+		backBtnIcon.src = backArrowImage;
 		backBtn.append(backBtnIcon);
 
 		const memberNumbersText = document.createElement("p");
@@ -701,7 +701,7 @@ export function loadDeviousPadlock(): void {
 		var path = args[0];
 		if (typeof path === "object") return next(args);
 		if (!!path && path === `Assets/Female3DCG/ItemMisc/Preview/${deviousPadlock.Name}.png`) {
-			args[0] = `${staticPath}/src/images/devious-padlock.png`;
+			args[0] = deviousPadlockImage;
 		} 
 		return next(args);
 	});
