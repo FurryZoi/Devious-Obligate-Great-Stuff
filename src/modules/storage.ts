@@ -78,7 +78,6 @@ function updateModStorage(): void {
     chatSendDOGSMessage("syncStorage", {
         storage: modStorage,
     });
-    console.log(modStorage);
 }
 
 

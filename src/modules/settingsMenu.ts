@@ -1,7 +1,3 @@
-// function chatSendChangelog() {
-// 	const text = "<div style='padding: 3px;'>The BCC addon has been updated, check out the changes using the command <!/bcc help!>!<br><br>Changes: <ul><li>● New command: <!/bcc transform!> to save forms and transform into them</li><li>● Compressed <!Chaos Padlocks!> data</li><li>● Now <!Cosplay Girl Power Stuff!> considered as <!magic wand!> to use dark magic</li><li>● <!Fixed!> bug where the diaper could become wet immediately after launching the mod</li><li>● <!Fixed!> bug that caused the command to be <!incorrectly!> recognized at the beginning of the sentence</li><li>● Now BCC will <!recognize!> the commands of mods: <!EBCH!>, <!MBCHC!>, <!ABCL!>, <!BC-Responsive!></li><li>● <!Fixed!> a bug that caused text to be moved to a new line in the chat input field</li><li>● <!Added!> new outfits</li><li>● <!Added!> new restriction for <!chaos padlocks!></li><li>● <!Added!> diaper wetness indicator</li></ul></div>";
-// 	chatSendLocal(text, "left");
-// }
 import { beautifyMessage, drawCheckbox, drawWrappedText } from "./utils";
 import { hookFunction } from "./bcModSdk";
 import { modStorage } from "./storage";
