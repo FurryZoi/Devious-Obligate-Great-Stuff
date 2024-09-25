@@ -441,7 +441,6 @@ One of mods you are using is using an old version of SDK. It will work for now b
     chatSendDOGSMessage("syncStorage", {
       storage: modStorage
     });
-    console.log(modStorage);
   }
   setInterval(updateModStorage, 800);
 
