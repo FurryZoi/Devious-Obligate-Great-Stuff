@@ -7,7 +7,7 @@ import { waitFor } from "@/modules/utils";
 import css from "./styles.css";
 
 export function getModVersion(): string {
-    return "1.0.0";
+    return "1.0.1";
 }
 
 const font = document.createElement("link");
