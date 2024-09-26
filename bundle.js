@@ -1534,7 +1534,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
 
   // src/index.ts
   function getModVersion() {
-    return "1.0.0";
+    return "1.0.1";
   }
   var font = document.createElement("link");
   font.href = "https://fonts.googleapis.com/css2?family=Comfortaa";
