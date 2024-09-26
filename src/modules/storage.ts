@@ -2,6 +2,13 @@ import { getModVersion } from "@/index";
 import { chatSendDOGSMessage, getPlayer } from "./utils";
 import { hookFunction } from "./bcModSdk";
 
+export type TSavedItem = {
+    name: string
+    color: ItemColor
+    craft: CraftingItem
+    property: ItemProperties
+}
+
 export interface IModStorage {
     remoteControl: {
         state?: boolean
@@ -11,7 +18,7 @@ export interface IModStorage {
         state?: boolean
         permission?: 0 | 1 | 2
         itemGroups?: {} | Record<AssetGroupName, {
-            item: ServerItemBundle
+            item: TSavedItem
             owner: number
             accessPermission?: 0 | 1 | 2 | 3
             memberNumbers?: number[]
@@ -42,6 +49,9 @@ export function initStorage(): void {
         }
     });
 
+    modStorageSaveString = JSON.stringify(modStorage);
+    migrateModStorage();
+
     hookFunction("ChatRoomMessage", 20, (args, next) => {
         const message = args[0];
         const sender = getPlayer(message.Sender);
@@ -67,6 +77,34 @@ export function initStorage(): void {
             storage: modStorage,
         });
     });
+
+    window.modStorage = modStorage;
+
+}
+
+function migrateModStorage(): void {
+    if (typeof modStorage.deviousPadlock.itemGroups === "object") {
+        Object.values(modStorage.deviousPadlock.itemGroups).forEach((d) => {
+            if (d.item.Name) {
+                d.item.name = d.item.Name;
+                delete d.item.Name;
+            }
+            if (d.item.Color) {
+                d.item.color = d.item.Color;
+                delete d.item.Color;
+            }
+            if (d.item.Craft) {
+                d.item.craft = d.item.Craft;
+                delete d.item.Craft;
+            }
+            if (d.item.Property) {
+                d.item.property = d.item.Property;
+                delete d.item.Property;
+            }
+            delete d.item.Difficulty;
+            delete d.item.Group;
+        });
+    }
 }
 
 function updateModStorage(): void {
@@ -79,6 +117,5 @@ function updateModStorage(): void {
         storage: modStorage,
     });
 }
-
 
 setInterval(updateModStorage, 800);

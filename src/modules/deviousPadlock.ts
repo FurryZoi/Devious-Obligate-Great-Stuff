@@ -1,5 +1,5 @@
 import { hookFunction, patchFunction } from "./bcModSdk";
-import { modStorage } from "./storage";
+import { modStorage, TSavedItem } from "./storage";
 import { beautifyMessage, chatSendCustomAction, chatSendDOGSMessage, getNickname, getPlayer, notify, requestButtons, waitFor } from "./utils";
 import { remoteControlState } from "./remoteControl";
 import deviousPadlockImage from "@/images/devious-padlock.png";
@@ -45,15 +45,23 @@ function convertExclusivePadlockToDeviousPadlock(item: Item): void {
 	}
 }
 
+function getSavedItemData(item: Item): TSavedItem {
+	return {
+		name: item.Asset.Name,
+		color: item.Color,
+		craft: item.Craft,
+		property: item.Property
+	}
+}
+
 function registerDeviousPadlockInModStorage(group: AssetGroupName, ownerId: number): void {
 	if (!modStorage.deviousPadlock.itemGroups) {
 		modStorage.deviousPadlock.itemGroups = {};
 	}
-	const item = ServerAppearanceBundle(Player.Appearance).filter((item) => {
-		return item.Group === group;
-	})[0];
+	const currentItem = InventoryGet(Player, group);
 	modStorage.deviousPadlock.itemGroups[group] = {
-		item, owner: ownerId
+		item: getSavedItemData(currentItem), 
+		owner: ownerId
 	};
 }
 
@@ -109,100 +117,50 @@ function onAppearanceChange(target1: Character, target2: Character): void {
 }
 
 function checkDeviousPadlocks(target: Character): void {
-	if (target.IsPlayer()) {
-		if (modStorage.deviousPadlock.itemGroups) {
-			Object.keys(modStorage.deviousPadlock.itemGroups).forEach(async (group) => {
-				const lockedItem = ServerAppearanceBundle(Player.Appearance).filter((item) => {
-					return item.Group === group;
-				})[0];
+	if (modStorage.deviousPadlock.itemGroups) {
+		// let newItems: ServerItemBundle[]  = [];
+		let padlocksChangedItemNames: string[] = [];
+		let pushChatRoom: boolean = false;
+		Object.keys(modStorage.deviousPadlock.itemGroups).forEach(async (groupName) => {
+			const currentItem = InventoryGet(Player, groupName);
+			const savedItem: TSavedItem = modStorage.deviousPadlock.itemGroups[groupName].item;
 
-				const property = lockedItem?.Property;
-				const padlockChanged = !(
-					property?.Name === deviousPadlock.Name
-					&& property?.LockedBy === "ExclusivePadlock"
-				);
-
-				if (
-					JSON.stringify(lockedItem) !== 
-					JSON.stringify(modStorage.deviousPadlock.itemGroups[group].item)
-					|| padlockChanged
-				) {
-					const newItem = Object.assign({}, modStorage.deviousPadlock.itemGroups[group].item);
-
-					ServerSend("ChatRoomCharacterUpdate", {
-						ID:
-							Player.ID === 0
-								? Player.OnlineID
-								: Player.AccountName.replace("Online-", ""),
-						ActivePose: Player.ActivePose,
-						Appearance: ServerAppearanceBundle(Player.Appearance)
-							.filter((item) => {
-								return item.Group !== group;
-							})
-							.concat([newItem])
-					});
+			const property = currentItem?.Property;
+			const padlockChanged = !(
+				property?.Name === deviousPadlock.Name
+				&& property?.LockedBy === "ExclusivePadlock"
+			);
+	
+			if (
+				currentItem?.Asset?.Name !== savedItem.name ||
+				JSON.stringify(currentItem?.Color) !== JSON.stringify(savedItem.color) ||
+				JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) ||
+				JSON.stringify(currentItem?.Property) !== JSON.stringify(savedItem.property)
+			) {
+				if (canAccessChaosPadlock(groupName, target, Player)) {
 					if (padlockChanged) {
-						await waitFor(() => {
-							return !!InventoryGet(Player, group);
-						});
-						const itemName = InventoryGet(Player, group).Craft?.Name 
-							? InventoryGet(Player, group).Craft.Name 
-							: InventoryGet(Player, group).Asset.Description;
-						chatSendCustomAction(`Chaos padlock appears again on ${getNickname(Player)}'s ${itemName}`);
-					}
-				}
-			});
-		}
-	} else {
-		if (modStorage.deviousPadlock.itemGroups) {
-			Object.keys(modStorage.deviousPadlock.itemGroups).forEach(async (group) => {
-				const lockedItem = ServerAppearanceBundle(Player.Appearance).filter((item) => {
-					return item.Group === group;
-				})[0];
-
-				const property = lockedItem?.Property;
-				const padlockChanged = !(
-					property?.Name === deviousPadlock.Name
-					&& property?.LockedBy === "ExclusivePadlock"
-				);
-
-				if (
-					JSON.stringify(lockedItem) !== 
-					JSON.stringify(modStorage.deviousPadlock.itemGroups[group].item)
-				) {
-					if (!canAccessChaosPadlock(group, target, Player)) {
-						const newItem = Object.assign({}, modStorage.deviousPadlock.itemGroups[group].item);
-
-						ServerSend("ChatRoomCharacterUpdate", {
-							ID:
-								Player.ID === 0
-									? Player.OnlineID
-									: Player.AccountName.replace("Online-", ""),
-							ActivePose: Player.ActivePose,
-							Appearance: ServerAppearanceBundle(Player.Appearance)
-								.filter((item) => {
-									return item.Group !== group;
-								})
-								.concat([newItem])
-						});
-						if (padlockChanged) {
-							await waitFor(() => {
-								return !!InventoryGet(Player, group);
-							});
-							const itemName = InventoryGet(Player, group).Craft?.Name 
-								? InventoryGet(Player, group).Craft.Name 
-								: InventoryGet(Player, group).Asset.Description;
-							chatSendCustomAction(`Devious padlock appears again on ${getNickname(Player)}'s ${itemName}`);
-						}
+						delete modStorage.deviousPadlock.itemGroups[groupName];
 					} else {
-						if (padlockChanged) {
-							delete modStorage.deviousPadlock.itemGroups[group];
-						} else {
-							modStorage.deviousPadlock.itemGroups[group].item = lockedItem;
-						}
+						modStorage.deviousPadlock.itemGroups[groupName].item = getSavedItemData(currentItem);
 					}
+				} else {
+					const difficulty = AssetGet(Player.AssetFamily, groupName, savedItem.name).Difficulty;
+					let newItem = InventoryWear(Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft);
+					newItem.Property = savedItem.property;
+					if (newItem.Property.Name !== deviousPadlock.Name) newItem.Property.Name = deviousPadlock.Name;
+					if (newItem.Property.LockedBy !== "ExclusivePadlock") newItem.Property.Name = "ExclusivePadlock";
+					if (padlockChanged) padlocksChangedItemNames.push(newItem.Craft?.Name ? newItem.Craft.Name : newItem.Asset.Description);
+					pushChatRoom = true;
 				}
-			});
+			}
+		});
+
+		if (ServerPlayerIsInChatRoom() && pushChatRoom) ChatRoomCharacterUpdate(Player);
+		if (padlocksChangedItemNames.length === 1) {
+			chatSendCustomAction(`Devious padlock appears again on ${getNickname(Player)}'s ${padlocksChangedItemNames[0]}`);
+		}
+		if (padlocksChangedItemNames.length > 1) {
+			chatSendCustomAction(`Devious padlock appears again on ${getNickname(Player)}'s: ${padlocksChangedItemNames.join(", ")}`);
 		}
 	}
 
@@ -587,7 +545,8 @@ export function loadDeviousPadlock(): void {
 			convertExclusivePadlockToDeviousPadlock(
 				item
 			);
-			ChatRoomCharacterUpdate(C);
+			if (ServerPlayerIsInChatRoom()) ChatRoomCharacterUpdate(C);
+			else checkDeviousPadlocks(Player);
 			if (C.IsPlayer()) {
 				chatSendCustomAction(`${getNickname(Player)} uses devious padlock on <possessive> ${
 					item.Craft?.Name ? item.Craft.Name : item.Asset.Description

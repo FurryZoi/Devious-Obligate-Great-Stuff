@@ -7,6 +7,6 @@ Adds devious stuff in Bondage Club
 ### FUSAM (Recommended)
 https://sidiousious.gitlab.io/bc-addon-loader
 ### Tampermonkey
-https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/raw/main/tampermonkey-userscript.js
+https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/raw/main/dogs.user.js
 ### Bookmark
-https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/raw/main/bookmark-userscript.js
+https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/raw/main/dogs.bookmark.js
