@@ -1,13 +1,13 @@
-import { initStorage } from "@/modules/storage";
+import { initStorage, modStorage } from "@/modules/storage";
 import { loadRemoteControl } from "@/modules/remoteControl";
 import { loadSettingsMenu } from "@/modules/settingsMenu";
 import { loadCommands } from "@/modules/commands";
 import { loadDeviousPadlock } from "@/modules/deviousPadlock";
-import { waitFor } from "@/modules/utils";
+import { chatSendChangelog, consoleLog, isVersionNewer, waitFor } from "@/modules/utils";
 import css from "./styles.css";
 
 export function getModVersion(): string {
-    return "1.0.1";
+    return "1.0.2";
 }
 
 const font = document.createElement("link");
@@ -26,6 +26,19 @@ waitFor(() => typeof window.Player?.MemberNumber === "number").then(() => {
     loadCommands();
     loadRemoteControl();
     loadDeviousPadlock();
+    consoleLog(`Ready! v${getModVersion()}`);
+
+    if (isVersionNewer(getModVersion(), modStorage.version)) {
+        if (ServerPlayerIsInChatRoom()) {
+			modStorage.version = getModVersion();
+			chatSendChangelog();
+		} else {
+			ServerSocket.once("ChatRoomSync", () => {
+				modStorage.version = getModVersion();
+				chatSendChangelog();
+			});
+		}
+    }
 });
 
 

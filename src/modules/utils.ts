@@ -1,3 +1,5 @@
+import { getModVersion } from "@/index";
+
 export function sleep(ms: number): Promise<() => {}> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -42,13 +44,12 @@ export function beautifyMessage(message: string): string {
 	return message;
 }
 
-// export function consoleLog(text: string): void {
-// 	console.log(
-// 		`%cBCC%c${text}`,
-// 		`font-weight: bold; padding: 3px; background: ${pinkColor}; color: ${purpleColor};`,
-// 		`padding: 3px 4px; background: ${purpleColor}; color: white;`
-// 	);
-// }
+export function consoleLog(text: string): void {
+	console.log(
+		`%cDOGS: ${text}`,
+		`font-weight: bold; color: rgb(72,70,109);`
+	);
+}
 
 export function chatSendDOGSMessage(msg: string, _data = undefined, targetNumber = undefined): void {
 	const data: ServerChatRoomMessage = {
@@ -210,14 +211,13 @@ export async function requestButtons(l: string, w: number, maxw: number, btns: {
 	});
 }
 
-
 export function chatSendLocal(message: string, align: "center" | "left" = "center", bgColor = "rgb(72,70,109)"): void {
 	if (!ServerPlayerIsInChatRoom()) return;
 	let style;
 	if (align === "center") {
 		style = `border-left: clamp(1px, 1vw, 4px) solid white; border-top-left-radius: clamp(2px, 0.6vw, 4px); border-bottom-left-radius: clamp(2px, 0.6vw, 4px); position: relative; box-sizing: border-box; font-size: 2vw; font-family: Comfortaa; margin-top: 4px; margin-bottom: 4px; background: ${bgColor}; color: white; padding: 1vw; text-align: center;`;
 	} else if (align === "left") {
-		style = `border-left: clamp(1px, 1vw, 4px) solid whhite; border-top-left-radius: clamp(2px, 0.6vw, 4px); border-bottom-left-radius: clamp(2px, 0.6vw, 4px); position: relative; box-sizing: border-box; font-size: 2vw; font-family: Comfortaa; margin-top: 4px; margin-bottom: 4px; background: ${bgColor}; color: white;`;
+		style = `border-left: clamp(1px, 1vw, 4px) solid white; border-top-left-radius: clamp(2px, 0.6vw, 4px); border-bottom-left-radius: clamp(2px, 0.6vw, 4px); position: relative; box-sizing: border-box; font-size: 2vw; font-family: Comfortaa; margin-top: 4px; margin-bottom: 4px; background: ${bgColor}; color: white;`;
 	}
 
 	const msgElement = document.createElement("div");
@@ -231,6 +231,11 @@ export function chatSendLocal(message: string, align: "center" | "left" = "cente
 	msgElement.append(time);
 	document.querySelector("#TextAreaChatLog").appendChild(msgElement);
 	ElementScrollToEnd("TextAreaChatLog");
+}
+
+export function chatSendChangelog(): void {
+	const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>• <!Devious padlock!> will not appear in the inventory if the target player doesn't have <!DOGS!></li><li>• Fixed bug that caused the version string not to change</li></ul></div>`;
+	chatSendLocal(text, "left");
 }
 
 export function drawCheckbox(
@@ -257,5 +262,23 @@ export function drawWrappedText(text: string, x: number, y: number, color: strin
 	for (let l in lines) {
 		DrawText(lines[parseInt(l)], x, y + parseInt(l) * gap, color);
 	}
+}
+
+export function isVersionNewer(version1: string, version2: string): boolean {
+	const v1Parts = version1.split('.');
+	const v2Parts = version2.split('.');
+  
+	for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
+		const v1Part = parseInt(v1Parts[i] || '0', 10);
+		const v2Part = parseInt(v2Parts[i] || '0', 10);
+
+		if (v1Part > v2Part) {
+			return true;
+		} else if (v1Part < v2Part) {
+			return false;
+		}
+	}
+
+	return false;
 }
 

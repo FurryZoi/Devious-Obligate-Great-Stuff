@@ -17,7 +17,7 @@ export interface IModStorage {
     deviousPadlock: {
         state?: boolean
         permission?: 0 | 1 | 2
-        itemGroups?: {} | Record<AssetGroupName, {
+        itemGroups?: {} | Record<AssetGroupItemName, {
             item: TSavedItem
             owner: number
             accessPermission?: 0 | 1 | 2 | 3
@@ -78,8 +78,7 @@ export function initStorage(): void {
         });
     });
 
-    window.modStorage = modStorage;
-
+    // window.modStorage = modStorage;
 }
 
 function migrateModStorage(): void {

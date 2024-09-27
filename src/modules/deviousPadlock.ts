@@ -118,7 +118,6 @@ function onAppearanceChange(target1: Character, target2: Character): void {
 
 function checkDeviousPadlocks(target: Character): void {
 	if (modStorage.deviousPadlock.itemGroups) {
-		// let newItems: ServerItemBundle[]  = [];
 		let padlocksChangedItemNames: string[] = [];
 		let pushChatRoom: boolean = false;
 		Object.keys(modStorage.deviousPadlock.itemGroups).forEach(async (groupName) => {
@@ -164,19 +163,19 @@ function checkDeviousPadlocks(target: Character): void {
 		}
 	}
 
-	ServerAppearanceBundle(Player.Appearance).forEach((item) => {
+	Player.Appearance.forEach((item) => {
 		if (
 			item.Property?.Name === deviousPadlock.Name &&
 			item.Property?.LockedBy === "ExclusivePadlock"
 		) {
 			if (
 				!modStorage.deviousPadlock.itemGroups ||
-				!modStorage.deviousPadlock.itemGroups[item.Group]
+				!modStorage.deviousPadlock.itemGroups[item.Asset.Group.Name as AssetGroupItemName]
 			) {
 				if (!modStorage.deviousPadlock.state) {
-					InventoryUnlock(Player, item.Group);
+					InventoryUnlock(Player, item.Asset.Group.Name as AssetGroupItemName);
 					ChatRoomCharacterUpdate(Player);					
-				} else registerDeviousPadlockInModStorage(item.Group, target.MemberNumber);
+				} else registerDeviousPadlockInModStorage(item.Asset.Group.Name as AssetGroupItemName, target.MemberNumber);
 			}
 		}
 	});
@@ -640,6 +639,19 @@ export function loadDeviousPadlock(): void {
 		} 
 		return next(args);
 	});
+
+	hookFunction("DialogInventoryAdd", 20, (args, next) => {
+		const [C, item, isWorn, sortOrder] = args;
+		const asset = item.Asset;
+		
+		if (
+			asset.Name === deviousPadlock.Name &&
+			!C.IsPlayer() &&
+			!C.DOGS
+		) return;
+		return next(args);
+	});
+
 
 	hookFunction("ChatRoomMessage", 20, (args, next) => {
 		const message = args[0];

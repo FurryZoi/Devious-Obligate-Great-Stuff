@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name DOGS
 // @namespace https://www.bondageprojects.com/
-// @version 1.0.1
+// @version 1.0.2
 // @description Devious Obligate Great Stuff
 // @author Zoi
 // @match https://bondageprojects.elementfx.com/*
