@@ -214,6 +214,12 @@ One of mods you are using is using an old version of SDK. It will work for now b
     message = message.replaceAll("<!", `<span style='color: #48AA6D;'>`).replaceAll("!>", "</span>");
     return message;
   }
+  function consoleLog(text) {
+    console.log(
+      `%cDOGS: ${text}`,
+      `font-weight: bold; color: rgb(72,70,109);`
+    );
+  }
   function chatSendDOGSMessage(msg, _data = void 0, targetNumber = void 0) {
     const data = {
       Content: "dogsMsg",
@@ -341,7 +347,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     if (align === "center") {
       style2 = `border-left: clamp(1px, 1vw, 4px) solid white; border-top-left-radius: clamp(2px, 0.6vw, 4px); border-bottom-left-radius: clamp(2px, 0.6vw, 4px); position: relative; box-sizing: border-box; font-size: 2vw; font-family: Comfortaa; margin-top: 4px; margin-bottom: 4px; background: ${bgColor}; color: white; padding: 1vw; text-align: center;`;
     } else if (align === "left") {
-      style2 = `border-left: clamp(1px, 1vw, 4px) solid whhite; border-top-left-radius: clamp(2px, 0.6vw, 4px); border-bottom-left-radius: clamp(2px, 0.6vw, 4px); position: relative; box-sizing: border-box; font-size: 2vw; font-family: Comfortaa; margin-top: 4px; margin-bottom: 4px; background: ${bgColor}; color: white;`;
+      style2 = `border-left: clamp(1px, 1vw, 4px) solid white; border-top-left-radius: clamp(2px, 0.6vw, 4px); border-bottom-left-radius: clamp(2px, 0.6vw, 4px); position: relative; box-sizing: border-box; font-size: 2vw; font-family: Comfortaa; margin-top: 4px; margin-bottom: 4px; background: ${bgColor}; color: white;`;
     }
     const msgElement = document.createElement("div");
     msgElement.innerHTML = beautifyMessage(message);
@@ -354,6 +360,10 @@ One of mods you are using is using an old version of SDK. It will work for now b
     msgElement.append(time);
     document.querySelector("#TextAreaChatLog").appendChild(msgElement);
     ElementScrollToEnd("TextAreaChatLog");
+  }
+  function chatSendChangelog() {
+    const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>\u2022 <!Devious padlock!> will not appear in the inventory if the target player doesn't have <!DOGS!></li><li>\u2022 Fixed bug that caused the version string not to change</li></ul></div>`;
+    chatSendLocal(text, "left");
   }
   function drawCheckbox(left, top, width, height, text, isChecked, isDisabled = false, textColor = "Black", textLeft = 200, textTop = 45) {
     DrawText(text, left + textLeft, top + textTop, textColor, "Gray");
@@ -373,6 +383,20 @@ One of mods you are using is using an old version of SDK. It will work for now b
     for (let l in lines) {
       DrawText(lines[parseInt(l)], x, y + parseInt(l) * gap, color);
     }
+  }
+  function isVersionNewer(version1, version2) {
+    const v1Parts = version1.split(".");
+    const v2Parts = version2.split(".");
+    for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
+      const v1Part = parseInt(v1Parts[i] || "0", 10);
+      const v2Part = parseInt(v2Parts[i] || "0", 10);
+      if (v1Part > v2Part) {
+        return true;
+      } else if (v1Part < v2Part) {
+        return false;
+      }
+    }
+    return false;
   }
 
   // src/modules/bcModSdk.ts
@@ -433,7 +457,6 @@ One of mods you are using is using an old version of SDK. It will work for now b
         storage: modStorage
       });
     });
-    window.modStorage = modStorage;
   }
   function migrateModStorage() {
     if (typeof modStorage.deviousPadlock.itemGroups === "object") {
@@ -977,13 +1000,13 @@ One of mods you are using is using an old version of SDK. It will work for now b
         chatSendCustomAction(`Devious padlock appears again on ${getNickname(Player)}'s: ${padlocksChangedItemNames.join(", ")}`);
       }
     }
-    ServerAppearanceBundle(Player.Appearance).forEach((item) => {
+    Player.Appearance.forEach((item) => {
       if (item.Property?.Name === deviousPadlock.Name && item.Property?.LockedBy === "ExclusivePadlock") {
-        if (!modStorage.deviousPadlock.itemGroups || !modStorage.deviousPadlock.itemGroups[item.Group]) {
+        if (!modStorage.deviousPadlock.itemGroups || !modStorage.deviousPadlock.itemGroups[item.Asset.Group.Name]) {
           if (!modStorage.deviousPadlock.state) {
-            InventoryUnlock(Player, item.Group);
+            InventoryUnlock(Player, item.Asset.Group.Name);
             ChatRoomCharacterUpdate(Player);
-          } else registerDeviousPadlockInModStorage(item.Group, target.MemberNumber);
+          } else registerDeviousPadlockInModStorage(item.Asset.Group.Name, target.MemberNumber);
         }
       }
     });
@@ -1305,6 +1328,12 @@ One of mods you are using is using an old version of SDK. It will work for now b
       }
       return next(args);
     });
+    hookFunction("DialogInventoryAdd", 20, (args, next) => {
+      const [C, item, isWorn, sortOrder] = args;
+      const asset = item.Asset;
+      if (asset.Name === deviousPadlock.Name && !C.IsPlayer() && !C.DOGS) return;
+      return next(args);
+    });
     hookFunction("ChatRoomMessage", 20, (args, next) => {
       const message = args[0];
       const sender = getPlayer(message.Sender);
@@ -1534,7 +1563,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
 
   // src/index.ts
   function getModVersion() {
-    return "1.0.1";
+    return "1.0.2";
   }
   var font = document.createElement("link");
   font.href = "https://fonts.googleapis.com/css2?family=Comfortaa";
@@ -1550,5 +1579,17 @@ One of mods you are using is using an old version of SDK. It will work for now b
     loadCommands();
     loadRemoteControl();
     loadDeviousPadlock();
+    consoleLog(`Ready! v${getModVersion()}`);
+    if (isVersionNewer(getModVersion(), modStorage.version)) {
+      if (ServerPlayerIsInChatRoom()) {
+        modStorage.version = getModVersion();
+        chatSendChangelog();
+      } else {
+        ServerSocket.once("ChatRoomSync", () => {
+          modStorage.version = getModVersion();
+          chatSendChangelog();
+        });
+      }
+    }
   });
 })();
