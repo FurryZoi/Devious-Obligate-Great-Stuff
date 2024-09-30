@@ -398,6 +398,13 @@ One of mods you are using is using an old version of SDK. It will work for now b
     }
     return false;
   }
+  function colorsEqual(c1, c2) {
+    if (!c1 && !c2) return true;
+    if (!c1 && c2 === "Default" || !c2 && c1 === "Default") return true;
+    if (c1 === "Default" && Array.isArray(c2) && c2.filter((d) => d === "Default").length === c2.length) return true;
+    if (c2 === "Default" && Array.isArray(c1) && c1.filter((d) => d === "Default").length === c1.length) return true;
+    return JSON.stringify(c1) === JSON.stringify(c2);
+  }
 
   // src/modules/bcModSdk.ts
   var import_bondage_club_mod_sdk = __toESM(require_bcmodsdk());
@@ -893,11 +900,6 @@ One of mods you are using is using an old version of SDK. It will work for now b
     AssetGet("Female3DCG", "ItemMisc", deviousPadlock.Name).Description = "Devious Padlock";
     InventoryAdd(Player, deviousPadlock.Name, "ItemMisc");
   }
-  function convertExclusivePadlockToDeviousPadlock(item) {
-    if (item.Property?.Name !== deviousPadlock.Name) {
-      item.Property.Name = deviousPadlock.Name;
-    }
-  }
   function getSavedItemData(item) {
     return {
       name: item.Asset.Name,
@@ -971,7 +973,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
         const savedItem = modStorage.deviousPadlock.itemGroups[groupName].item;
         const property = currentItem?.Property;
         const padlockChanged = !(property?.Name === deviousPadlock.Name && property?.LockedBy === "ExclusivePadlock");
-        if (currentItem?.Asset?.Name !== savedItem.name || JSON.stringify(currentItem?.Color) !== JSON.stringify(savedItem.color) || JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) || JSON.stringify(currentItem?.Property) !== JSON.stringify(savedItem.property)) {
+        if (currentItem?.Asset?.Name !== savedItem.name || !colorsEqual(currentItem.Color, savedItem.color) || JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) || JSON.stringify(currentItem?.Property) !== JSON.stringify(savedItem.property)) {
           if (canAccessChaosPadlock(groupName, target, Player)) {
             if (padlockChanged) {
               delete modStorage.deviousPadlock.itemGroups[groupName];
@@ -1242,22 +1244,9 @@ One of mods you are using is using an old version of SDK. It will work for now b
             ]
           );
           if (answer === "No, i clicked wrong button") return;
-        } else if (!C.DOGS?.deviousPadlock.state) {
+        } else if (!C.DOGS?.deviousPadlock?.state) {
           return notify(`<!${getNickname(C)}'s!> devious padlock module is <!disabled!>`, 4e3);
         }
-        InventoryLock(C, item, "ExclusivePadlock", Player.MemberNumber);
-        convertExclusivePadlockToDeviousPadlock(
-          item
-        );
-        if (ServerPlayerIsInChatRoom()) ChatRoomCharacterUpdate(C);
-        else checkDeviousPadlocks(Player);
-        if (C.IsPlayer()) {
-          chatSendCustomAction(`${getNickname(Player)} uses devious padlock on <possessive> ${item.Craft?.Name ? item.Craft.Name : item.Asset.Description}`);
-        } else {
-          chatSendCustomAction(`${getNickname(Player)} uses devious padlock on ${getNickname(C)}'s ${item.Craft?.Name ? item.Craft.Name : item.Asset.Description}`);
-        }
-        DialogLeave();
-        return;
       }
       next(args);
     });
@@ -1280,6 +1269,20 @@ One of mods you are using is using an old version of SDK. It will work for now b
       const item = InventoryGet(target, group);
       if (item?.Property?.Name === deviousPadlock.Name) {
         delete item.Property.Name;
+      }
+      return next(args);
+    });
+    hookFunction("InventoryLock", 20, (args, next) => {
+      const [C, Item, Lock, MemberNumber] = args;
+      if ([Lock.Name, Lock].includes(deviousPadlock.Name)) {
+        args[2] = "ExclusivePadlock";
+        if (args[1].Property) {
+          args[1].Property.Name = deviousPadlock.Name;
+        } else {
+          args[1].Property = {
+            Name: deviousPadlock.Name
+          };
+        }
       }
       return next(args);
     });
