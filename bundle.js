@@ -362,7 +362,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     ElementScrollToEnd("TextAreaChatLog");
   }
   function chatSendChangelog() {
-    const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>\u2022 <!Devious padlock!> will not appear in the inventory if the target player doesn't have <!DOGS!></li><li>\u2022 Fixed bug that caused the version string not to change</li></ul></div>`;
+    const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>\u2022 Fixed a bug where the devious padlock icon wasn't displayed at the moment when other mods, which add 3rd party padlocks, were loaded. Now Devious Padlock, Best Friend Padlock and other 3rd party padlocks will not interfere with each other.</li></ul></div>`;
     chatSendLocal(text, "left");
   }
   function drawCheckbox(left, top, width, height, text, isChecked, isDisabled = false, textColor = "Black", textLeft = 200, textTop = 45) {
@@ -409,9 +409,6 @@ One of mods you are using is using an old version of SDK. It will work for now b
   });
   function hookFunction(functionName, priority, hook) {
     return modSdk.hookFunction(functionName, priority, hook);
-  }
-  function patchFunction(functionName, patches) {
-    modSdk.patchFunction(functionName, patches);
   }
 
   // src/modules/storage.ts
@@ -1363,13 +1360,14 @@ One of mods you are using is using an old version of SDK. It will work for now b
       }
       next(args);
     });
-    patchFunction("DialogGetLockIcon", {
-      [`if (InventoryItemHasEffect(item, "Lock")) {`]: `
-		if (InventoryItemHasEffect(item, "Lock")) {
-			if (item.Property && item.Property.Name === "DeviousPadlock") {
-				icons.push("DeviousPadlock");
-				return icons; }
-		`
+    hookFunction("DialogGetLockIcon", 20, (args, next) => {
+      const item = args[0];
+      if (InventoryItemHasEffect(item, "Lock")) {
+        if (item.Property && item.Property.Name === deviousPadlock.Name) {
+          return [deviousPadlock.Name];
+        }
+      }
+      return next(args);
     });
   }
 
@@ -1563,7 +1561,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
 
   // src/index.ts
   function getModVersion() {
-    return "1.0.2";
+    return "1.0.3";
   }
   var font = document.createElement("link");
   font.href = "https://fonts.googleapis.com/css2?family=Comfortaa";
