@@ -234,7 +234,7 @@ export function chatSendLocal(message: string, align: "center" | "left" = "cente
 }
 
 export function chatSendChangelog(): void {
-	const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>• <!Devious padlock!> will not appear in the inventory if the target player doesn't have <!DOGS!></li><li>• Fixed bug that caused the version string not to change</li></ul></div>`;
+	const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>• Fixed a bug where the devious padlock icon wasn't displayed at the moment when other mods, which add 3rd party padlocks, were loaded. Now Devious Padlock, Best Friend Padlock and other 3rd party padlocks will not interfere with each other.</li></ul></div>`;
 	chatSendLocal(text, "left");
 }
 

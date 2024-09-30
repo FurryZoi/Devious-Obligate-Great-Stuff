@@ -683,15 +683,24 @@ export function loadDeviousPadlock(): void {
 		next(args);
 	});
 
-	patchFunction("DialogGetLockIcon", {
-		[`if (InventoryItemHasEffect(item, "Lock")) {`]:
-		`
-		if (InventoryItemHasEffect(item, "Lock")) {
-			if (item.Property && item.Property.Name === "DeviousPadlock") {
-				icons.push("DeviousPadlock");
-				return icons; }
-		`
-	});
+	// patchFunction("DialogGetLockIcon", {
+	// 	[`if (InventoryItemHasEffect(item, "Lock")) {`]:
+	// 	`
+	// 	if (InventoryItemHasEffect(item, "Lock")) {
+	// 		if (item.Property && item.Property.Name === "DeviousPadlock") {
+	// 			icons.push("DeviousPadlock");
+	// 			return icons; }
+	// 	`
+	// });
 
+	hookFunction("DialogGetLockIcon", 20, (args, next) => {
+		const item = args[0];
+		if (InventoryItemHasEffect(item, "Lock")) {
+			if (item.Property && item.Property.Name === deviousPadlock.Name) {
+				return [deviousPadlock.Name];
+			}
+		}
+		return next(args);
+	});
 }
 
