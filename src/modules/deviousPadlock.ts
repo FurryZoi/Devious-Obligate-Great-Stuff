@@ -1,6 +1,6 @@
 import { hookFunction, patchFunction } from "./bcModSdk";
 import { modStorage, TSavedItem } from "./storage";
-import { beautifyMessage, chatSendCustomAction, chatSendDOGSMessage, getNickname, getPlayer, notify, requestButtons, waitFor } from "./utils";
+import { beautifyMessage, chatSendCustomAction, chatSendDOGSMessage, colorsEqual, getNickname, getPlayer, notify, requestButtons, waitFor } from "./utils";
 import { remoteControlState } from "./remoteControl";
 import deviousPadlockImage from "@/images/devious-padlock.png";
 import backArrowImage from "@/images/back-arrow.png";
@@ -132,7 +132,7 @@ function checkDeviousPadlocks(target: Character): void {
 	
 			if (
 				currentItem?.Asset?.Name !== savedItem.name ||
-				JSON.stringify(currentItem?.Color) !== JSON.stringify(savedItem.color) ||
+				!colorsEqual(currentItem.Color, savedItem.color) ||
 				JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) ||
 				JSON.stringify(currentItem?.Property) !== JSON.stringify(savedItem.property)
 			) {
@@ -536,27 +536,27 @@ export function loadDeviousPadlock(): void {
 					]
 				);
 				if (answer === "No, i clicked wrong button") return;
-			} else if (!C.DOGS?.deviousPadlock.state) {
+			} else if (!C.DOGS?.deviousPadlock?.state) {
 				return notify(`<!${getNickname(C)}'s!> devious padlock module is <!disabled!>`, 4000);
 			}
 
-			InventoryLock(C, item, "ExclusivePadlock", Player.MemberNumber);
-			convertExclusivePadlockToDeviousPadlock(
-				item
-			);
-			if (ServerPlayerIsInChatRoom()) ChatRoomCharacterUpdate(C);
-			else checkDeviousPadlocks(Player);
-			if (C.IsPlayer()) {
-				chatSendCustomAction(`${getNickname(Player)} uses devious padlock on <possessive> ${
-					item.Craft?.Name ? item.Craft.Name : item.Asset.Description
-				}`);
-			} else {
-				chatSendCustomAction(`${getNickname(Player)} uses devious padlock on ${getNickname(C)}'s ${
-					item.Craft?.Name ? item.Craft.Name : item.Asset.Description
-				}`);
-			}
-			DialogLeave();
-			return;
+			// InventoryLock(C, item, "ExclusivePadlock", Player.MemberNumber);
+			// convertExclusivePadlockToDeviousPadlock(
+			// 	item
+			// );
+			// if (ServerPlayerIsInChatRoom()) ChatRoomCharacterUpdate(C);
+			// else checkDeviousPadlocks(Player);
+			// if (C.IsPlayer()) {
+			// 	chatSendCustomAction(`${getNickname(Player)} uses devious padlock on <possessive> ${
+			// 		item.Craft?.Name ? item.Craft.Name : item.Asset.Description
+			// 	}`);
+			// } else {
+			// 	chatSendCustomAction(`${getNickname(Player)} uses devious padlock on ${getNickname(C)}'s ${
+			// 		item.Craft?.Name ? item.Craft.Name : item.Asset.Description
+			// 	}`);
+			// }
+			// DialogLeave();
+			// return;
 		}
 
 		next(args);
@@ -584,6 +584,21 @@ export function loadDeviousPadlock(): void {
 		const item = InventoryGet(target, group);
 		if (item?.Property?.Name === deviousPadlock.Name) {
 			delete item.Property.Name;
+		}
+		return next(args);
+	});
+
+	hookFunction("InventoryLock", 20, (args, next) => {
+		const [ C, Item, Lock, MemberNumber ] = args;
+		if ([Lock.Name, Lock].includes(deviousPadlock.Name)) {
+			args[2] = "ExclusivePadlock";
+			if (args[1].Property) {
+				args[1].Property.Name = deviousPadlock.Name;
+			} else {
+				args[1].Property = {
+					Name: deviousPadlock.Name
+				};
+			}
 		}
 		return next(args);
 	});

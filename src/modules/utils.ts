@@ -282,3 +282,11 @@ export function isVersionNewer(version1: string, version2: string): boolean {
 	return false;
 }
 
+export function colorsEqual(c1: string[] | string | null | undefined, c2: string[] | string | null | undefined): boolean {
+	if (!c1 && !c2) return true;
+	if (!c1 && c2 === "Default" || !c2 && c1 === "Default") return true;
+	if (c1 === "Default" && Array.isArray(c2) && c2.filter(d => d === "Default").length === c2.length) return true;
+	if (c2 === "Default" && Array.isArray(c1) && c1.filter(d => d === "Default").length === c1.length) return true;
+	return JSON.stringify(c1) === JSON.stringify(c2);
+}
+
