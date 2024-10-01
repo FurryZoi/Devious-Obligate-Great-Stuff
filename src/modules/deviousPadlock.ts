@@ -90,12 +90,11 @@ function inspectDeviousPadlock(target: Character, item: Item, itemGroup: AssetIt
 
 function canAccessChaosPadlock(groupName: string, target1: Character, target2: Character): boolean {
 	if (!target1.CanInteract()) return false;
-	if (!target1.IsPlayer() && !target1.DOGS) return false;
 	if (!target2.IsPlayer() && !target2.DOGS) return false;
 	if (target1.MemberNumber === target2.MemberNumber) return false;
-	const owner = target2.IsPlayer() ? modStorage.deviousPadlock.itemGroups[groupName].owner : target2.DOGS.deviousPadlock.itemGroups[groupName].owner;
-	const permissionKey = target2.IsPlayer() ? (modStorage.deviousPadlock.itemGroups[groupName].accessPermission ?? 0) : (target2.DOGS.deviousPadlock.itemGroups[groupName].accessPermission ?? 0);
-	const memberNumbers = target2.IsPlayer() ? (modStorage.deviousPadlock.itemGroups[groupName].memberNumbers ?? []) : (target2.DOGS.deviousPadlock.itemGroups[groupName].memberNumbers ?? []);
+	const owner = target2.IsPlayer() ? modStorage.deviousPadlock.itemGroups?.[groupName]?.owner : target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.owner;
+	const permissionKey = target2.IsPlayer() ? (modStorage.deviousPadlock.itemGroups?.[groupName]?.accessPermission ?? 0) : (target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.accessPermission ?? 0);
+	const memberNumbers = target2.IsPlayer() ? (modStorage.deviousPadlock.itemGroups?.[groupName]?.memberNumbers ?? []) : (target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.memberNumbers ?? []);
 	if (target1.MemberNumber === owner || memberNumbers.includes(target1.MemberNumber)) return true;
 	if (permissionKey === 0) return target1.MemberNumber !== target2.MemberNumber;
 	if (permissionKey === 1) return target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
@@ -564,7 +563,12 @@ export function loadDeviousPadlock(): void {
 
 	hookFunction("InventoryItemMiscExclusivePadlockDraw", 20, (args, next) => {
 		const item = InventoryGet(CurrentCharacter, CurrentCharacter.FocusGroup.Name);
-		if (item.Property?.Name === deviousPadlock.Name) {
+		if (
+			item.Property?.Name === deviousPadlock.Name &&
+			(
+				CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS
+			)
+		) {
 			inspectDeviousPadlock(CurrentCharacter, item, CurrentCharacter.FocusGroup);
 			DialogChangeMode("items");
 			return;
@@ -573,14 +577,27 @@ export function loadDeviousPadlock(): void {
 	});
 
 	hookFunction("DialogCanUnlock", 20, (args, next) => {
-		const [ target, item ] = args;
+		const [ target, item ] = args as [Character, Item];
 
-		if (item?.Property?.Name === deviousPadlock.Name) return canAccessChaosPadlock(target.FocusGroup?.Name, Player, target);
+		if (
+			item?.Property?.Name === deviousPadlock.Name && 
+			(
+				target.IsPlayer() || target.DOGS
+			)
+		) {
+			if (
+				target.IsPlayer() &&
+				typeof modStorage.deviousPadlock.itemGroups?.[item.Asset?.Group?.Name] !== "object"
+			) {
+				registerDeviousPadlockInModStorage(item.Asset.Group.Name, parseInt(item.Property.LockMemberNumber ?? Player.MemberNumber));
+			}
+			return canAccessChaosPadlock(target.FocusGroup?.Name, Player, target);
+		}
 		return next(args);
 	});
 
 	hookFunction("InventoryUnlock", 20, (args, next) => {
-		const [ target, group ] = args;
+		const [ target, group ] = args as [Character, AssetGroupItemName];
 		const item = InventoryGet(target, group);
 		if (item?.Property?.Name === deviousPadlock.Name) {
 			delete item.Property.Name;
@@ -589,7 +606,7 @@ export function loadDeviousPadlock(): void {
 	});
 
 	hookFunction("InventoryLock", 20, (args, next) => {
-		const [ C, Item, Lock, MemberNumber ] = args;
+		const [ C, Item, Lock, MemberNumber ] = args as [Character, Item | AssetGroupName, Item | AssetLockType, null | number | string];
 		if ([Lock.Name, Lock].includes(deviousPadlock.Name)) {
 			args[2] = "ExclusivePadlock";
 			if (args[1].Property) {
@@ -604,12 +621,15 @@ export function loadDeviousPadlock(): void {
 	});
 
 	hookFunction("DialogSetStatus", 20, (args, next) => {
-		const [ status ] = args;
+		const [ status ] = args as [string];
 		if (
 			typeof status === "string" &&
 			status.startsWith("This looks like its locked by a") &&
 			InventoryGet(CurrentCharacter, CurrentCharacter?.FocusGroup?.Name)
-				?.Property?.Name === deviousPadlock.Name
+				?.Property?.Name === deviousPadlock.Name &&
+			(
+				CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS
+			)
 		) {
 			if (CurrentCharacter.IsPlayer()) {
 				args[0] = "This looks like its locked by a devious padlock, you are totally helpless :3";
@@ -711,7 +731,10 @@ export function loadDeviousPadlock(): void {
 	hookFunction("DialogGetLockIcon", 20, (args, next) => {
 		const item = args[0];
 		if (InventoryItemHasEffect(item, "Lock")) {
-			if (item.Property && item.Property.Name === deviousPadlock.Name) {
+			if (
+				item.Property && item.Property.Name === deviousPadlock.Name
+				&& (CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS)
+			) {
 				return [deviousPadlock.Name];
 			}
 		}

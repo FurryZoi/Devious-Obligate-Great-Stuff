@@ -234,7 +234,7 @@ export function chatSendLocal(message: string, align: "center" | "left" = "cente
 }
 
 export function chatSendChangelog(): void {
-	const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>• Fixed a bug where the devious padlock icon wasn't displayed at the moment when other mods, which add 3rd party padlocks, were loaded. Now Devious Padlock, Best Friend Padlock and other 3rd party padlocks will not interfere with each other.</li></ul></div>`;
+	const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>• Added help menu</li><li>• Fixed issue with inspecting <!devious padlock!> on target user when they didnt have DOGS loaded</li></ul></div>`;
 	chatSendLocal(text, "left");
 }
 

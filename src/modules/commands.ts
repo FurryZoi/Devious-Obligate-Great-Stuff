@@ -1,17 +1,30 @@
 import { remoteControlState, remoteControlTarget, setRemoteControlState, setRemoteControlTarget } from "./remoteControl";
-import { chatSendBeep, chatSendLocal } from "./utils";
+import { beautifyMessage, chatSendBeep, chatSendLocal } from "./utils";
 
 
 interface ICommand {
     name: string
     description: string
+    args?: string
     action: (text: string) => void
 }
 
 const commands: ICommand[] = [
     {
+        name: "help",
+        description: "Open DOGS help menu",
+        action: () => {
+            let msg = "<div style='padding: 0.4vw;'><!DOGS!> commands:</div>";
+            for (const c of commands) {
+                msg += `<div style='padding: 0.4vw;'><!/dogs ${c.name}!> ${c.args ? `${c.args}` : ""} - ${c.description}</div>`;
+            }
+            chatSendLocal(beautifyMessage(msg), "left");
+        }
+    },
+    {
         name: "remote",
-        description: "Remote control",
+        description: "Use remote control",
+        args: "[member number]",
         action: (text) => {
             const args = getArgs(text);
             const targetId = parseInt(args[0]);

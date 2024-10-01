@@ -51,6 +51,9 @@ export function initStorage(): void {
 
     modStorageSaveString = JSON.stringify(modStorage);
     migrateModStorage();
+    chatSendDOGSMessage("syncStorage", {
+        storage: modStorage,
+    });
 
     hookFunction("ChatRoomMessage", 20, (args, next) => {
         const message = args[0];
