@@ -362,7 +362,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     ElementScrollToEnd("TextAreaChatLog");
   }
   function chatSendChangelog() {
-    const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>\u2022 Fixed a bug where the devious padlock icon wasn't displayed at the moment when other mods, which add 3rd party padlocks, were loaded. Now Devious Padlock, Best Friend Padlock and other 3rd party padlocks will not interfere with each other.</li></ul></div>`;
+    const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>\u2022 Added help menu</li><li>\u2022 Fixed issue with inspecting <!devious padlock!> on target user when they didnt have DOGS loaded</li></ul></div>`;
     chatSendLocal(text, "left");
   }
   function drawCheckbox(left, top, width, height, text, isChecked, isDisabled = false, textColor = "Black", textLeft = 200, textTop = 45) {
@@ -437,6 +437,9 @@ One of mods you are using is using an old version of SDK. It will work for now b
     });
     modStorageSaveString = JSON.stringify(modStorage);
     migrateModStorage();
+    chatSendDOGSMessage("syncStorage", {
+      storage: modStorage
+    });
     hookFunction("ChatRoomMessage", 20, (args, next) => {
       const message = args[0];
       const sender = getPlayer(message.Sender);
@@ -810,8 +813,20 @@ One of mods you are using is using an old version of SDK. It will work for now b
   // src/modules/commands.ts
   var commands = [
     {
+      name: "help",
+      description: "Open DOGS help menu",
+      action: () => {
+        let msg = "<div style='padding: 0.4vw;'><!DOGS!> commands:</div>";
+        for (const c of commands) {
+          msg += `<div style='padding: 0.4vw;'><!/dogs ${c.name}!> ${c.args ? `${c.args}` : ""} - ${c.description}</div>`;
+        }
+        chatSendLocal(beautifyMessage(msg), "left");
+      }
+    },
+    {
       name: "remote",
-      description: "Remote control",
+      description: "Use remote control",
+      args: "[member number]",
       action: (text) => {
         const args = getArgs(text);
         const targetId = parseInt(args[0]);
@@ -941,12 +956,11 @@ One of mods you are using is using an old version of SDK. It will work for now b
   }
   function canAccessChaosPadlock(groupName, target1, target2) {
     if (!target1.CanInteract()) return false;
-    if (!target1.IsPlayer() && !target1.DOGS) return false;
     if (!target2.IsPlayer() && !target2.DOGS) return false;
     if (target1.MemberNumber === target2.MemberNumber) return false;
-    const owner = target2.IsPlayer() ? modStorage.deviousPadlock.itemGroups[groupName].owner : target2.DOGS.deviousPadlock.itemGroups[groupName].owner;
-    const permissionKey = target2.IsPlayer() ? modStorage.deviousPadlock.itemGroups[groupName].accessPermission ?? 0 : target2.DOGS.deviousPadlock.itemGroups[groupName].accessPermission ?? 0;
-    const memberNumbers = target2.IsPlayer() ? modStorage.deviousPadlock.itemGroups[groupName].memberNumbers ?? [] : target2.DOGS.deviousPadlock.itemGroups[groupName].memberNumbers ?? [];
+    const owner = target2.IsPlayer() ? modStorage.deviousPadlock.itemGroups?.[groupName]?.owner : target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.owner;
+    const permissionKey = target2.IsPlayer() ? modStorage.deviousPadlock.itemGroups?.[groupName]?.accessPermission ?? 0 : target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.accessPermission ?? 0;
+    const memberNumbers = target2.IsPlayer() ? modStorage.deviousPadlock.itemGroups?.[groupName]?.memberNumbers ?? [] : target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.memberNumbers ?? [];
     if (target1.MemberNumber === owner || memberNumbers.includes(target1.MemberNumber)) return true;
     if (permissionKey === 0) return target1.MemberNumber !== target2.MemberNumber;
     if (permissionKey === 1) return target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
@@ -1252,7 +1266,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     });
     hookFunction("InventoryItemMiscExclusivePadlockDraw", 20, (args, next) => {
       const item = InventoryGet(CurrentCharacter, CurrentCharacter.FocusGroup.Name);
-      if (item.Property?.Name === deviousPadlock.Name) {
+      if (item.Property?.Name === deviousPadlock.Name && (CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS)) {
         inspectDeviousPadlock(CurrentCharacter, item, CurrentCharacter.FocusGroup);
         DialogChangeMode("items");
         return;
@@ -1261,7 +1275,12 @@ One of mods you are using is using an old version of SDK. It will work for now b
     });
     hookFunction("DialogCanUnlock", 20, (args, next) => {
       const [target, item] = args;
-      if (item?.Property?.Name === deviousPadlock.Name) return canAccessChaosPadlock(target.FocusGroup?.Name, Player, target);
+      if (item?.Property?.Name === deviousPadlock.Name && (target.IsPlayer() || target.DOGS)) {
+        if (target.IsPlayer() && typeof modStorage.deviousPadlock.itemGroups?.[item.Asset?.Group?.Name] !== "object") {
+          registerDeviousPadlockInModStorage(item.Asset.Group.Name, parseInt(item.Property.LockMemberNumber ?? Player.MemberNumber));
+        }
+        return canAccessChaosPadlock(target.FocusGroup?.Name, Player, target);
+      }
       return next(args);
     });
     hookFunction("InventoryUnlock", 20, (args, next) => {
@@ -1288,7 +1307,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     });
     hookFunction("DialogSetStatus", 20, (args, next) => {
       const [status] = args;
-      if (typeof status === "string" && status.startsWith("This looks like its locked by a") && InventoryGet(CurrentCharacter, CurrentCharacter?.FocusGroup?.Name)?.Property?.Name === deviousPadlock.Name) {
+      if (typeof status === "string" && status.startsWith("This looks like its locked by a") && InventoryGet(CurrentCharacter, CurrentCharacter?.FocusGroup?.Name)?.Property?.Name === deviousPadlock.Name && (CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS)) {
         if (CurrentCharacter.IsPlayer()) {
           args[0] = "This looks like its locked by a devious padlock, you are totally helpless :3";
         } else {
@@ -1366,7 +1385,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     hookFunction("DialogGetLockIcon", 20, (args, next) => {
       const item = args[0];
       if (InventoryItemHasEffect(item, "Lock")) {
-        if (item.Property && item.Property.Name === deviousPadlock.Name) {
+        if (item.Property && item.Property.Name === deviousPadlock.Name && (CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS)) {
           return [deviousPadlock.Name];
         }
       }
@@ -1564,7 +1583,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
 
   // src/index.ts
   function getModVersion() {
-    return "1.0.3";
+    return "1.0.4";
   }
   var font = document.createElement("link");
   font.href = "https://fonts.googleapis.com/css2?family=Comfortaa";
