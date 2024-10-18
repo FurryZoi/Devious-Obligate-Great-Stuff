@@ -962,7 +962,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     const permissionKey = target2.IsPlayer() ? modStorage.deviousPadlock.itemGroups?.[groupName]?.accessPermission ?? 0 : target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.accessPermission ?? 0;
     const memberNumbers = target2.IsPlayer() ? modStorage.deviousPadlock.itemGroups?.[groupName]?.memberNumbers ?? [] : target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.memberNumbers ?? [];
     if (target1.MemberNumber === owner || memberNumbers.includes(target1.MemberNumber)) return true;
-    if (permissionKey === 0) return target1.MemberNumber !== target2.MemberNumber;
+    if (permissionKey === 0) return true;
     if (permissionKey === 1) return target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
     if (permissionKey === 2) return target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
     if (permissionKey === 3) return target2.IsOwnedByCharacter(target1);
@@ -1215,6 +1215,9 @@ One of mods you are using is using an old version of SDK. It will work for now b
       });
       const submitBtn = document.createElement("button");
       submitBtn.classList.add("dogsBtn");
+      if (!canAccessChaosPadlock(group.Name, Player, target)) {
+        submitBtn.classList.add("disabled");
+      }
       submitBtn.textContent = "Submit";
       submitBtn.addEventListener("click", function() {
         if (!canSetAccessPermission(Player, target, chaosPadlockAccessPermissionsList.indexOf(accessText.textContent))) {
@@ -1361,7 +1364,6 @@ One of mods you are using is using an old version of SDK. It will work for now b
         const msg = message.Dictionary.msg;
         const data = message.Dictionary.data;
         if (msg === "changeDeviousPadlockConfigurations") {
-          console.log(data);
           if (!modStorage.deviousPadlock.itemGroups[data.group]) return;
           if (!canAccessChaosPadlock(data.group, sender, Player)) {
             return;
