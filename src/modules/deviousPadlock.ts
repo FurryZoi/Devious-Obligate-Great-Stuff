@@ -1,4 +1,4 @@
-import { hookFunction, patchFunction } from "./bcModSdk";
+import { callOriginal, hookFunction } from "./bcModSdk";
 import { modStorage, TSavedItem } from "./storage";
 import { beautifyMessage, chatSendCustomAction, chatSendDOGSMessage, colorsEqual, getNickname, getPlayer, notify, requestButtons, waitFor } from "./utils";
 import { remoteControlState } from "./remoteControl";
@@ -143,7 +143,7 @@ function checkDeviousPadlocks(target: Character): void {
 					}
 				} else {
 					const difficulty = AssetGet(Player.AssetFamily, groupName, savedItem.name).Difficulty;
-					let newItem = InventoryWear(Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft);
+					let newItem = callOriginal("InventoryWear", [Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft]);
 					newItem.Property = savedItem.property;
 					if (newItem.Property.Name !== deviousPadlock.Name) newItem.Property.Name = deviousPadlock.Name;
 					if (newItem.Property.LockedBy !== "ExclusivePadlock") newItem.Property.Name = "ExclusivePadlock";

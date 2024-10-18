@@ -15,3 +15,7 @@ export function hookFunction(functionName: string, priority: number, hook: Patch
 export function patchFunction(functionName: string, patches: Record<string, string | null>): void {
     modSdk.patchFunction(functionName, patches);
 }
+
+export function callOriginal(functionName: string, args: any[]): any {
+    return modSdk.callOriginal(functionName, args);
+}
