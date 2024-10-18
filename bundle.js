@@ -417,6 +417,9 @@ One of mods you are using is using an old version of SDK. It will work for now b
   function hookFunction(functionName, priority, hook) {
     return modSdk.hookFunction(functionName, priority, hook);
   }
+  function callOriginal(functionName, args) {
+    return modSdk.callOriginal(functionName, args);
+  }
 
   // src/modules/storage.ts
   var modStorage;
@@ -996,7 +999,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
             }
           } else {
             const difficulty = AssetGet(Player.AssetFamily, groupName, savedItem.name).Difficulty;
-            let newItem = InventoryWear(Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft);
+            let newItem = callOriginal("InventoryWear", [Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft]);
             newItem.Property = savedItem.property;
             if (newItem.Property.Name !== deviousPadlock.Name) newItem.Property.Name = deviousPadlock.Name;
             if (newItem.Property.LockedBy !== "ExclusivePadlock") newItem.Property.Name = "ExclusivePadlock";
