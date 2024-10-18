@@ -96,7 +96,7 @@ function canAccessChaosPadlock(groupName: string, target1: Character, target2: C
 	const permissionKey = target2.IsPlayer() ? (modStorage.deviousPadlock.itemGroups?.[groupName]?.accessPermission ?? 0) : (target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.accessPermission ?? 0);
 	const memberNumbers = target2.IsPlayer() ? (modStorage.deviousPadlock.itemGroups?.[groupName]?.memberNumbers ?? []) : (target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.memberNumbers ?? []);
 	if (target1.MemberNumber === owner || memberNumbers.includes(target1.MemberNumber)) return true;
-	if (permissionKey === 0) return target1.MemberNumber !== target2.MemberNumber;
+	if (permissionKey === 0) return true;
 	if (permissionKey === 1) return target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
 	if (permissionKey === 2) return target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
 	if (permissionKey === 3) return target2.IsOwnedByCharacter(target1);
@@ -488,6 +488,9 @@ function getDeviousPadlockMenu(
 
 		const submitBtn = document.createElement("button");
 		submitBtn.classList.add("dogsBtn");
+		if (!canAccessChaosPadlock(group.Name, Player, target)) {
+			submitBtn.classList.add("disabled");
+		}
 		submitBtn.textContent = "Submit";
 		submitBtn.addEventListener("click", function () {
 			if (!canSetAccessPermission(Player, target, chaosPadlockAccessPermissionsList.indexOf(accessText.textContent))) {
@@ -696,7 +699,7 @@ export function loadDeviousPadlock(): void {
 			const msg = message.Dictionary.msg;
 			const data = message.Dictionary.data;
 			if (msg === "changeDeviousPadlockConfigurations") {
-				console.log(data);
+				// console.log(data);
 				if (!modStorage.deviousPadlock.itemGroups[data.group]) return;
 				if (!canAccessChaosPadlock(data.group, sender, Player)) {
 					return;
