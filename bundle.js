@@ -362,7 +362,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     ElementScrollToEnd("TextAreaChatLog");
   }
   function chatSendChangelog() {
-    const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>\u2022 Added help menu</li><li>\u2022 Fixed issue with inspecting <!devious padlock!> on target user when they didnt have DOGS loaded</li></ul></div>`;
+    const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>\u2022 The behavior of <!devious padlocks!> was changed, now some item properties such as the <!orgasm count!>, <!time since last orgasm!> or <!trigger count!> will be ignored to not conflict with chastity belts :3</li></ul></div>`;
     chatSendLocal(text, "left");
   }
   function drawCheckbox(left, top, width, height, text, isChecked, isDisabled = false, textColor = "Black", textLeft = 200, textTop = 45) {
@@ -990,7 +990,34 @@ One of mods you are using is using an old version of SDK. It will work for now b
         const savedItem = modStorage.deviousPadlock.itemGroups[groupName].item;
         const property = currentItem?.Property;
         const padlockChanged = !(property?.Name === deviousPadlock.Name && property?.LockedBy === "ExclusivePadlock");
-        if (currentItem?.Asset?.Name !== savedItem.name || !colorsEqual(currentItem.Color, savedItem.color) || JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) || JSON.stringify(currentItem?.Property) !== JSON.stringify(savedItem.property)) {
+        const ignoredProperties = [
+          "OrgasmCount",
+          "RuinedOrgasmCount",
+          "TimeSinceLastOrgasm",
+          "TimeWorn",
+          "TriggerCount"
+        ];
+        const getValidProperties = (properties) => {
+          if (typeof properties === "object") {
+            const propertiesCopy = { ...properties };
+            ignoredProperties.forEach((p) => {
+              delete propertiesCopy[p];
+            });
+            return propertiesCopy;
+          }
+          return properties;
+        };
+        const getIgnoredProperties = (properties) => {
+          if (typeof properties === "object") {
+            const propertiesCopy = { ...properties };
+            Object.keys(propertiesCopy).forEach((p) => {
+              if (!ignoredProperties.includes(p)) delete propertiesCopy[p];
+            });
+            return propertiesCopy;
+          }
+          return properties;
+        };
+        if (currentItem?.Asset?.Name !== savedItem.name || !colorsEqual(currentItem.Color, savedItem.color) || JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) || JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property))) {
           if (canAccessChaosPadlock(groupName, target, Player)) {
             if (padlockChanged) {
               delete modStorage.deviousPadlock.itemGroups[groupName];
@@ -1000,9 +1027,12 @@ One of mods you are using is using an old version of SDK. It will work for now b
           } else {
             const difficulty = AssetGet(Player.AssetFamily, groupName, savedItem.name).Difficulty;
             let newItem = callOriginal("InventoryWear", [Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft]);
-            newItem.Property = savedItem.property;
+            newItem.Property = {
+              ...getValidProperties(savedItem.property),
+              ...getIgnoredProperties(currentItem?.Asset?.Name === savedItem.name ? currentItem.Property : newItem.Property)
+            };
             if (newItem.Property.Name !== deviousPadlock.Name) newItem.Property.Name = deviousPadlock.Name;
-            if (newItem.Property.LockedBy !== "ExclusivePadlock") newItem.Property.Name = "ExclusivePadlock";
+            if (newItem.Property.LockedBy !== "ExclusivePadlock") newItem.Property.LockedBy = "ExclusivePadlock";
             if (padlockChanged) padlocksChangedItemNames.push(newItem.Craft?.Name ? newItem.Craft.Name : newItem.Asset.Description);
             pushChatRoom = true;
           }
@@ -1390,7 +1420,10 @@ One of mods you are using is using an old version of SDK. It will work for now b
     hookFunction("DialogGetLockIcon", 20, (args, next) => {
       const item = args[0];
       if (InventoryItemHasEffect(item, "Lock")) {
-        if (item.Property && item.Property.Name === deviousPadlock.Name && (CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS)) {
+        if (item.Property && item.Property.Name === deviousPadlock.Name) {
+          if (CurrentCharacter !== null && !CurrentCharacter.IsPlayer() && !CurrentCharacter.DOGS) {
+            return next(args);
+          }
           return [deviousPadlock.Name];
         }
       }
@@ -1588,7 +1621,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
 
   // src/index.ts
   function getModVersion() {
-    return "1.0.4";
+    return "1.0.5";
   }
   var font = document.createElement("link");
   font.href = "https://fonts.googleapis.com/css2?family=Comfortaa";
