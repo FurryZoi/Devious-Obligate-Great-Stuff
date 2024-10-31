@@ -234,7 +234,7 @@ export function chatSendLocal(message: string, align: "center" | "left" = "cente
 }
 
 export function chatSendChangelog(): void {
-	const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>• Added help menu</li><li>• Fixed issue with inspecting <!devious padlock!> on target user when they didnt have DOGS loaded</li></ul></div>`;
+	const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>• The behavior of <!devious padlocks!> was changed, now some item properties such as the <!orgasm count!>, <!time since last orgasm!> or <!trigger count!> will be ignored to not conflict with chastity belts :3</li></ul></div>`;
 	chatSendLocal(text, "left");
 }
 

@@ -128,12 +128,39 @@ function checkDeviousPadlocks(target: Character): void {
 				property?.Name === deviousPadlock.Name
 				&& property?.LockedBy === "ExclusivePadlock"
 			);
+
+			const ignoredProperties = [
+				"OrgasmCount", "RuinedOrgasmCount", "TimeSinceLastOrgasm",
+				"TimeWorn", "TriggerCount"
+			];
+
+			const getValidProperties = (properties) => {
+				if (typeof properties === "object") {
+					const propertiesCopy = {...properties};
+					ignoredProperties.forEach((p) => {
+						delete propertiesCopy[p];
+					});
+					return propertiesCopy;
+				}
+				return properties; 
+			}
+
+			const getIgnoredProperties = (properties) => {
+				if (typeof properties === "object") {
+					const propertiesCopy = {...properties};
+					Object.keys(propertiesCopy).forEach((p) => {
+						if (!ignoredProperties.includes(p)) delete propertiesCopy[p];
+					});
+					return propertiesCopy;
+				}
+				return properties;
+			}
 	
 			if (
 				currentItem?.Asset?.Name !== savedItem.name ||
 				!colorsEqual(currentItem.Color, savedItem.color) ||
 				JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) ||
-				JSON.stringify(currentItem?.Property) !== JSON.stringify(savedItem.property)
+				JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property))
 			) {
 				if (canAccessChaosPadlock(groupName, target, Player)) {
 					if (padlockChanged) {
@@ -142,11 +169,14 @@ function checkDeviousPadlocks(target: Character): void {
 						modStorage.deviousPadlock.itemGroups[groupName].item = getSavedItemData(currentItem);
 					}
 				} else {
-					const difficulty = AssetGet(Player.AssetFamily, groupName, savedItem.name).Difficulty;
-					let newItem = callOriginal("InventoryWear", [Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft]);
-					newItem.Property = savedItem.property;
+					const difficulty = AssetGet(Player.AssetFamily, groupName as AssetGroupName, savedItem.name).Difficulty;
+					let newItem: Item = callOriginal("InventoryWear", [Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft]);
+					newItem.Property = {
+						...getValidProperties(savedItem.property),
+						...getIgnoredProperties(currentItem?.Asset?.Name === savedItem.name ? currentItem.Property : newItem.Property)
+					};
 					if (newItem.Property.Name !== deviousPadlock.Name) newItem.Property.Name = deviousPadlock.Name;
-					if (newItem.Property.LockedBy !== "ExclusivePadlock") newItem.Property.Name = "ExclusivePadlock";
+					if (newItem.Property.LockedBy !== "ExclusivePadlock") newItem.Property.LockedBy = "ExclusivePadlock";
 					if (padlockChanged) padlocksChangedItemNames.push(newItem.Craft?.Name ? newItem.Craft.Name : newItem.Asset.Description);
 					pushChatRoom = true;
 				}
@@ -721,23 +751,15 @@ export function loadDeviousPadlock(): void {
 		next(args);
 	});
 
-	// patchFunction("DialogGetLockIcon", {
-	// 	[`if (InventoryItemHasEffect(item, "Lock")) {`]:
-	// 	`
-	// 	if (InventoryItemHasEffect(item, "Lock")) {
-	// 		if (item.Property && item.Property.Name === "DeviousPadlock") {
-	// 			icons.push("DeviousPadlock");
-	// 			return icons; }
-	// 	`
-	// });
-
 	hookFunction("DialogGetLockIcon", 20, (args, next) => {
 		const item = args[0];
 		if (InventoryItemHasEffect(item, "Lock")) {
 			if (
 				item.Property && item.Property.Name === deviousPadlock.Name
-				&& (CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS)
 			) {
+				if (CurrentCharacter !== null && !CurrentCharacter.IsPlayer() && !CurrentCharacter.DOGS) {
+					return next(args);
+				}
 				return [deviousPadlock.Name];
 			}
 		}
