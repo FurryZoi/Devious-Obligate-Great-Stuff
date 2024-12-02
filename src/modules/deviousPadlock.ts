@@ -699,14 +699,27 @@ export function loadDeviousPadlock(): void {
 		onAppearanceChange(target1, target2);
 	});
 
-	hookFunction("DrawImageResize", 20, (args, next) => {
-		var path = args[0];
-		if (typeof path === "object") return next(args);
-		if (!!path && path === `Assets/Female3DCG/ItemMisc/Preview/${deviousPadlock.Name}.png`) {
-			args[0] = deviousPadlockImage;
-		} 
-		return next(args);
-	});
+	if (GameVersion === "R110") {
+		hookFunction("DrawImageResize", 20, (args, next) => {
+			var path = args[0];
+			if (typeof path === "object") return next(args);
+			if (!!path && path === `Assets/Female3DCG/ItemMisc/Preview/${deviousPadlock.Name}.png`) {
+				args[0] = deviousPadlockImage;
+			}
+			return next(args);
+		});
+	} else { // R111
+		hookFunction("ElementButton.CreateForAsset", 0, (args, next) => {
+			args[4] ??= {};
+			const asset: Asset = "Asset" in args[1] ? args[1].Asset : args[1];
+			switch (asset.Name) {
+				case deviousPadlock.Name:
+					args[4].image = deviousPadlockImage;
+					break;
+			}
+			return next(args);
+		});
+	}
 
 	hookFunction("DialogInventoryAdd", 20, (args, next) => {
 		const [C, item, isWorn, sortOrder] = args;
