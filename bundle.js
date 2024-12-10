@@ -1375,14 +1375,27 @@ One of mods you are using is using an old version of SDK. It will work for now b
       if (!target1 || !target2) return;
       onAppearanceChange(target1, target2);
     });
-    hookFunction("DrawImageResize", 20, (args, next) => {
-      var path = args[0];
-      if (typeof path === "object") return next(args);
-      if (!!path && path === `Assets/Female3DCG/ItemMisc/Preview/${deviousPadlock.Name}.png`) {
-        args[0] = devious_padlock_default;
-      }
-      return next(args);
-    });
+    if (GameVersion === "R110") {
+      hookFunction("DrawImageResize", 20, (args, next) => {
+        var path = args[0];
+        if (typeof path === "object") return next(args);
+        if (!!path && path === `Assets/Female3DCG/ItemMisc/Preview/${deviousPadlock.Name}.png`) {
+          args[0] = devious_padlock_default;
+        }
+        return next(args);
+      });
+    } else {
+      hookFunction("ElementButton.CreateForAsset", 0, (args, next) => {
+        args[4] ??= {};
+        const asset = "Asset" in args[1] ? args[1].Asset : args[1];
+        switch (asset.Name) {
+          case deviousPadlock.Name:
+            args[4].image = devious_padlock_default;
+            break;
+        }
+        return next(args);
+      });
+    }
     hookFunction("DialogInventoryAdd", 20, (args, next) => {
       const [C, item, isWorn, sortOrder] = args;
       const asset = item.Asset;
