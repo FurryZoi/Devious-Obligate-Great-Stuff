@@ -7,6 +7,12 @@ export let remoteControlTarget: number | null = null;
 export let remoteControlState: null | "loading" | "interacting" = null;
 export const remoteControlControllers: number[] = [];
 
+export enum RemoteControlPermission {
+	FRIENDS_AND_HIGHER = 0,
+	WHITELIST_AND_HIGHER = 1,
+	LOVERS_AND_HIGHER = 2
+}
+
 export function setRemoteControlTarget(target: number | null): void {
     remoteControlTarget = target;
 }
@@ -108,7 +114,7 @@ export function loadRemoteControl(): void {
 					reason: "noPermissions"
 				}, beep.MemberNumber);
 			}
-			if (CurrentScreen !== "ChatRoom") {
+			if (!ServerPlayerIsInChatRoom()) {
 				return chatSendBeep({
 					action: "remoteControlReject",
 					reason: "targetNotInChatRoom"
@@ -165,7 +171,9 @@ export function loadRemoteControl(): void {
 			);
 			const name = Player.FriendNames.get(beep.MemberNumber) || beep.MemberNumber;
 			chatSendLocal(`<!${name}!> remotely changed your appearance`);
-			chatSendCustomAction(`${getNickname(Player)}'s appearance was remotely changed`);
+			if (modStorage.remoteControl.notifyOthers ?? true) {
+				chatSendCustomAction(`${getNickname(Player)}'s appearance was remotely changed`);
+			}
 			ChatRoomCharacterUpdate(Player);
 			remoteControlControllers.splice(remoteControlControllers.indexOf(beep.MemberNumber), 1);
 		}

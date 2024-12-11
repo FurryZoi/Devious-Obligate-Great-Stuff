@@ -1,5 +1,5 @@
 import { remoteControlState, remoteControlTarget, setRemoteControlState, setRemoteControlTarget } from "./remoteControl";
-import { beautifyMessage, chatSendBeep, chatSendLocal } from "./utils";
+import { beautifyMessage, chatSendBeep, chatSendLocal, chatSendChangelog } from "./utils";
 
 
 interface ICommand {
@@ -20,6 +20,11 @@ const commands: ICommand[] = [
             }
             chatSendLocal(beautifyMessage(msg), "left");
         }
+    },
+    {
+        name: "changelog",
+        description: "Show latest DOGS changelog",
+        action: chatSendChangelog
     },
     {
         name: "remote",

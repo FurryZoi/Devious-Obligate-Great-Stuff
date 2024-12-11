@@ -1,6 +1,8 @@
 import { getModVersion } from "@/index";
 import { chatSendDOGSMessage, getPlayer } from "./utils";
 import { hookFunction } from "./bcModSdk";
+import { RemoteControlPermission } from "./remoteControl";
+import { DeviousPadlockPermission } from "./deviousPadlock";
 
 export type TSavedItem = {
     name: string
@@ -12,11 +14,12 @@ export type TSavedItem = {
 export interface IModStorage {
     remoteControl: {
         state?: boolean
-        permission?: 0 | 1 | 2
+        notifyOthers?: boolean
+        permission?: RemoteControlPermission
     },
     deviousPadlock: {
         state?: boolean
-        permission?: 0 | 1 | 2
+        permission?: DeviousPadlockPermission
         itemGroups?: {} | Record<AssetGroupItemName, {
             item: TSavedItem
             owner: number
@@ -26,6 +29,10 @@ export interface IModStorage {
             unlockTime?: number
         }>
     },
+    misc: {
+        autoShowChangelog?: boolean
+        deleteLocalMessages?: boolean
+    }
     version: string
 }
 
@@ -36,6 +43,7 @@ export function initStorage(): void {
     const data = {
         remoteControl: {},
         deviousPadlock: {},
+        misc: {},
         version: getModVersion(),
     };
     

@@ -1,4 +1,5 @@
 import { getModVersion } from "@/index";
+import { modStorage } from "./storage";
 
 export function sleep(ms: number): Promise<() => {}> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -215,9 +216,9 @@ export function chatSendLocal(message: string, align: "center" | "left" = "cente
 	if (!ServerPlayerIsInChatRoom()) return;
 	let style;
 	if (align === "center") {
-		style = `border-left: clamp(1px, 1vw, 4px) solid white; border-top-left-radius: clamp(2px, 0.6vw, 4px); border-bottom-left-radius: clamp(2px, 0.6vw, 4px); position: relative; box-sizing: border-box; font-size: 2vw; font-family: Comfortaa; margin-top: 4px; margin-bottom: 4px; background: ${bgColor}; color: white; padding: 1vw; text-align: center;`;
+		style = `border-left: clamp(1px, 1vw, 4px) solid white; position: relative; box-sizing: border-box; font-size: 2vw; font-family: Comfortaa; margin-top: 4px; margin-bottom: 4px; background: ${bgColor}; color: white; padding: 1vw; text-align: center;`;
 	} else if (align === "left") {
-		style = `border-left: clamp(1px, 1vw, 4px) solid white; border-top-left-radius: clamp(2px, 0.6vw, 4px); border-bottom-left-radius: clamp(2px, 0.6vw, 4px); position: relative; box-sizing: border-box; font-size: 2vw; font-family: Comfortaa; margin-top: 4px; margin-bottom: 4px; background: ${bgColor}; color: white;`;
+		style = `border-left: clamp(1px, 1vw, 4px) solid white; position: relative; box-sizing: border-box; font-size: 2vw; font-family: Comfortaa; margin-top: 4px; margin-bottom: 4px; background: ${bgColor}; color: white;`;
 	}
 
 	const msgElement = document.createElement("div");
@@ -231,10 +232,11 @@ export function chatSendLocal(message: string, align: "center" | "left" = "cente
 	msgElement.append(time);
 	document.querySelector("#TextAreaChatLog").appendChild(msgElement);
 	ElementScrollToEnd("TextAreaChatLog");
+	if (modStorage.misc.deleteLocalMessages) setTimeout(() => msgElement.remove(), 60_000);
 }
 
 export function chatSendChangelog(): void {
-	const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>• The behavior of <!devious padlocks!> was changed, now some item properties such as the <!orgasm count!>, <!time since last orgasm!> or <!trigger count!> will be ignored to not conflict with chastity belts :3</li></ul></div>`;
+	const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>• Fixed spelling</li><li>• New options added to the settings, including <!devious padlock permissions system!></li><li>• Small correction made to <!remote control!></li><li>• Now <!devious padlock!> will be <!red!>, which will <!indicate!> that it <!cannot be applied!> to a specific user due to its settings</li></ul></div>`;
 	chatSendLocal(text, "left");
 }
 
@@ -250,11 +252,11 @@ export function drawCheckbox(
 export function drawWrappedText(text: string, x: number, y: number, color: string, charactersCount: number, gap: number = 50): void {
 	const lines = [];
 	let line = "";
-	for (let c of text) {
-		line += c;
-		if (line.length === charactersCount) {
-			lines.push(line);
-			line = "";
+	for (let c of text.split(" ").filter((d) => d !== "")) {
+		line += c + " ";
+		if (line.length > charactersCount) {
+			lines.push(line.slice(0, line.length - 1 - c.length - 1));
+			line = c + " ";
 		}
 	}
 	if (line) lines.push(line);

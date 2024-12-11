@@ -1,12 +1,11 @@
 import { callOriginal, hookFunction } from "./bcModSdk";
-import { modStorage, TSavedItem } from "./storage";
+import { IModStorage, modStorage, TSavedItem } from "./storage";
 import { beautifyMessage, chatSendCustomAction, chatSendDOGSMessage, colorsEqual, getNickname, getPlayer, notify, requestButtons, waitFor } from "./utils";
 import { remoteControlState } from "./remoteControl";
 import deviousPadlockImage from "@/images/devious-padlock.png";
 import backArrowImage from "@/images/back-arrow.png";
 
-
-const deviousPadlock = {
+export const deviousPadlock = {
 	AllowType: [],
 	Effect: [],
 	Extended: true,
@@ -17,6 +16,12 @@ const deviousPadlock = {
 	Wear: false,
 	RemovalTime: 1000
 };
+
+export enum DeviousPadlockPermission {
+	FRIENDS_AND_HIGHER = 0,
+	WHITELIST_AND_HIGHER = 1,
+	LOVERS_AND_HIGHER = 2
+}
 
 const chaosPadlockAccessPermissionsList = [
 	"Everyone except wearer", "Wearer's family and higher",
@@ -88,7 +93,33 @@ function inspectDeviousPadlock(target: Character, item: Item, itemGroup: AssetIt
 	document.body.append(menu);
 }
 
-function canAccessChaosPadlock(groupName: string, target1: Character, target2: Character): boolean {
+function canPutDeviousPadlock(groupName: string, target1: Character, target2: Character): boolean {
+	let storage: IModStorage;
+	if (target2.IsPlayer()) storage = modStorage;
+	else storage = target2.DOGS;
+	if (!storage?.deviousPadlock?.state) return;
+	const permission = storage?.deviousPadlock?.permission ?? DeviousPadlockPermission.FRIENDS_AND_HIGHER;
+	if (target1.MemberNumber === target2.MemberNumber) return true;
+	if (permission === DeviousPadlockPermission.FRIENDS_AND_HIGHER) return (
+		target1.FriendList?.includes(target2.MemberNumber) || target2.FriendList?.includes(target1.MemberNumber) ||
+		target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) ||
+		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || 
+		target2.IsOwnedByCharacter(target1)
+	);
+	if (permission === DeviousPadlockPermission.WHITELIST_AND_HIGHER) return (
+		target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) ||
+		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || 
+		target2.IsOwnedByCharacter(target1)
+	);
+	if (permission === DeviousPadlockPermission.LOVERS_AND_HIGHER) return (
+		target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1)
+	);
+
+	// its weird... return true
+	return true;
+}
+
+function canAccessDeviousPadlock(groupName: string, target1: Character, target2: Character): boolean {
 	if (!target1.CanInteract()) return false;
 	if (!target2.IsPlayer() && !target2.DOGS) return false;
 	if (target1.MemberNumber === target2.MemberNumber) return false;
@@ -162,7 +193,7 @@ function checkDeviousPadlocks(target: Character): void {
 				JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) ||
 				JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property))
 			) {
-				if (canAccessChaosPadlock(groupName, target, Player)) {
+				if (canAccessDeviousPadlock(groupName, target, Player)) {
 					if (padlockChanged) {
 						delete modStorage.deviousPadlock.itemGroups[groupName];
 					} else {
@@ -201,7 +232,7 @@ function checkDeviousPadlocks(target: Character): void {
 				!modStorage.deviousPadlock.itemGroups ||
 				!modStorage.deviousPadlock.itemGroups[item.Asset.Group.Name as AssetGroupItemName]
 			) {
-				if (!modStorage.deviousPadlock.state) {
+				if (!canPutDeviousPadlock(item.Asset.Group.Name, target, Player)) {
 					InventoryUnlock(Player, item.Asset.Group.Name as AssetGroupItemName);
 					ChatRoomCharacterUpdate(Player);					
 				} else registerDeviousPadlockInModStorage(item.Asset.Group.Name as AssetGroupItemName, target.MemberNumber);
@@ -274,7 +305,7 @@ function getDeviousPadlockMenu(
 		const timeField = document.createElement("input");
 		timeField.type = "datetime-local";
 		timeField.classList.add("dogsTextEdit");
-		if (!canAccessChaosPadlock(group.Name, Player, target)) {
+		if (!canAccessDeviousPadlock(group.Name, Player, target)) {
 			timeField.classList.add("disabled");
 		}
 		timeField.style = "background: rgb(99 96 147); margin-top: 1vw; width: 80%; height: 4vw; min-height: 15px; font-size: clamp(12px, 3vw, 24px);";
@@ -347,68 +378,6 @@ function getDeviousPadlockMenu(
 		return centerBlock;
 	}
 
-	// if (page === "restrictions") {
-	// 	const centerBlock = document.createElement("div");
-	// 	centerBlock.style = "display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%;";
-
-	// 	const backBtn = document.createElement("button");
-	// 	backBtn.style = "display: flex; align-items: center; justify-content: center; position: absolute; top: 5px; right: 5px; min-width: 17px; min-height: 17px; width: 6vw; height: 6vw; font-size: 4.5vw;";
-	// 	backBtn.classList.add("dogsBtn");
-	// 	backBtn.addEventListener("click", function () {
-	// 		centerBlock.remove();
-	// 		menuElement.append(getChaosPadlockMenu(target, group, menuElement, "main"));	
-	// 	});
-
-	// 	const backBtnIcon = document.createElement("img");
-	// 	backBtnIcon.style = "width: 75%; height: auto;";
-	// 	backBtnIcon.src = `${staticPath}/images/back-arrow.png`;
-	// 	backBtn.append(backBtnIcon);
-
-	// 	const checkBoxes = document.createElement("div");
-
-	// 	Object.keys(chaosPadlockRestrictionsTexts).forEach((id, i) => {
-	// 		id = parseInt(id);
-	// 		const checkBox = document.createElement("div");
-	// 		checkBox.style = "margin-top: 2vw;"
-	// 		checkBox.classList.add("dogsCheckBox");
-	// 		if (!hasPermissionToChangeChaosPadlockConfigurations(group.Name, Player, target)) {
-	// 			checkBox.classList.add("disabled");
-	// 		}
-
-	// 		const checkBoxBtn = document.createElement("div");
-	// 		if (chaosPadlockMenuData.restrictions.list.includes(String.fromCharCode(id))) {
-	// 			checkBoxBtn.setAttribute("checked", "true");
-	// 		}
-	// 		checkBoxBtn.classList.add("dogsCheckBox-btn");
-	// 		checkBoxBtn.addEventListener("click", async function (e) {
-	// 			if (!chaosPadlockMenuData.restrictions.list.includes(String.fromCharCode(id))) {
-	// 				if (id === chaosPadlockRestrictions.forceTitle) {
-	// 					const btns = TitleList.map((t) => {
-	// 						return {text: t.Name}
-	// 					});
-	// 					const title = await requestButtons(`Choose title, which you want to force for <!${getNickname(target)}!> (If <!${getNickname(target)}!> doesnt have this title unlocked, then it will not work)`, 90, 1200, btns);
-	// 					chaosPadlockMenuData.restrictions.data.title = title;
-	// 				}
-	// 				e.target.setAttribute("checked", "true");
-	// 				chaosPadlockMenuData.restrictions.list += String.fromCharCode(id);
-	// 			} else {
-	// 				e.target.setAttribute("checked", "false");
-	// 				chaosPadlockMenuData.restrictions.list = chaosPadlockMenuData.restrictions.list.replaceAll(String.fromCharCode(id), "");
-	// 			}
-	// 		});
-
-	// 		const checkBoxText = document.createElement("p");
-	// 		checkBoxText.style = "color: white; font-size: 2.5vw;";
-	// 		checkBoxText.textContent = Object.values(chaosPadlockRestrictionsTexts)[i];
-
-	// 		checkBox.append(checkBoxBtn, checkBoxText);
-	// 		checkBoxes.append(checkBox);
-	// 	});
-
-	// 	centerBlock.append(checkBoxes, backBtn);
-	// 	return centerBlock;
-	// }
-
 	if (page === "note") {
 		const centerBlock = document.createElement("div");
 		centerBlock.style = "display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%;";
@@ -428,7 +397,7 @@ function getDeviousPadlockMenu(
 
 		const note = document.createElement("textarea");
 		note.classList.add("dogsTextEdit");
-		if (!canAccessChaosPadlock(group.Name, Player, target)) {
+		if (!canAccessDeviousPadlock(group.Name, Player, target)) {
 			note.classList.add("disabled");
 		}
 		note.style = "width: 75%; height: 30%; font-size: clamp(12px, 4vw, 24px);";
@@ -467,7 +436,7 @@ function getDeviousPadlockMenu(
 
 		const memberNumbers = document.createElement("textarea");
 		memberNumbers.classList.add("dogsTextEdit");
-		if (!canAccessChaosPadlock(group.Name, Player, target)) {
+		if (!canAccessDeviousPadlock(group.Name, Player, target)) {
 			memberNumbers.classList.add("disabled");
 		}
 		memberNumbers.placeholder = "Member numbers";
@@ -518,7 +487,7 @@ function getDeviousPadlockMenu(
 
 		const submitBtn = document.createElement("button");
 		submitBtn.classList.add("dogsBtn");
-		if (!canAccessChaosPadlock(group.Name, Player, target)) {
+		if (!canAccessDeviousPadlock(group.Name, Player, target)) {
 			submitBtn.classList.add("disabled");
 		}
 		submitBtn.textContent = "Submit";
@@ -554,9 +523,6 @@ export function loadDeviousPadlock(): void {
 			!InventoryIsPermissionBlocked(C, deviousPadlock.Name, "ItemMisc")
 		) {
 			if (C.IsPlayer()) {
-				if (!modStorage.deviousPadlock.state) {
-					return notify(`Your devious padlock module is <!disabled!>`, 4000);
-				}
 				const answer = await requestButtons(
 					"This padlock is recommended for those who want to feel really helpless, you will not be able to remove this padlock yourself. Continue? 😏", 80, 600, [
 						{
@@ -568,27 +534,7 @@ export function loadDeviousPadlock(): void {
 					]
 				);
 				if (answer === "No, i clicked wrong button") return;
-			} else if (!C.DOGS?.deviousPadlock?.state) {
-				return notify(`<!${getNickname(C)}'s!> devious padlock module is <!disabled!>`, 4000);
 			}
-
-			// InventoryLock(C, item, "ExclusivePadlock", Player.MemberNumber);
-			// convertExclusivePadlockToDeviousPadlock(
-			// 	item
-			// );
-			// if (ServerPlayerIsInChatRoom()) ChatRoomCharacterUpdate(C);
-			// else checkDeviousPadlocks(Player);
-			// if (C.IsPlayer()) {
-			// 	chatSendCustomAction(`${getNickname(Player)} uses devious padlock on <possessive> ${
-			// 		item.Craft?.Name ? item.Craft.Name : item.Asset.Description
-			// 	}`);
-			// } else {
-			// 	chatSendCustomAction(`${getNickname(Player)} uses devious padlock on ${getNickname(C)}'s ${
-			// 		item.Craft?.Name ? item.Craft.Name : item.Asset.Description
-			// 	}`);
-			// }
-			// DialogLeave();
-			// return;
 		}
 
 		next(args);
@@ -624,7 +570,7 @@ export function loadDeviousPadlock(): void {
 			) {
 				registerDeviousPadlockInModStorage(item.Asset.Group.Name, parseInt(item.Property.LockMemberNumber ?? Player.MemberNumber));
 			}
-			return canAccessChaosPadlock(target.FocusGroup?.Name, Player, target);
+			return canAccessDeviousPadlock(target.FocusGroup?.Name, Player, target);
 		}
 		return next(args);
 	});
@@ -744,7 +690,7 @@ export function loadDeviousPadlock(): void {
 			if (msg === "changeDeviousPadlockConfigurations") {
 				// console.log(data);
 				if (!modStorage.deviousPadlock.itemGroups[data.group]) return;
-				if (!canAccessChaosPadlock(data.group, sender, Player)) {
+				if (!canAccessDeviousPadlock(data.group, sender, Player)) {
 					return;
 				}
 				if (data.accessPermission && canSetAccessPermission(sender, Player, data.accessPermission)) {
@@ -765,7 +711,7 @@ export function loadDeviousPadlock(): void {
 	});
 
 	hookFunction("DialogGetLockIcon", 20, (args, next) => {
-		const item = args[0];
+		const item: Item = args[0];
 		if (InventoryItemHasEffect(item, "Lock")) {
 			if (
 				item.Property && item.Property.Name === deviousPadlock.Name
@@ -776,6 +722,33 @@ export function loadDeviousPadlock(): void {
 				return [deviousPadlock.Name];
 			}
 		}
+		return next(args);
+	});
+
+	hookFunction("DialogGetLockIcon", 20, (args, next) => {
+		const item: Item = args[0];
+		if (InventoryItemHasEffect(item, "Lock")) {
+			if (
+				item.Property && item.Property.Name === deviousPadlock.Name
+			) {
+				if (CurrentCharacter !== null && !CurrentCharacter.IsPlayer() && !CurrentCharacter.DOGS) {
+					return next(args);
+				}
+				return [deviousPadlock.Name];
+			}
+		}
+		return next(args);
+	});
+
+	hookFunction("InventoryIsPermissionBlocked", 20, (args, next) => {
+		const [ C, AssetName, AssetGroup, AssetType ] = args;
+		if (AssetName === deviousPadlock.Name) return !canPutDeviousPadlock(AssetGroup, Player, C);
+		return next(args);
+	});
+
+	hookFunction("InventoryTogglePermission", 20, (args, next) => {
+		const item: Item = args[0];
+		if (item.Asset.Name === deviousPadlock.Name) return;
 		return next(args);
 	});
 }

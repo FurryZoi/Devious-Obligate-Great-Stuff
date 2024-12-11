@@ -7,7 +7,7 @@ import { chatSendChangelog, consoleLog, isVersionNewer, waitFor } from "@/module
 import css from "./styles.css";
 
 export function getModVersion(): string {
-    return "1.0.5";
+    return "1.0.6";
 }
 
 const font = document.createElement("link");
@@ -29,15 +29,18 @@ waitFor(() => typeof window.Player?.MemberNumber === "number").then(() => {
     consoleLog(`Ready! v${getModVersion()}`);
 
     if (isVersionNewer(getModVersion(), modStorage.version)) {
-        if (ServerPlayerIsInChatRoom()) {
-			modStorage.version = getModVersion();
-			chatSendChangelog();
-		} else {
-			ServerSocket.once("ChatRoomSync", () => {
-				modStorage.version = getModVersion();
-				chatSendChangelog();
-			});
-		}
+        if (modStorage.misc.autoShowChangelog ?? true) {
+            if (ServerPlayerIsInChatRoom()) {
+                modStorage.version = getModVersion();
+                chatSendChangelog();
+            } else {
+                ServerSocket.once("ChatRoomSync", () => {
+                    modStorage.version = getModVersion();
+                    chatSendChangelog();
+                });
+            }
+        } else modStorage.version = getModVersion();
+
     }
 });
 
