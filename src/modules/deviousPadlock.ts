@@ -265,7 +265,9 @@ function getDeviousPadlockMenu(
 	const item = InventoryGet(target, group.Name);
 	const itemName = item.Craft?.Name ? item.Craft.Name : item.Asset.Description;
 	if (page === "main") {
-		const itemPreviewLink = `https://www.bondage-europe.com/${GameVersion}/BondageClub/Assets/Female3DCG/${group.Name}/Preview/${item.Asset.Name}.png`;
+		const itemPreviewLink = GameVersion.length === 4 ?
+			`https://www.bondage-europe.com/${GameVersion}/BondageClub/Assets/Female3DCG/${group.Name}/Preview/${item.Asset.Name}.png`
+			: `${window.location.href}Assets/Female3DCG/${group.Name}/Preview/${item.Asset.Name}.png`;
 
 		const centerBlock = document.createElement("div");
 		centerBlock.style = "display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%;";
@@ -719,22 +721,14 @@ export function loadDeviousPadlock(): void {
 				if (CurrentCharacter !== null && !CurrentCharacter.IsPlayer() && !CurrentCharacter.DOGS) {
 					return next(args);
 				}
-				return [deviousPadlock.Name];
-			}
-		}
-		return next(args);
-	});
-
-	hookFunction("DialogGetLockIcon", 20, (args, next) => {
-		const item: Item = args[0];
-		if (InventoryItemHasEffect(item, "Lock")) {
-			if (
-				item.Property && item.Property.Name === deviousPadlock.Name
-			) {
-				if (CurrentCharacter !== null && !CurrentCharacter.IsPlayer() && !CurrentCharacter.DOGS) {
-					return next(args);
-				}
-				return [deviousPadlock.Name];
+				if (GameVersion === "R110") return [deviousPadlock.Name];
+				return [
+					{
+						name: deviousPadlock.Name,
+						iconSrc: deviousPadlockImage,
+						tooltipText: `Locked with Devious Padlock from DOGS mod`
+					}
+				];
 			}
 		}
 		return next(args);
