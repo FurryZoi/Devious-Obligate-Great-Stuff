@@ -41,8 +41,8 @@ let deviousPadlockTriggerCooldown: {
 	state: false
 };
 
-const MAX_TRIGGER_COUNT = 12;
-const MAX_FIRST_TRIGGER_INTERVAL = 1000 * 12;
+const MAX_TRIGGER_COUNT = 14;
+const MAX_FIRST_TRIGGER_INTERVAL = 1000 * 14;
 const COOLDOWN_TIME = 1000 * 60 * 2;
 
 
@@ -543,6 +543,18 @@ function getDeviousPadlockMenu(
 
 export function loadDeviousPadlock(): void {
 	createDeviousPadlock();
+	Object.keys(modStorage.deviousPadlock.itemGroups ?? {}).forEach((g) => {
+		const itemGroup = modStorage.deviousPadlock.itemGroups[g];
+		const appearanceItem = ServerBundledItemToAppearanceItem(Player.AssetFamily, {
+			Name: itemGroup.item.name,
+			Color: itemGroup.item.color,
+			Craft: itemGroup.item.craft,
+			Property: itemGroup.item.property,
+			Group: g as AssetGroupName
+		});
+		const changed = ValidationSanitizeProperties(Player, appearanceItem);
+		if (changed) modStorage.deviousPadlock.itemGroups[g].item = getSavedItemData(appearanceItem);
+	});
 	checkDeviousPadlocks(Player);
 	setInterval(checkDeviousPadlocksTimers, 1000);
 
