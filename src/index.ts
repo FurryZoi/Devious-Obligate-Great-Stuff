@@ -7,7 +7,7 @@ import { chatSendChangelog, consoleLog, isVersionNewer, waitFor } from "@/module
 import css from "./styles.css";
 
 export function getModVersion(): string {
-    return "1.0.6";
+    return "1.0.7";
 }
 
 const font = document.createElement("link");

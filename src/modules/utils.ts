@@ -236,7 +236,7 @@ export function chatSendLocal(message: string, align: "center" | "left" = "cente
 }
 
 export function chatSendChangelog(): void {
-	const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>• Fixed spelling</li><li>• New options added to the settings, including <!devious padlock permissions system!></li><li>• Small correction made to <!remote control!></li><li>• Now <!devious padlock!> will be <!red!>, which will <!indicate!> that it <!cannot be applied!> to a specific user due to its settings</li></ul></div>`;
+	const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>• Added cooldown for devious padlocks to prevent messages spam</li><li>• Fixed crash with padlock interaction</li><li>• Some compatibility fixes</li></ul></div>`;
 	chatSendLocal(text, "left");
 }
 

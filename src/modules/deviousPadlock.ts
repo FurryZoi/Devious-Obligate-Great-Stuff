@@ -31,6 +31,21 @@ const chaosPadlockAccessPermissionsList = [
 let deviousPadlockMenuData = null;
 let deviousPadlockMenuLastData = null;
 
+let deviousPadlockTriggerCooldown: {
+	count: number,
+	firstTriggerTime: number,
+	state: boolean
+} = {
+	count: 0,
+	firstTriggerTime: Date.now(),
+	state: false
+};
+
+const MAX_TRIGGER_COUNT = 10;
+const MAX_FIRST_TRIGGER_INTERVAL = 1000 * 10;
+const COOLDOWN_TIME = 1000 * 60 * 2;
+
+
 function createDeviousPadlock(): void {
 	AssetFemale3DCG.forEach(ele => {
 		if(ele.Group === "ItemMisc") {
@@ -186,12 +201,15 @@ function checkDeviousPadlocks(target: Character): void {
 				}
 				return properties;
 			}
-	
+			
 			if (
-				currentItem?.Asset?.Name !== savedItem.name ||
-				!colorsEqual(currentItem.Color, savedItem.color) ||
-				JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) ||
-				JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property))
+				!deviousPadlockTriggerCooldown.state &&
+				(
+					currentItem?.Asset?.Name !== savedItem.name ||
+					!colorsEqual(currentItem.Color, savedItem.color) ||
+					JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) ||
+					JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property))
+				)
 			) {
 				if (canAccessDeviousPadlock(groupName, target, Player)) {
 					if (padlockChanged) {
@@ -214,7 +232,23 @@ function checkDeviousPadlocks(target: Character): void {
 			}
 		});
 
-		if (ServerPlayerIsInChatRoom() && pushChatRoom) ChatRoomCharacterUpdate(Player);
+		if (ServerPlayerIsInChatRoom() && pushChatRoom) {
+			ChatRoomCharacterUpdate(Player);
+			if (deviousPadlockTriggerCooldown.count === 0) deviousPadlockTriggerCooldown.firstTriggerTime = Date.now();
+			deviousPadlockTriggerCooldown.count++;
+			if (deviousPadlockTriggerCooldown.count > MAX_TRIGGER_COUNT) {
+				if ((Date.now() - deviousPadlockTriggerCooldown.firstTriggerTime) > MAX_FIRST_TRIGGER_INTERVAL) {
+					deviousPadlockTriggerCooldown.state = true;
+					deviousPadlockTriggerCooldown.count = 0;
+					chatSendCustomAction(`[COOLDOWN] Devious padlocks were disabled for ${COOLDOWN_TIME / (1000 * 60)} minutes, please disable DOGS mod if this message repeats`);
+					setTimeout(() => {
+						deviousPadlockTriggerCooldown.state = false;
+						checkDeviousPadlocks(Player);
+					}, COOLDOWN_TIME);
+				}
+			}
+
+		}
 		if (padlocksChangedItemNames.length === 1) {
 			chatSendCustomAction(`Devious padlock appears again on ${getNickname(Player)}'s ${padlocksChangedItemNames[0]}`);
 		}
@@ -232,7 +266,7 @@ function checkDeviousPadlocks(target: Character): void {
 				!modStorage.deviousPadlock.itemGroups ||
 				!modStorage.deviousPadlock.itemGroups[item.Asset.Group.Name as AssetGroupItemName]
 			) {
-				if (!canPutDeviousPadlock(item.Asset.Group.Name, target, Player)) {
+				if (!canPutDeviousPadlock(item.Asset.Group.Name, target, Player) || deviousPadlockTriggerCooldown.state) {
 					InventoryUnlock(Player, item.Asset.Group.Name as AssetGroupItemName);
 					ChatRoomCharacterUpdate(Player);					
 				} else registerDeviousPadlockInModStorage(item.Asset.Group.Name as AssetGroupItemName, target.MemberNumber);
@@ -242,7 +276,7 @@ function checkDeviousPadlocks(target: Character): void {
 }
 
 function checkDeviousPadlocksTimers(): void {
-	if (!modStorage.deviousPadlock.itemGroups) return;
+	if (!modStorage.deviousPadlock.itemGroups || deviousPadlockTriggerCooldown.state) return;
 	Object.keys(modStorage.deviousPadlock.itemGroups).forEach((group: AssetGroupName) => {
 		const unlockTime = modStorage.deviousPadlock.itemGroups[group].unlockTime;
 		if (unlockTime && new Date(unlockTime) < new Date()) {
@@ -512,16 +546,12 @@ export function loadDeviousPadlock(): void {
 	checkDeviousPadlocks(Player);
 	setInterval(checkDeviousPadlocksTimers, 1000);
 
-	hookFunction("DialogItemClick", 20, async (args, next) => {
+	hookFunction("DialogLockingClick", 20, async (args, next) => {
 		const C = CharacterGetCurrent();
-		const focusGroup = C.FocusGroup;
-		const item = InventoryGet(C, focusGroup.Name);
-		const clickedItem = args[0];
-		if (DialogMenuMode !== "locking") return next(args);
-		if (!item) return next(args);
+		const clickedLock: Item = args[0];
 		
 		if (
-			clickedItem?.Asset?.Name === deviousPadlock.Name && 
+			clickedLock?.Asset?.Name === deviousPadlock.Name && 
 			!InventoryIsPermissionBlocked(C, deviousPadlock.Name, "ItemMisc")
 		) {
 			if (C.IsPlayer()) {
@@ -743,6 +773,20 @@ export function loadDeviousPadlock(): void {
 	hookFunction("InventoryTogglePermission", 20, (args, next) => {
 		const item: Item = args[0];
 		if (item.Asset.Name === deviousPadlock.Name) return;
+		return next(args);
+	});
+
+	// Fixing Preview Screen
+	hookFunction("DrawPreviewIcons", 20, (args, next) => {
+		const icons = args[0];
+		if (typeof icons === "object") args[0] = args[0].map((i) => i.name ?? i);
+		return next(args);
+	});
+
+	hookFunction("DrawImageResize", 20, (args, next) => {
+		if (args[0] === `Assets/Female3DCG/ItemMisc/Preview/${deviousPadlock.Name}.png`) {
+			args[0] = deviousPadlockImage;
+		}
 		return next(args);
 	});
 }

@@ -3,8 +3,8 @@
   "version": "1.0.6",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "esbuild src/index.ts --bundle --outfile=dist/bundle.js --watch --loader:.ts=ts --loader:.css=text --loader:.png=dataurl",
-    "build": "esbuild src/index.ts --bundle --outfile=dist/bundle.js --loader:.ts=ts --loader:.css=text --loader:.png=dataurl"
+    "dev": "esbuild src/index.ts --bundle --sourcemap --watch --outfile=dist/bundle.js --loader:.ts=ts --loader:.css=text --loader:.png=dataurl",
+    "build": "esbuild src/index.ts --bundle --sourcemap --outfile=dist/bundle.js --loader:.ts=ts --loader:.css=text --loader:.png=dataurl"
   },
   "keywords": [],
   "author": "",

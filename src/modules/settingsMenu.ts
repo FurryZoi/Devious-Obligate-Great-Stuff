@@ -148,8 +148,7 @@ export function loadSettingsMenu(): void {
 			const buttonsPositions = {};
 			if (currentSettingsPage === null) {
 				Object.keys(settingsPages).forEach((pageKey, i) => {
-					buttonsPositions[pageKey] = [settingsButtonLeft, settingsButtonTop + i * (settingsButtonHeight + settingsButtonsGap), settingsButtonWidth, settingsButtonHeight]
-					console.log(buttonsPositions[pageKey]);
+					buttonsPositions[pageKey] = [settingsButtonLeft, settingsButtonTop + i * (settingsButtonHeight + settingsButtonsGap), settingsButtonWidth, settingsButtonHeight];
 				});
 				Object.keys(buttonsPositions).forEach((pageKey) => {
 					if (MouseIn(...buttonsPositions[pageKey] as RectTuple)) currentSettingsPage = pageKey;
