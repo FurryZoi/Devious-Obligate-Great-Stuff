@@ -711,8 +711,8 @@ One of mods you are using is using an old version of SDK. It will work for now b
     firstTriggerTime: Date.now(),
     state: false
   };
-  var MAX_TRIGGER_COUNT = 12;
-  var MAX_FIRST_TRIGGER_INTERVAL = 1e3 * 12;
+  var MAX_TRIGGER_COUNT = 14;
+  var MAX_FIRST_TRIGGER_INTERVAL = 1e3 * 14;
   var COOLDOWN_TIME = 1e3 * 60 * 2;
   function createDeviousPadlock() {
     AssetFemale3DCG.forEach((ele) => {
@@ -1100,6 +1100,18 @@ One of mods you are using is using an old version of SDK. It will work for now b
   }
   function loadDeviousPadlock() {
     createDeviousPadlock();
+    Object.keys(modStorage.deviousPadlock.itemGroups ?? {}).forEach((g) => {
+      const itemGroup = modStorage.deviousPadlock.itemGroups[g];
+      const appearanceItem = ServerBundledItemToAppearanceItem(Player.AssetFamily, {
+        Name: itemGroup.item.name,
+        Color: itemGroup.item.color,
+        Craft: itemGroup.item.craft,
+        Property: itemGroup.item.property,
+        Group: g
+      });
+      const changed = ValidationSanitizeProperties(Player, appearanceItem);
+      if (changed) modStorage.deviousPadlock.itemGroups[g].item = getSavedItemData(appearanceItem);
+    });
     checkDeviousPadlocks(Player);
     setInterval(checkDeviousPadlocksTimers, 1e3);
     hookFunction("DialogLockingClick", 20, async (args, next) => {
