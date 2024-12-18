@@ -711,8 +711,8 @@ One of mods you are using is using an old version of SDK. It will work for now b
     firstTriggerTime: Date.now(),
     state: false
   };
-  var MAX_TRIGGER_COUNT = 10;
-  var MAX_FIRST_TRIGGER_INTERVAL = 1e3 * 10;
+  var MAX_TRIGGER_COUNT = 12;
+  var MAX_FIRST_TRIGGER_INTERVAL = 1e3 * 12;
   var COOLDOWN_TIME = 1e3 * 60 * 2;
   function createDeviousPadlock() {
     AssetFemale3DCG.forEach((ele) => {
@@ -859,10 +859,16 @@ One of mods you are using is using an old version of SDK. It will work for now b
       });
       if (ServerPlayerIsInChatRoom() && pushChatRoom) {
         ChatRoomCharacterUpdate(Player);
+        if (padlocksChangedItemNames.length === 1) {
+          chatSendCustomAction(`Devious padlock appears again on ${getNickname(Player)}'s ${padlocksChangedItemNames[0]}`);
+        }
+        if (padlocksChangedItemNames.length > 1) {
+          chatSendCustomAction(`Devious padlock appears again on ${getNickname(Player)}'s: ${padlocksChangedItemNames.join(", ")}`);
+        }
         if (deviousPadlockTriggerCooldown.count === 0) deviousPadlockTriggerCooldown.firstTriggerTime = Date.now();
         deviousPadlockTriggerCooldown.count++;
         if (deviousPadlockTriggerCooldown.count > MAX_TRIGGER_COUNT) {
-          if (Date.now() - deviousPadlockTriggerCooldown.firstTriggerTime > MAX_FIRST_TRIGGER_INTERVAL) {
+          if (Date.now() - deviousPadlockTriggerCooldown.firstTriggerTime < MAX_FIRST_TRIGGER_INTERVAL) {
             deviousPadlockTriggerCooldown.state = true;
             deviousPadlockTriggerCooldown.count = 0;
             chatSendCustomAction(`[COOLDOWN] Devious padlocks were disabled for ${COOLDOWN_TIME / (1e3 * 60)} minutes, please disable DOGS mod if this message repeats`);
@@ -872,12 +878,6 @@ One of mods you are using is using an old version of SDK. It will work for now b
             }, COOLDOWN_TIME);
           }
         }
-      }
-      if (padlocksChangedItemNames.length === 1) {
-        chatSendCustomAction(`Devious padlock appears again on ${getNickname(Player)}'s ${padlocksChangedItemNames[0]}`);
-      }
-      if (padlocksChangedItemNames.length > 1) {
-        chatSendCustomAction(`Devious padlock appears again on ${getNickname(Player)}'s: ${padlocksChangedItemNames.join(", ")}`);
       }
     }
     Player.Appearance.forEach((item) => {
