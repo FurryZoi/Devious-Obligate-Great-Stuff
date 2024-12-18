@@ -41,8 +41,8 @@ let deviousPadlockTriggerCooldown: {
 	state: false
 };
 
-const MAX_TRIGGER_COUNT = 10;
-const MAX_FIRST_TRIGGER_INTERVAL = 1000 * 10;
+const MAX_TRIGGER_COUNT = 12;
+const MAX_FIRST_TRIGGER_INTERVAL = 1000 * 12;
 const COOLDOWN_TIME = 1000 * 60 * 2;
 
 
@@ -234,10 +234,16 @@ function checkDeviousPadlocks(target: Character): void {
 
 		if (ServerPlayerIsInChatRoom() && pushChatRoom) {
 			ChatRoomCharacterUpdate(Player);
+			if (padlocksChangedItemNames.length === 1) {
+				chatSendCustomAction(`Devious padlock appears again on ${getNickname(Player)}'s ${padlocksChangedItemNames[0]}`);
+			}
+			if (padlocksChangedItemNames.length > 1) {
+				chatSendCustomAction(`Devious padlock appears again on ${getNickname(Player)}'s: ${padlocksChangedItemNames.join(", ")}`);
+			}
 			if (deviousPadlockTriggerCooldown.count === 0) deviousPadlockTriggerCooldown.firstTriggerTime = Date.now();
 			deviousPadlockTriggerCooldown.count++;
 			if (deviousPadlockTriggerCooldown.count > MAX_TRIGGER_COUNT) {
-				if ((Date.now() - deviousPadlockTriggerCooldown.firstTriggerTime) > MAX_FIRST_TRIGGER_INTERVAL) {
+				if ((Date.now() - deviousPadlockTriggerCooldown.firstTriggerTime) < MAX_FIRST_TRIGGER_INTERVAL) {
 					deviousPadlockTriggerCooldown.state = true;
 					deviousPadlockTriggerCooldown.count = 0;
 					chatSendCustomAction(`[COOLDOWN] Devious padlocks were disabled for ${COOLDOWN_TIME / (1000 * 60)} minutes, please disable DOGS mod if this message repeats`);
@@ -248,12 +254,6 @@ function checkDeviousPadlocks(target: Character): void {
 				}
 			}
 
-		}
-		if (padlocksChangedItemNames.length === 1) {
-			chatSendCustomAction(`Devious padlock appears again on ${getNickname(Player)}'s ${padlocksChangedItemNames[0]}`);
-		}
-		if (padlocksChangedItemNames.length > 1) {
-			chatSendCustomAction(`Devious padlock appears again on ${getNickname(Player)}'s: ${padlocksChangedItemNames.join(", ")}`);
 		}
 	}
 
