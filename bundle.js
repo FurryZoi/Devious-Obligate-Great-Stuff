@@ -363,7 +363,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     if (modStorage.misc.deleteLocalMessages) setTimeout(() => msgElement.remove(), 6e4);
   }
   function chatSendChangelog() {
-    const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>\u2022 Fixed spelling</li><li>\u2022 New options added to the settings, including <!devious padlock permissions system!></li><li>\u2022 Small correction made to <!remote control!></li><li>\u2022 Now <!devious padlock!> will be <!red!>, which will <!indicate!> that it <!cannot be applied!> to a specific user due to its settings</li></ul></div>`;
+    const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>\u2022 Added cooldown for devious padlocks to prevent messages spam</li><li>\u2022 Fixed crash with padlock interaction</li><li>\u2022 Some compatibility fixes</li></ul></div>`;
     chatSendLocal(text, "left");
   }
   function drawCheckbox(left, top, width, height, text, isChecked, isDisabled = false, textColor = "Black", textLeft = 200, textTop = 45) {
@@ -706,6 +706,14 @@ One of mods you are using is using an old version of SDK. It will work for now b
   ];
   var deviousPadlockMenuData = null;
   var deviousPadlockMenuLastData = null;
+  var deviousPadlockTriggerCooldown = {
+    count: 0,
+    firstTriggerTime: Date.now(),
+    state: false
+  };
+  var MAX_TRIGGER_COUNT = 10;
+  var MAX_FIRST_TRIGGER_INTERVAL = 1e3 * 10;
+  var COOLDOWN_TIME = 1e3 * 60 * 2;
   function createDeviousPadlock() {
     AssetFemale3DCG.forEach((ele) => {
       if (ele.Group === "ItemMisc") {
@@ -828,7 +836,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
           }
           return properties;
         };
-        if (currentItem?.Asset?.Name !== savedItem.name || !colorsEqual(currentItem.Color, savedItem.color) || JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) || JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property))) {
+        if (!deviousPadlockTriggerCooldown.state && (currentItem?.Asset?.Name !== savedItem.name || !colorsEqual(currentItem.Color, savedItem.color) || JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) || JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property)))) {
           if (canAccessDeviousPadlock(groupName, target, Player)) {
             if (padlockChanged) {
               delete modStorage.deviousPadlock.itemGroups[groupName];
@@ -849,7 +857,22 @@ One of mods you are using is using an old version of SDK. It will work for now b
           }
         }
       });
-      if (ServerPlayerIsInChatRoom() && pushChatRoom) ChatRoomCharacterUpdate(Player);
+      if (ServerPlayerIsInChatRoom() && pushChatRoom) {
+        ChatRoomCharacterUpdate(Player);
+        if (deviousPadlockTriggerCooldown.count === 0) deviousPadlockTriggerCooldown.firstTriggerTime = Date.now();
+        deviousPadlockTriggerCooldown.count++;
+        if (deviousPadlockTriggerCooldown.count > MAX_TRIGGER_COUNT) {
+          if (Date.now() - deviousPadlockTriggerCooldown.firstTriggerTime > MAX_FIRST_TRIGGER_INTERVAL) {
+            deviousPadlockTriggerCooldown.state = true;
+            deviousPadlockTriggerCooldown.count = 0;
+            chatSendCustomAction(`[COOLDOWN] Devious padlocks were disabled for ${COOLDOWN_TIME / (1e3 * 60)} minutes, please disable DOGS mod if this message repeats`);
+            setTimeout(() => {
+              deviousPadlockTriggerCooldown.state = false;
+              checkDeviousPadlocks(Player);
+            }, COOLDOWN_TIME);
+          }
+        }
+      }
       if (padlocksChangedItemNames.length === 1) {
         chatSendCustomAction(`Devious padlock appears again on ${getNickname(Player)}'s ${padlocksChangedItemNames[0]}`);
       }
@@ -860,7 +883,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     Player.Appearance.forEach((item) => {
       if (item.Property?.Name === deviousPadlock.Name && item.Property?.LockedBy === "ExclusivePadlock") {
         if (!modStorage.deviousPadlock.itemGroups || !modStorage.deviousPadlock.itemGroups[item.Asset.Group.Name]) {
-          if (!canPutDeviousPadlock(item.Asset.Group.Name, target, Player)) {
+          if (!canPutDeviousPadlock(item.Asset.Group.Name, target, Player) || deviousPadlockTriggerCooldown.state) {
             InventoryUnlock(Player, item.Asset.Group.Name);
             ChatRoomCharacterUpdate(Player);
           } else registerDeviousPadlockInModStorage(item.Asset.Group.Name, target.MemberNumber);
@@ -869,7 +892,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     });
   }
   function checkDeviousPadlocksTimers() {
-    if (!modStorage.deviousPadlock.itemGroups) return;
+    if (!modStorage.deviousPadlock.itemGroups || deviousPadlockTriggerCooldown.state) return;
     Object.keys(modStorage.deviousPadlock.itemGroups).forEach((group) => {
       const unlockTime = modStorage.deviousPadlock.itemGroups[group].unlockTime;
       if (unlockTime && new Date(unlockTime) < /* @__PURE__ */ new Date()) {
@@ -1079,14 +1102,10 @@ One of mods you are using is using an old version of SDK. It will work for now b
     createDeviousPadlock();
     checkDeviousPadlocks(Player);
     setInterval(checkDeviousPadlocksTimers, 1e3);
-    hookFunction("DialogItemClick", 20, async (args, next) => {
+    hookFunction("DialogLockingClick", 20, async (args, next) => {
       const C = CharacterGetCurrent();
-      const focusGroup = C.FocusGroup;
-      const item = InventoryGet(C, focusGroup.Name);
-      const clickedItem = args[0];
-      if (DialogMenuMode !== "locking") return next(args);
-      if (!item) return next(args);
-      if (clickedItem?.Asset?.Name === deviousPadlock.Name && !InventoryIsPermissionBlocked(C, deviousPadlock.Name, "ItemMisc")) {
+      const clickedLock = args[0];
+      if (clickedLock?.Asset?.Name === deviousPadlock.Name && !InventoryIsPermissionBlocked(C, deviousPadlock.Name, "ItemMisc")) {
         if (C.IsPlayer()) {
           const answer = await requestButtons(
             "This padlock is recommended for those who want to feel really helpless, you will not be able to remove this padlock yourself. Continue? \u{1F60F}",
@@ -1265,6 +1284,17 @@ One of mods you are using is using an old version of SDK. It will work for now b
       if (item.Asset.Name === deviousPadlock.Name) return;
       return next(args);
     });
+    hookFunction("DrawPreviewIcons", 20, (args, next) => {
+      const icons = args[0];
+      if (typeof icons === "object") args[0] = args[0].map((i) => i.name ?? i);
+      return next(args);
+    });
+    hookFunction("DrawImageResize", 20, (args, next) => {
+      if (args[0] === `Assets/Female3DCG/ItemMisc/Preview/${deviousPadlock.Name}.png`) {
+        args[0] = devious_padlock_default;
+      }
+      return next(args);
+    });
   }
 
   // src/modules/settingsMenu.ts
@@ -1413,7 +1443,6 @@ One of mods you are using is using an old version of SDK. It will work for now b
         if (currentSettingsPage === null) {
           Object.keys(settingsPages).forEach((pageKey, i) => {
             buttonsPositions[pageKey] = [settingsButtonLeft, settingsButtonTop + i * (settingsButtonHeight + settingsButtonsGap), settingsButtonWidth, settingsButtonHeight];
-            console.log(buttonsPositions[pageKey]);
           });
           Object.keys(buttonsPositions).forEach((pageKey) => {
             if (MouseIn(...buttonsPositions[pageKey])) currentSettingsPage = pageKey;
@@ -1719,7 +1748,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
 
   // src/index.ts
   function getModVersion() {
-    return "1.0.6";
+    return "1.0.7";
   }
   var font = document.createElement("link");
   font.href = "https://fonts.googleapis.com/css2?family=Comfortaa";
@@ -1751,3 +1780,4 @@ One of mods you are using is using an old version of SDK. It will work for now b
     }
   });
 })();
+//# sourceMappingURL=bundle.js.map
