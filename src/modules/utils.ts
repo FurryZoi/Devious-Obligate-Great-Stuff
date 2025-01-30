@@ -35,13 +35,6 @@ export function beautifyMessage(message: string): string {
 	message = message
 		.replaceAll("<!", `<span style='color: #48AA6D;'>`)
 		.replaceAll("!>", "</span>")
-		// .replaceAll(
-		// 	"<%",
-		// 	`<div style='font-size: 1.1vw; text-align: center; background: ${blueColor}; padding: 4px; border-radius: 8px;'>`
-		// )
-		// .replaceAll("%>", "</div>")
-		// .replaceAll("<*", `<span style='font-size: 1.2vw; color: #de99d9;'>`)
-		// .replaceAll("*>", "</span>");
 	return message;
 }
 
@@ -56,10 +49,12 @@ export function chatSendDOGSMessage(msg: string, _data = undefined, targetNumber
 	const data: ServerChatRoomMessage = {
 		Content: "dogsMsg",
 		Dictionary: {
+			// @ts-ignore
 			msg
 		},
 		Type: "Hidden",
 	};
+	// @ts-ignore
 	if (_data) data.Dictionary.data = _data;
 	if (targetNumber) data.Target = targetNumber;
 	ServerSend("ChatRoomChat", data);
@@ -119,7 +114,7 @@ export function chatSendCustomAction(message: string): void {
 
 export function notify(
 	message: string, duration: number = 3000, notificationColor: string = "rgb(72,70,109)",
-	sliderColor: string = "rgb(61,132,168)"
+	sliderColor: string = "white"
 ): void {
 	if (document.querySelector("#dogsNotificationBlock")) {
 		document.querySelector("#dogsNotificationBlock").remove();
@@ -132,21 +127,21 @@ export function notify(
 	const notificationCenterBlock: HTMLDivElement = document.createElement("div");
 	notificationCenterBlock.id = "dogsNotificationBlock";
 	notificationCenterBlock.classList.add("adaptive-font-size");
-	notificationCenterBlock.style = `position: absolute; top: ${(document.body.offsetHeight - targetElement.offsetHeight) / 2 + 2}px; margin-left: 50%; transform: translateX(-50%); z-index: 100; font-family: Comfortaa;`;
+	notificationCenterBlock.style.cssText = `position: absolute; top: ${(document.body.offsetHeight - targetElement.offsetHeight) / 2 + 2}px; margin-left: 50%; transform: translateX(-50%); z-index: 100; font-family: Comfortaa;`;
 
 	const notification = document.createElement("div");
-	notification.style = `position: relative; display: flex; justify-content: center; align-items: center; background: ${notificationColor}; color: white; min-width: 150px; padding: 1.4vw; border-radius: clamp(2px, 0.6vw, 4px);`;
+	notification.style.cssText = `position: relative; display: flex; justify-content: center; align-items: center; background: ${notificationColor}; color: white; min-width: 150px; padding: 1.4vw; border-radius: clamp(2px, 0.6vw, 4px);`;
 
 	const notificationContent = document.createElement("p");
-	notificationContent.style = "text-align: center; width: 90%;";
+	notificationContent.style.cssText = "text-align: center; width: 90%;";
 	notificationContent.innerHTML = beautifyMessage(message);
 
 	const notificationSlider = document.createElement("div");
-	notificationSlider.style = `position: absolute; left: 0; bottom: 0; width: 0; height: 0.5vw; max-height: 3px; background: ${sliderColor}; border-radius: clamp(2px, 0.6vw, 4px);`;
+	notificationSlider.style.cssText = `position: absolute; left: 0; bottom: 0; width: 0; height: 0.5vw; max-height: 3px; background: ${sliderColor}; border-radius: clamp(2px, 0.6vw, 4px);`;
 
 	const notificationCloseBtn = document.createElement("div");
 	notificationCloseBtn.textContent = "x";
-	notificationCloseBtn.style = "cursor: pointer; position: absolute; top: 0.4vw; right: 1vw; color: white; font-size: clamp(12px, 3vw, 26px);";
+	notificationCloseBtn.style.cssText = "cursor: pointer; position: absolute; top: 0.4vw; right: 1vw; color: white; font-size: clamp(12px, 3vw, 26px);";
 	notificationCloseBtn.addEventListener("click", () => {
 		clearInterval(i);
 		notificationCenterBlock.remove();
@@ -157,7 +152,7 @@ export function notify(
 	document.body.append(notificationCenterBlock);
 
 	window.onresize = () => {
-		notificationCenterBlock.style = `position: absolute; top: ${(document.body.offsetHeight - targetElement.offsetHeight) / 2 + 2}px; margin-left: 50%; transform: translateX(-50%); z-index: 100; font-family: Comfortaa;`;
+		notificationCenterBlock.style.cssText = `position: absolute; top: ${(document.body.offsetHeight - targetElement.offsetHeight) / 2 + 2}px; margin-left: 50%; transform: translateX(-50%); z-index: 100; font-family: Comfortaa;`;
 	};
 
 	const i = setInterval(() => {
@@ -180,21 +175,21 @@ export async function requestButtons(l: string, w: number, maxw: number, btns: {
 	const popup = document.createElement("div");
 	popup.id = "dogsPopup";
 	popup.classList.add("adaptive-font-size");
-	popup.style = `width: ${w}%; min-width: 170px; max-width: ${maxw}px;`;
+	popup.style.cssText = `width: ${w}%; min-width: 170px; max-width: ${maxw}px;`;
 
 	const label = document.createElement("p");
-	label.style = `color: white; text-align: center; padding: 0px 8px;`;
+	label.style.cssText = `color: white; text-align: center; padding: 0px 8px;`;
 	label.innerHTML = beautifyMessage(l);
 
 	const btnsBlock = document.createElement("div");
-	btnsBlock.style = "display: flex; align-items: center; justify-content: center; flex-wrap: wrap; width: 100%; margin-top: 10px; gap: 10px;";
+	btnsBlock.style.cssText = "display: flex; align-items: center; justify-content: center; flex-wrap: wrap; width: 100%; margin-top: 10px; gap: 10px;";
 
 	btns.forEach((btn) => {
 		const el = document.createElement("button");
 		el.innerText = btn.text;
 		el.classList.add("dogsSquare");
 		el.classList.add("adaptive-font-size");
-		el.style = `text-wrap: wrap; text-align: center;`; 
+		el.style.cssText = `text-wrap: wrap; text-align: center;`; 
 		btnsBlock.append(el);
 	});
 
@@ -223,10 +218,10 @@ export function chatSendLocal(message: string, align: "center" | "left" = "cente
 
 	const msgElement = document.createElement("div");
 	msgElement.innerHTML = beautifyMessage(message);
-	msgElement.style = style;
+	msgElement.style.cssText = style;
 	msgElement.classList.add("dogsMessageBlock");
 	const time = document.createElement("div");
-	time.style = "position: absolute; font-size: 1.5vw; padding: 1px; text-align: center; background: white; color: rgb(72,70,109); bottom: 0; right: 0;";
+	time.style.cssText = "position: absolute; font-size: 1.5vw; padding: 1px; text-align: center; background: white; color: rgb(72,70,109); bottom: 0; right: 0;";
 	time.classList.add("current-time");
 	time.textContent = ChatRoomCurrentTime();
 	msgElement.append(time);
@@ -236,7 +231,7 @@ export function chatSendLocal(message: string, align: "center" | "left" = "cente
 }
 
 export function chatSendChangelog(): void {
-	const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>• Added cooldown for devious padlocks to prevent messages spam</li><li>• Fixed crash with padlock interaction</li><li>• Some compatibility fixes</li></ul></div>`;
+	const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>• Added function for <!resetting devious padlocks configurations!>.</li><li>• <!Redesigned GUI!> of devious padlock menu with the addition of new function.</li><li>• The ability to allow <!everyone without exception!> put devious padlock was <!returned!>.</li><li>• Added more options in <!access permissions!> settings of devious padlocks.</li></ul></div>`;
 	chatSendLocal(text, "left");
 }
 

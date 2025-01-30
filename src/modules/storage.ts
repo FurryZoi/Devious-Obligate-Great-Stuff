@@ -2,7 +2,7 @@ import { getModVersion } from "@/index";
 import { chatSendDOGSMessage, getPlayer } from "./utils";
 import { hookFunction } from "./bcModSdk";
 import { RemoteControlPermission } from "./remoteControl";
-import { DeviousPadlockPermission } from "./deviousPadlock";
+import { DeviousPadlockPutPermission, DeviousPadlockAccessPermission } from "./deviousPadlock";
 
 export type TSavedItem = {
     name: string
@@ -19,13 +19,14 @@ export interface IModStorage {
     },
     deviousPadlock: {
         state?: boolean
-        permission?: DeviousPadlockPermission
-        itemGroups?: {} | Record<AssetGroupItemName, {
+        permission?: DeviousPadlockPutPermission
+        itemGroups?: Record<AssetGroupItemName, {
             item: TSavedItem
             owner: number
-            accessPermission?: 0 | 1 | 2 | 3
+            accessPermission?: DeviousPadlockAccessPermission
             memberNumbers?: number[]
             note?: string
+            blockedCommands?: string[]
             unlockTime?: number
         }>
     },
@@ -88,13 +89,11 @@ export function initStorage(): void {
             storage: modStorage,
         });
     });
-
-    // window.modStorage = modStorage;
 }
 
 function migrateModStorage(): void {
     if (typeof modStorage.deviousPadlock.itemGroups === "object") {
-        Object.values(modStorage.deviousPadlock.itemGroups).forEach((d) => {
+        Object.values(modStorage.deviousPadlock.itemGroups as object).forEach((d) => {
             if (d.item.Name) {
                 d.item.name = d.item.Name;
                 delete d.item.Name;

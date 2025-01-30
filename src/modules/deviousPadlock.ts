@@ -1,6 +1,9 @@
 import { callOriginal, hookFunction } from "./bcModSdk";
 import { IModStorage, modStorage, TSavedItem } from "./storage";
-import { beautifyMessage, chatSendCustomAction, chatSendDOGSMessage, colorsEqual, getNickname, getPlayer, notify, requestButtons, waitFor } from "./utils";
+import { 
+	beautifyMessage, chatSendCustomAction, chatSendDOGSMessage, chatSendLocal,
+	colorsEqual, getNickname, getPlayer, notify, requestButtons, waitFor
+} from "./utils";
 import { remoteControlState } from "./remoteControl";
 import deviousPadlockImage from "@/images/devious-padlock.png";
 import backArrowImage from "@/images/back-arrow.png";
@@ -17,15 +20,36 @@ export const deviousPadlock = {
 	RemovalTime: 1000
 };
 
-export enum DeviousPadlockPermission {
+export enum DeviousPadlockPutPermission {
 	FRIENDS_AND_HIGHER = 0,
 	WHITELIST_AND_HIGHER = 1,
-	LOVERS_AND_HIGHER = 2
-}
+	LOVERS_AND_HIGHER = 2,
+	EVERYONE = 3
+};
 
-const chaosPadlockAccessPermissionsList = [
-	"Everyone except wearer", "Wearer's family and higher",
-	"Wearer's lovers and higher", "Wearer's owner"
+export enum DeviousPadlockAccessPermission {
+	EVERYONE_EXCEPT_WEARER = 0,
+	FAMILY_AND_HIGHER = 1,
+	LOVERS_AND_HIGHER = 2,
+	OWNER = 3,
+	FRIENDS_AND_HIGHER = 4,
+	WHITELIST_AND_HIGHER = 5
+};
+
+const deviousPadlockPutPermissionsHierarchy = [
+	DeviousPadlockPutPermission.EVERYONE,
+	DeviousPadlockPutPermission.FRIENDS_AND_HIGHER,
+	DeviousPadlockPutPermission.WHITELIST_AND_HIGHER,
+	DeviousPadlockPutPermission.LOVERS_AND_HIGHER
+];
+
+const deviousPadlockAccessPermissionsHierarchy = [
+	DeviousPadlockAccessPermission.EVERYONE_EXCEPT_WEARER,
+	DeviousPadlockAccessPermission.FRIENDS_AND_HIGHER,
+	DeviousPadlockAccessPermission.WHITELIST_AND_HIGHER,
+	DeviousPadlockAccessPermission.FAMILY_AND_HIGHER,
+	DeviousPadlockAccessPermission.LOVERS_AND_HIGHER,
+	DeviousPadlockAccessPermission.OWNER
 ];
 
 let deviousPadlockMenuData = null;
@@ -47,7 +71,7 @@ const COOLDOWN_TIME = 1000 * 60 * 2;
 
 
 function createDeviousPadlock(): void {
-	AssetFemale3DCG.forEach(ele => {
+	AssetFemale3DCG.forEach((ele) => {
 		if(ele.Group === "ItemMisc") {
 			ele.Asset.push(deviousPadlock);
 		}
@@ -55,14 +79,9 @@ function createDeviousPadlock(): void {
 	
 	const assetGroup = AssetGroupGet("Female3DCG", "ItemMisc");
 	AssetAdd(assetGroup, deviousPadlock, AssetFemale3DCGExtended);
+	// @ts-ignore
 	AssetGet("Female3DCG", "ItemMisc", deviousPadlock.Name).Description = "Devious Padlock";
 	InventoryAdd(Player, deviousPadlock.Name, "ItemMisc");
-}
-
-function convertExclusivePadlockToDeviousPadlock(item: Item): void {
-	if (item.Property?.Name !== deviousPadlock.Name) {
-		item.Property.Name = deviousPadlock.Name;
-	}
 }
 
 function getSavedItemData(item: Item): TSavedItem {
@@ -74,8 +93,29 @@ function getSavedItemData(item: Item): TSavedItem {
 	}
 }
 
-function registerDeviousPadlockInModStorage(group: AssetGroupName, ownerId: number): void {
+export function getNextDeviousPadlockPutPermission(p: DeviousPadlockPutPermission): DeviousPadlockPutPermission {
+	if (deviousPadlockPutPermissionsHierarchy.indexOf(p) === deviousPadlockPutPermissionsHierarchy.length - 1) return p;
+	return deviousPadlockPutPermissionsHierarchy[deviousPadlockPutPermissionsHierarchy.indexOf(p) + 1];
+}
+
+export function getPreviousDeviousPadlockPutPermission(p: DeviousPadlockPutPermission): DeviousPadlockPutPermission {
+	if (deviousPadlockPutPermissionsHierarchy.indexOf(p) === 0) return p;
+	return deviousPadlockPutPermissionsHierarchy[deviousPadlockPutPermissionsHierarchy.indexOf(p) - 1];
+}
+
+export function getNextDeviousPadlockAccessPermission(p: DeviousPadlockAccessPermission): DeviousPadlockAccessPermission {
+	if (deviousPadlockAccessPermissionsHierarchy.indexOf(p) === deviousPadlockAccessPermissionsHierarchy.length - 1) return p;
+	return deviousPadlockAccessPermissionsHierarchy[deviousPadlockAccessPermissionsHierarchy.indexOf(p) + 1];
+}
+
+export function getPreviousDeviousPadlockAccessPermission(p: DeviousPadlockAccessPermission): DeviousPadlockAccessPermission {
+	if (deviousPadlockAccessPermissionsHierarchy.indexOf(p) === 0) return p;
+	return deviousPadlockAccessPermissionsHierarchy[deviousPadlockAccessPermissionsHierarchy.indexOf(p) - 1];
+}
+
+function registerDeviousPadlockInModStorage(group: AssetGroupItemName, ownerId: number): void {
 	if (!modStorage.deviousPadlock.itemGroups) {
+		// @ts-ignore
 		modStorage.deviousPadlock.itemGroups = {};
 	}
 	const currentItem = InventoryGet(Player, group);
@@ -98,62 +138,98 @@ function inspectDeviousPadlock(target: Character, item: Item, itemGroup: AssetIt
 		memberNumbers: deviousPadlock.itemGroups[itemGroup.Name].memberNumbers ?? [],
 		unlockTime: deviousPadlock.itemGroups[itemGroup.Name].unlockTime,
 		note: deviousPadlock.itemGroups[itemGroup.Name].note,	
+		blockedCommands: deviousPadlock.itemGroups[itemGroup.Name].blockedCommands ?? []
 	};
 	deviousPadlockMenuLastData = JSON.parse(JSON.stringify(deviousPadlockMenuData));
 
 	const menu = document.createElement("div");
 	menu.id = "dogsFullScreen";
-	menu.style = "height: 70vw;";
-	menu.append(getDeviousPadlockMenu(target, itemGroup, menu, "main"));
+	menu.style.cssText = "height: 70vw;";
+	menu.append(getDeviousPadlockMenu(target, itemGroup, menu, "General"));
 	document.body.append(menu);
 }
 
-function canPutDeviousPadlock(groupName: string, target1: Character, target2: Character): boolean {
+function canPutDeviousPadlock(groupName: AssetGroupItemName, target1: Character, target2: Character): boolean {
 	let storage: IModStorage;
 	if (target2.IsPlayer()) storage = modStorage;
 	else storage = target2.DOGS;
 	if (!storage?.deviousPadlock?.state) return;
-	const permission = storage?.deviousPadlock?.permission ?? DeviousPadlockPermission.FRIENDS_AND_HIGHER;
+	const permission = storage?.deviousPadlock?.permission ?? DeviousPadlockPutPermission.EVERYONE;
 	if (target1.MemberNumber === target2.MemberNumber) return true;
-	if (permission === DeviousPadlockPermission.FRIENDS_AND_HIGHER) return (
+	if (permission === DeviousPadlockPutPermission.FRIENDS_AND_HIGHER) return (
+		// @ts-ignore
 		target1.FriendList?.includes(target2.MemberNumber) || target2.FriendList?.includes(target1.MemberNumber) ||
 		target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) ||
 		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || 
 		target2.IsOwnedByCharacter(target1)
 	);
-	if (permission === DeviousPadlockPermission.WHITELIST_AND_HIGHER) return (
+	if (permission === DeviousPadlockPutPermission.WHITELIST_AND_HIGHER) return (
 		target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) ||
 		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || 
 		target2.IsOwnedByCharacter(target1)
 	);
-	if (permission === DeviousPadlockPermission.LOVERS_AND_HIGHER) return (
+	if (permission === DeviousPadlockPutPermission.LOVERS_AND_HIGHER) return (
 		target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1)
 	);
-
-	// its weird... return true
 	return true;
 }
 
-function canAccessDeviousPadlock(groupName: string, target1: Character, target2: Character): boolean {
+function canAccessDeviousPadlock(groupName: AssetGroupItemName, target1: Character, target2: Character): boolean {
 	if (!target1.CanInteract()) return false;
 	if (!target2.IsPlayer() && !target2.DOGS) return false;
 	if (target1.MemberNumber === target2.MemberNumber) return false;
-	const owner = target2.IsPlayer() ? modStorage.deviousPadlock.itemGroups?.[groupName]?.owner : target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.owner;
-	const permissionKey = target2.IsPlayer() ? (modStorage.deviousPadlock.itemGroups?.[groupName]?.accessPermission ?? 0) : (target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.accessPermission ?? 0);
+	const owner = target2.IsPlayer() ? 
+		modStorage.deviousPadlock.itemGroups?.[groupName]?.owner
+		: target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.owner;
+	const permissionKey = target2.IsPlayer() ? 
+		(modStorage.deviousPadlock.itemGroups?.[groupName]?.accessPermission ?? DeviousPadlockAccessPermission.EVERYONE_EXCEPT_WEARER)
+		: (target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.accessPermission ?? DeviousPadlockAccessPermission.EVERYONE_EXCEPT_WEARER);
 	const memberNumbers = target2.IsPlayer() ? (modStorage.deviousPadlock.itemGroups?.[groupName]?.memberNumbers ?? []) : (target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.memberNumbers ?? []);
 	if (target1.MemberNumber === owner || memberNumbers.includes(target1.MemberNumber)) return true;
-	if (permissionKey === 0) return true;
-	if (permissionKey === 1) return target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
-	if (permissionKey === 2) return target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
-	if (permissionKey === 3) return target2.IsOwnedByCharacter(target1);
+	if (permissionKey === DeviousPadlockAccessPermission.EVERYONE_EXCEPT_WEARER) return true;
+	if (permissionKey === DeviousPadlockAccessPermission.FRIENDS_AND_HIGHER) return (
+		// @ts-ignore
+		target1.FriendList?.includes(target2.MemberNumber) || target2.FriendList?.includes(target1.MemberNumber) ||
+		target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) ||
+		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || 
+		target2.IsOwnedByCharacter(target1)
+	);
+	if (permissionKey === DeviousPadlockAccessPermission.WHITELIST_AND_HIGHER) return (
+		// @ts-ignore
+		target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) ||
+		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || 
+		target2.IsOwnedByCharacter(target1)
+	);
+	if (permissionKey === DeviousPadlockAccessPermission.FAMILY_AND_HIGHER) return (
+		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) ||
+		target2.IsOwnedByCharacter(target1)
+	);
+	if (permissionKey === DeviousPadlockAccessPermission.LOVERS_AND_HIGHER) return target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
+	if (permissionKey === DeviousPadlockAccessPermission.OWNER) return target2.IsOwnedByCharacter(target1);
 	return true;
 }
 
-function canSetAccessPermission(target1: Character, target2: Character, permissionKey: number): boolean {
-	if (permissionKey === 0) return target1.MemberNumber !== target2.MemberNumber;
-	if (permissionKey === 1) return target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
-	if (permissionKey === 2) return target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
-	if (permissionKey === 3) return target2.IsOwnedByCharacter(target1);
+function canSetAccessPermission(target1: Character, target2: Character, accessPermission: DeviousPadlockAccessPermission): boolean {
+	if (accessPermission === DeviousPadlockAccessPermission.EVERYONE_EXCEPT_WEARER) return target1.MemberNumber !== target2.MemberNumber;
+	if (accessPermission === DeviousPadlockAccessPermission.FRIENDS_AND_HIGHER) return (
+		// @ts-ignore
+		target1.FriendList?.includes(target2.MemberNumber) || target2.FriendList?.includes(target1.MemberNumber) ||
+		target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) ||
+		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || 
+		target2.IsOwnedByCharacter(target1)
+	);
+	if (accessPermission === DeviousPadlockAccessPermission.WHITELIST_AND_HIGHER) return (
+		// @ts-ignore
+		target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) ||
+		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || 
+		target2.IsOwnedByCharacter(target1)
+	);
+	if (accessPermission === DeviousPadlockAccessPermission.FAMILY_AND_HIGHER) return (
+		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) ||
+		target2.IsOwnedByCharacter(target1)
+	);
+	if (accessPermission === DeviousPadlockAccessPermission.LOVERS_AND_HIGHER) return target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
+	if (accessPermission === DeviousPadlockAccessPermission.OWNER) return target2.IsOwnedByCharacter(target1);
 	return false;
 }
 
@@ -165,8 +241,8 @@ function checkDeviousPadlocks(target: Character): void {
 	if (modStorage.deviousPadlock.itemGroups) {
 		let padlocksChangedItemNames: string[] = [];
 		let pushChatRoom: boolean = false;
-		Object.keys(modStorage.deviousPadlock.itemGroups).forEach(async (groupName) => {
-			const currentItem = InventoryGet(Player, groupName);
+		Object.keys(modStorage.deviousPadlock.itemGroups).forEach((groupName) => {
+			const currentItem = InventoryGet(Player, groupName as AssetGroupName);
 			const savedItem: TSavedItem = modStorage.deviousPadlock.itemGroups[groupName].item;
 
 			const property = currentItem?.Property;
@@ -211,7 +287,7 @@ function checkDeviousPadlocks(target: Character): void {
 					JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property))
 				)
 			) {
-				if (canAccessDeviousPadlock(groupName, target, Player)) {
+				if (canAccessDeviousPadlock(groupName as AssetGroupItemName, target, Player)) {
 					if (padlockChanged) {
 						delete modStorage.deviousPadlock.itemGroups[groupName];
 					} else {
@@ -219,7 +295,7 @@ function checkDeviousPadlocks(target: Character): void {
 					}
 				} else {
 					const difficulty = AssetGet(Player.AssetFamily, groupName as AssetGroupName, savedItem.name).Difficulty;
-					let newItem: Item = callOriginal("InventoryWear", [Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft]);
+					let newItem: Item = callOriginal("InventoryWear", [Player, savedItem.name, groupName as AssetGroupItemName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft]);
 					newItem.Property = {
 						...getValidProperties(savedItem.property),
 						...getIgnoredProperties(currentItem?.Asset?.Name === savedItem.name ? currentItem.Property : newItem.Property)
@@ -253,7 +329,6 @@ function checkDeviousPadlocks(target: Character): void {
 					}, COOLDOWN_TIME);
 				}
 			}
-
 		}
 	}
 
@@ -266,7 +341,7 @@ function checkDeviousPadlocks(target: Character): void {
 				!modStorage.deviousPadlock.itemGroups ||
 				!modStorage.deviousPadlock.itemGroups[item.Asset.Group.Name as AssetGroupItemName]
 			) {
-				if (!canPutDeviousPadlock(item.Asset.Group.Name, target, Player) || deviousPadlockTriggerCooldown.state) {
+				if (!canPutDeviousPadlock(item.Asset.Group.Name as AssetGroupItemName, target, Player) || deviousPadlockTriggerCooldown.state) {
 					InventoryUnlock(Player, item.Asset.Group.Name as AssetGroupItemName);
 					ChatRoomCharacterUpdate(Player);					
 				} else registerDeviousPadlockInModStorage(item.Asset.Group.Name as AssetGroupItemName, target.MemberNumber);
@@ -277,7 +352,7 @@ function checkDeviousPadlocks(target: Character): void {
 
 function checkDeviousPadlocksTimers(): void {
 	if (!modStorage.deviousPadlock.itemGroups || deviousPadlockTriggerCooldown.state) return;
-	Object.keys(modStorage.deviousPadlock.itemGroups).forEach((group: AssetGroupName) => {
+	Object.keys(modStorage.deviousPadlock.itemGroups).forEach((group: AssetGroupItemName) => {
 		const unlockTime = modStorage.deviousPadlock.itemGroups[group].unlockTime;
 		if (unlockTime && new Date(unlockTime) < new Date()) {
 			const itemName = InventoryGet(Player, group).Craft?.Name 
@@ -298,30 +373,75 @@ function getDeviousPadlockMenu(
 ): HTMLDivElement {
 	const item = InventoryGet(target, group.Name);
 	const itemName = item.Craft?.Name ? item.Craft.Name : item.Asset.Description;
-	if (page === "main") {
+
+	const container = document.createElement("div");
+	container.style.cssText = "display: flex; height: 100%;";
+
+	const navContainer = document.createElement("div");
+	navContainer.style.cssText = `display: flex; flex-direction: column; align-items: center; justify-content: center;
+	row-gap: 6px; center; width: 30%; min-width: 80px; max-width: 300px; background: black; background: #12121217;`;
+
+	const contentContainer = document.createElement("div");
+	contentContainer.style.cssText = `display: flex; flex-direction: column; align-items: center; justify-content: center;
+	width: 100%; height: 100%; overflow: auto;`;
+
+	const closeBtn = document.createElement("button");
+	closeBtn.textContent = "x";
+	closeBtn.style.cssText = "display: flex; align-items: center; justify-content: center; position: absolute; top: 5px; right: 5px; min-width: 17px; min-height: 17px; width: 6vw; height: 6vw; font-size: 4.5vw;";
+	closeBtn.classList.add("dogsBtn");
+	closeBtn.addEventListener("click", function () {
+		menuElement.remove();
+		if (
+			!target.IsPlayer() && 
+			JSON.stringify(deviousPadlockMenuLastData) !==
+			JSON.stringify(deviousPadlockMenuData)
+		) {
+			chatSendDOGSMessage("changeDeviousPadlockConfigurations", {
+				...deviousPadlockMenuData,
+				group: group.Name
+			}, target.MemberNumber);
+			chatSendCustomAction(
+				`${getNickname(Player)} changes the devious padlock configurations on ${getNickname(target)}'s ${itemName}`
+			);
+		}
+	});
+
+	for (let _page of ["General", "Note", "Blocked Commands", "Access"]) {
+		const btn = document.createElement("button");
+		btn.textContent = _page;
+		btn.classList.add("dogsNavBtn");
+		if (page === _page) btn.setAttribute("data-active", "true");
+		btn.addEventListener("click", () => {			
+			container.remove();
+			menuElement.append(getDeviousPadlockMenu(target, group, menuElement, _page));	
+		});
+		navContainer.append(btn);
+	}
+
+	container.append(navContainer, contentContainer, closeBtn);
+
+	if (page === "General") {
 		const itemPreviewLink = GameVersion.length === 4 ?
 			`https://www.bondage-europe.com/${GameVersion}/BondageClub/Assets/Female3DCG/${group.Name}/Preview/${item.Asset.Name}.png`
 			: `${window.location.href}Assets/Female3DCG/${group.Name}/Preview/${item.Asset.Name}.png`;
 
-		const centerBlock = document.createElement("div");
-		centerBlock.style = "display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%;";
-
 		const preview = document.createElement("div");
-		preview.style = "position: relative; width: 20%; height: 20%; max-width: 150px; max-height: 150px;";
+		preview.style.cssText = "position: relative; width: 20%; aspect-ratio: 1 / 1; max-width: 150px; max-height: 150px;";
 
 		const previewItem = document.createElement("img");
 		previewItem.src = itemPreviewLink;
-		previewItem.style = "background: white; width: 100%; height: 100%;";
+		previewItem.style.cssText = "background: white; width: 100%; height: 100%;";
 
 		const previewPadlock = document.createElement("img");
 		previewPadlock.src = deviousPadlockImage;
-		previewPadlock.style = "z-index: 10; width: 20%; height: 20%; position: absolute; left: 2px; top: 2px;";
+		previewPadlock.style.cssText = "z-index: 10; width: 20%; height: 20%; position: absolute; left: 2px; top: 2px;";
 
 		const description = document.createElement("p");
 		description.innerHTML = beautifyMessage(
 			`Padlock can be managed only by users who <!correspond!> to the <!access permissions!><br><span style="color: #ff0000;">Protected from cheats</span>`
 		);
-		description.style = "width: 100%; text-align: center; background: rgb(63 61 104); padding: 1vw; color: white; text-align: center; font-size: clamp(12px, 3vw, 24px); margin-top: 1.5vw;";
+		description.style.cssText = `width: 95%; background: rgb(80 78 116); border-radius: 4px; text-align: center;
+		padding: 1vw; color: white; text-align: center; font-size: clamp(12px, 3vw, 24px); margin-top: 1.5vw; box-sizing: border-box;`;
 		
 		const owner = document.createElement("p");
 		owner.innerHTML = beautifyMessage(
@@ -329,216 +449,161 @@ function getDeviousPadlockMenu(
 				getPlayer(deviousPadlockMenuData.owner) ? `${getNickname(getPlayer(deviousPadlockMenuData.owner))} (${deviousPadlockMenuData.owner})` : `${deviousPadlockMenuData.owner}`
 			}!>`
 		);
-		owner.style = "width: 100%; text-align: center; background: rgb(63 61 104); padding: 1vw; color: white; text-align: center; font-size: clamp(12px, 3vw, 24px); margin-top: 1.5vw;";
+		owner.style.cssText = "width: 95%; color: white; font-size: clamp(12px, 3vw, 24px); margin-top: 1.5vw; box-sizing: border-box;";
 
 		const time = document.createElement("div");
-		time.style = "width: 100%; margin-top: 1.5vw; width: 100%; background: rgb(63 61 104); padding: 1vw; display: flex; flex-direction: column; align-items: center;";
+		time.style.cssText = "width: 100%; margin-top: 1.5vw; width: 95%; background: rgb(80 78 116); border-radius: 4px; padding: 1vw; display: flex; flex-direction: column; align-items: center; box-sizing: border-box;";
 
 		const timeText = document.createElement("p");
 		timeText.textContent = "When should the lock be removed? (Leave this field empty for permanent 😉)";
-		timeText.style = "font-size: clamp(12px, 3vw, 24px); margin-top: 1vw; color: white; text-align: center;";
+		timeText.style.cssText = "font-size: clamp(12px, 3vw, 24px); width: 95%; color: white; text-align: center;";
 
 		const timeField = document.createElement("input");
 		timeField.type = "datetime-local";
 		timeField.classList.add("dogsTextEdit");
-		if (!canAccessDeviousPadlock(group.Name, Player, target)) {
+		if (!canAccessDeviousPadlock(group.Name as AssetGroupItemName, Player, target)) {
 			timeField.classList.add("disabled");
 		}
-		timeField.style = "background: rgb(99 96 147); margin-top: 1vw; width: 80%; height: 4vw; min-height: 15px; font-size: clamp(12px, 3vw, 24px);";
+		timeField.style.cssText = "background: rgb(99 96 147); margin-top: 1vw; width: 95%; height: 4vw; min-height: 15px; font-size: clamp(12px, 3vw, 24px);";
 		timeField.value = deviousPadlockMenuData.unlockTime
 			? deviousPadlockMenuData.unlockTime
 			: "";
-		timeField.addEventListener("change", function (e) {
-			deviousPadlockMenuData.unlockTime = e.target.value;
-		});
-
-		const rowBtns = document.createElement("div");
-		rowBtns.style = "display: flex; align-items: center; gap: 0 1vw;";
-
-		// const manageRestrictionsBtn = document.createElement("button");
-		// manageRestrictionsBtn.classList.add("dogsBtn");
-		// manageRestrictionsBtn.style = "color: white; font-size: 2.5vw; margin-top: 2vw;";
-		// manageRestrictionsBtn.textContent = `Manage restrictions`;
-		// manageRestrictionsBtn.addEventListener("click", function () {
-		// 	centerBlock.remove();
-		// 	menuElement.append(getChaosPadlockMenu(target, group, menuElement, "restrictions"));
-		// });
-
-		const noteBtn = document.createElement("button");
-		noteBtn.classList.add("dogsBtn");
-		noteBtn.style = "color: white; font-size: clamp(12px, 4vw, 24px); margin-top: 2vw;";
-		noteBtn.textContent = `Note`;
-		noteBtn.addEventListener("click", function () {
-			centerBlock.remove();
-			menuElement.append(getDeviousPadlockMenu(target, group, menuElement, "note"));
-		});
-
-		const accessBtn = document.createElement("button");
-		accessBtn.classList.add("dogsBtn");
-		accessBtn.style = "color: white; font-size: clamp(12px, 4vw, 24px); margin-top: 2vw;";
-		accessBtn.textContent = `Access`;
-		accessBtn.addEventListener("click", function () {
-			centerBlock.remove();
-			menuElement.append(getDeviousPadlockMenu(target, group, menuElement, "access"));
-		});
-
-		const closeBtn = document.createElement("button");
-		closeBtn.textContent = "x";
-		closeBtn.style = "display: flex; align-items: center; justify-content: center; position: absolute; top: 5px; right: 5px; min-width: 17px; min-height: 17px; width: 6vw; height: 6vw; font-size: 4.5vw;";
-		closeBtn.classList.add("dogsBtn");
-		closeBtn.addEventListener("click", function () {
-			menuElement.remove();
-			if (
-				!target.IsPlayer() && 
-				JSON.stringify(deviousPadlockMenuLastData) !==
-				JSON.stringify(deviousPadlockMenuData)
-			) {
-				chatSendDOGSMessage("changeDeviousPadlockConfigurations", {
-					...deviousPadlockMenuData,
-					group: group.Name
-				}, target.MemberNumber);
-				chatSendCustomAction(
-					`${getNickname(Player)} changes the devious padlock configurations on ${getNickname(target)}'s ${itemName}`
-				);
-			}
+		timeField.addEventListener("change", function () {
+			deviousPadlockMenuData.unlockTime = timeField.value;
 		});
 
 		preview.append(previewItem, previewPadlock);
 		time.append(timeText, timeField);
-		rowBtns.append(noteBtn, accessBtn);
-		centerBlock.append(
-			preview, description, owner, time,
-			rowBtns, closeBtn
+		contentContainer.append(
+			preview, description, owner, time
 		);
-
-		return centerBlock;
 	}
 
-	if (page === "note") {
-		const centerBlock = document.createElement("div");
-		centerBlock.style = "display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%;";
-
-		const backBtn = document.createElement("button");
-		backBtn.style = "display: flex; align-items: center; justify-content: center; position: absolute; top: 5px; right: 5px; min-width: 17px; min-height: 17px; width: 6vw; height: 6vw; font-size: 4.5vw;";
-		backBtn.classList.add("dogsBtn");
-		backBtn.addEventListener("click", function () {
-			centerBlock.remove();
-			menuElement.append(getDeviousPadlockMenu(target, group, menuElement, "main"));	
-		});
-
-		const backBtnIcon = document.createElement("img");
-		backBtnIcon.style = "width: 75%; height: auto;";
-		backBtnIcon.src = backArrowImage;
-		backBtn.append(backBtnIcon);
-
+	if (page === "Note") {
 		const note = document.createElement("textarea");
 		note.classList.add("dogsTextEdit");
-		if (!canAccessDeviousPadlock(group.Name, Player, target)) {
+		if (!canAccessDeviousPadlock(group.Name as AssetGroupItemName, Player, target)) {
 			note.classList.add("disabled");
 		}
-		note.style = "width: 75%; height: 30%; font-size: clamp(12px, 4vw, 24px);";
+		note.style.cssText = "width: 85%; height: 30%; min-height: 100px; font-size: clamp(12px, 4vw, 24px);";
 		note.placeholder = "You can leave a note that other DOGS users can see";
 		note.value = deviousPadlockMenuData.note
 			? deviousPadlockMenuData.note
 			: "";
-		note.addEventListener("change", function (e) {
-			deviousPadlockMenuData.note = e.target.value;
+		note.addEventListener("change", function () {
+			deviousPadlockMenuData.note = note.value;
 		});
-
-		centerBlock.append(note, backBtn);
-		return centerBlock;
+		contentContainer.append(note);
 	}
 
-	if (page === "access") {
-		const centerBlock = document.createElement("div");
-		centerBlock.style = "display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%;";
-
-		const backBtn = document.createElement("button");
-		backBtn.style = "display: flex; align-items: center; justify-content: center; position: absolute; top: 5px; right: 5px; min-width: 17px; min-height: 17px; width: 6vw; height: 6vw; font-size: 4.5vw;";
-		backBtn.classList.add("dogsBtn");
-		backBtn.addEventListener("click", function () {
-			centerBlock.remove();
-			menuElement.append(getDeviousPadlockMenu(target, group, menuElement, "main"));	
+	if (page === "Blocked Commands") {
+		const commands = document.createElement("textarea");
+		commands.classList.add("dogsTextEdit");
+		if (!canAccessDeviousPadlock(group.Name as AssetGroupItemName, Player, target)) {
+			commands.classList.add("disabled");
+		}
+		commands.style.cssText = "width: 85%; height: 30%; min-height: 100px; font-size: clamp(12px, 4vw, 24px);";
+		commands.placeholder = `You can paste commands which will be blocked for the padlock wearer. Example: "/command1, /command2"`;
+		commands.value = deviousPadlockMenuData.blockedCommands
+			? deviousPadlockMenuData.blockedCommands.join(", ")
+			: "";
+		commands.addEventListener("change", function () {
+			deviousPadlockMenuData.blockedCommands = commands.value.split(",")
+				.map((c) => c.trim())
+				.filter((c) => c.startsWith("/") && c.length > 1);
 		});
+		contentContainer.append(commands);
+	}
 
-		const backBtnIcon = document.createElement("img");
-		backBtnIcon.style = "width: 75%; height: auto;";
-		backBtnIcon.src = backArrowImage;
-		backBtn.append(backBtnIcon);
+	if (page === "Access") {
+		const chaosPadlockAccessPermissionsTexts = {
+			[DeviousPadlockAccessPermission.EVERYONE_EXCEPT_WEARER]: "Everyone except wearer", 
+			[DeviousPadlockAccessPermission.FRIENDS_AND_HIGHER]: "Wearer's friends and higher",
+			[DeviousPadlockAccessPermission.WHITELIST_AND_HIGHER]: "Wearer's whitelist and higher",
+			[DeviousPadlockAccessPermission.FAMILY_AND_HIGHER]: "Wearer's family and higher",
+			[DeviousPadlockAccessPermission.LOVERS_AND_HIGHER]: "Wearer's lovers and higher",
+			[DeviousPadlockAccessPermission.OWNER]: "Wearer's owner"
+		};
+
+		const memberNumbers = document.createElement("div");
+		memberNumbers.style.cssText = `display: flex; flex-direction: column; align-items: center; box-sizing: border-box;
+		width: 95%; background: rgb(80 78 116); border-radius: 4px; padding: 1vw;`;
 
 		const memberNumbersText = document.createElement("p");
-		memberNumbersText.style = "color: white; width: 75%; font-size: clamp(12px, 4vw, 24px); text-align: center;";
+		memberNumbersText.style.cssText = "color: white; width: 95%; font-size: clamp(12px, 4vw, 24px); text-align: center;";
 		memberNumbersText.textContent = "Member numbers which will always have access to the padlock";
 
-		const memberNumbers = document.createElement("textarea");
-		memberNumbers.classList.add("dogsTextEdit");
-		if (!canAccessDeviousPadlock(group.Name, Player, target)) {
-			memberNumbers.classList.add("disabled");
+		const memberNumbersField = document.createElement("textarea");
+		memberNumbersField.classList.add("dogsTextEdit");
+		if (!canAccessDeviousPadlock(group.Name as AssetGroupItemName, Player, target)) {
+			memberNumbersField.classList.add("disabled");
 		}
-		memberNumbers.placeholder = "Member numbers";
-		memberNumbers.style = "width: 75%; height: 6.5vw; margin-top: 1vw; font-size: clamp(12px, 4vw, 24px);";
-		memberNumbers.value = deviousPadlockMenuData.memberNumbers
+		memberNumbersField.placeholder = "Member numbers";
+		memberNumbersField.style.cssText = "width: 95%; height: 6.5vw; margin-top: 1vw; font-size: clamp(12px, 4vw, 24px);";
+		memberNumbersField.value = deviousPadlockMenuData.memberNumbers
 			? deviousPadlockMenuData.memberNumbers.join(", ")
 			: "";
-		memberNumbers.addEventListener("change", function (e) {
-			deviousPadlockMenuData.memberNumbers = e.target.value.split(",").map((n) => parseInt(n));
+		memberNumbersField.addEventListener("change", function () {
+			deviousPadlockMenuData.memberNumbers = memberNumbersField.value.split(",").map((n) => parseInt(n));
 		});
 
+		let accessPermissionToSubmit = deviousPadlockMenuData.accessPermission;
+
+		const accessBlock = document.createElement("div");
+		accessBlock.style.cssText = `display: flex; flex-direction: column; align-items: center; box-sizing: border-box;
+		width: 95%; background: rgb(80 78 116); border-radius: 4px; padding: 1vw; margin-top: 2vw;`;
+
 		const currentAccessSetting = document.createElement("p");
-		currentAccessSetting.innerHTML = beautifyMessage(`Current access permission: <!${chaosPadlockAccessPermissionsList[deviousPadlockMenuData.accessPermission]}!>`);
-		currentAccessSetting.style = "margin-top: 2.5vw; color: white; text-align: center; font-size: clamp(12px, 4vw, 24px);";
+		currentAccessSetting.innerHTML = beautifyMessage(`Current access permission: <!${chaosPadlockAccessPermissionsTexts[deviousPadlockMenuData.accessPermission]}!>`);
+		currentAccessSetting.style.cssText = "width: 95%; color: white; text-align: center; font-size: clamp(12px, 4vw, 24px);";
 
 		const accessSettings = document.createElement("div");
-		accessSettings.style = "display: flex; align-items: center; column-gap: 2vw; margin-top: 2vw;";
+		accessSettings.style.cssText = `display: flex; align-items: center; justify-content: center; column-gap: 2vw;
+		margin-top: 2vw; width: 95%;`;
 
 		const leftBtn = document.createElement("button");
 		leftBtn.classList.add("dogsBtn");
 		leftBtn.textContent = "<<";
-		leftBtn.style = "display: flex; align-items: center; justify-content: center; width: 4vw; height: 4vw; border-radius: 50%;";
+		leftBtn.style.cssText = "display: flex; align-items: center; justify-content: center; width: 4vw; height: 4vw; border-radius: 50%;";
 		leftBtn.addEventListener("click", function () {
-			const index = chaosPadlockAccessPermissionsList.indexOf(accessText.textContent);
-			if (index > 0) {
-				accessText.textContent = chaosPadlockAccessPermissionsList[index - 1];
-			} else {
-				accessText.textContent = chaosPadlockAccessPermissionsList[index];
-			}
+			accessPermissionToSubmit = getPreviousDeviousPadlockAccessPermission(accessPermissionToSubmit);
+			accessText.textContent = chaosPadlockAccessPermissionsTexts[accessPermissionToSubmit];
 		});
 
 		const accessText = document.createElement("p");
-		accessText.textContent = chaosPadlockAccessPermissionsList[deviousPadlockMenuData.accessPermission];
-		accessText.style = "text-align: center; color: white; font-size: clamp(12px, 4vw, 24px);";
+		accessText.textContent = chaosPadlockAccessPermissionsTexts[accessPermissionToSubmit];
+		accessText.style.cssText = "text-align: center; color: white; font-size: clamp(12px, 4vw, 24px);";
 
 		const rightBtn = document.createElement("button");
 		rightBtn.classList.add("dogsBtn");
 		rightBtn.textContent = ">>";
-		rightBtn.style = "display: flex; align-items: center; justify-content: center; width: 4vw; height: 4vw; border-radius: 50%;";
+		rightBtn.style.cssText = "display: flex; align-items: center; justify-content: center; width: 4vw; height: 4vw; border-radius: 50%;";
 		rightBtn.addEventListener("click", function () {
-			const index = chaosPadlockAccessPermissionsList.indexOf(accessText.textContent);
-			if (index < chaosPadlockAccessPermissionsList.length - 1) {
-				accessText.textContent = chaosPadlockAccessPermissionsList[index + 1];
-			} else {
-				accessText.textContent = chaosPadlockAccessPermissionsList[index];
-			}
+			accessPermissionToSubmit = getNextDeviousPadlockAccessPermission(accessPermissionToSubmit);
+			accessText.textContent = chaosPadlockAccessPermissionsTexts[accessPermissionToSubmit];
 		});
 
 		const submitBtn = document.createElement("button");
 		submitBtn.classList.add("dogsBtn");
-		if (!canAccessDeviousPadlock(group.Name, Player, target)) {
+		if (!canAccessDeviousPadlock(group.Name as AssetGroupItemName, Player, target)) {
 			submitBtn.classList.add("disabled");
 		}
 		submitBtn.textContent = "Submit";
 		submitBtn.addEventListener("click", function () {
-			if (!canSetAccessPermission(Player, target, chaosPadlockAccessPermissionsList.indexOf(accessText.textContent))) {
+			if (!canSetAccessPermission(Player, target, accessPermissionToSubmit)) {
 				return notify("Not enough rights to set this access permission", 5000, "rgb(137 133 205)", "white");
 			}
-			deviousPadlockMenuData.accessPermission = chaosPadlockAccessPermissionsList.indexOf(accessText.textContent);
+			deviousPadlockMenuData.accessPermission = accessPermissionToSubmit;
 			currentAccessSetting.innerHTML = beautifyMessage(`Current access permission: <!${accessText.textContent}!>`);
 		});
 
+		memberNumbers.append(memberNumbersText, memberNumbersField);
 		accessSettings.append(leftBtn, accessText, rightBtn, submitBtn);
-		centerBlock.append(memberNumbersText, memberNumbers, currentAccessSetting, accessSettings, backBtn);
-		return centerBlock;
+		accessBlock.append(currentAccessSetting, accessSettings)
+		contentContainer.append(memberNumbers, accessBlock);
 	}
+
+	return container;
 }
 
 export function loadDeviousPadlock(): void {
@@ -612,7 +677,7 @@ export function loadDeviousPadlock(): void {
 				target.IsPlayer() &&
 				typeof modStorage.deviousPadlock.itemGroups?.[item.Asset?.Group?.Name] !== "object"
 			) {
-				registerDeviousPadlockInModStorage(item.Asset.Group.Name, parseInt(item.Property.LockMemberNumber ?? Player.MemberNumber));
+				registerDeviousPadlockInModStorage(item.Asset.Group.Name as AssetGroupItemName, parseInt(item.Property.LockMemberNumber ?? Player.MemberNumber));
 			}
 			return canAccessDeviousPadlock(target.FocusGroup?.Name, Player, target);
 		}
@@ -630,6 +695,7 @@ export function loadDeviousPadlock(): void {
 
 	hookFunction("InventoryLock", 20, (args, next) => {
 		const [ C, Item, Lock, MemberNumber ] = args as [Character, Item | AssetGroupName, Item | AssetLockType, null | number | string];
+		// @ts-ignore
 		if ([Lock.Name, Lock].includes(deviousPadlock.Name)) {
 			args[2] = "ExclusivePadlock";
 			if (args[1].Property) {
@@ -738,16 +804,21 @@ export function loadDeviousPadlock(): void {
 					return;
 				}
 				if (data.accessPermission && canSetAccessPermission(sender, Player, data.accessPermission)) {
-					modStorage.deviousPadlock.itemGroups[data.group as AssetGroupName].accessPermission = data.accessPermission;
+					modStorage.deviousPadlock.itemGroups[data.group as AssetGroupItemName].accessPermission = data.accessPermission;
 				}
 				if (Array.isArray(data.memberNumbers)) {
-					modStorage.deviousPadlock.itemGroups[data.group as AssetGroupName].memberNumbers = data.memberNumbers;
+					modStorage.deviousPadlock.itemGroups[data.group as AssetGroupItemName].memberNumbers = data.memberNumbers.filter((n) => typeof n === "number");
 				}
 				if (typeof data.unlockTime === "string") {
-					modStorage.deviousPadlock.itemGroups[data.group as AssetGroupName].unlockTime = data.unlockTime;
+					modStorage.deviousPadlock.itemGroups[data.group as AssetGroupItemName].unlockTime = data.unlockTime;
 				}
 				if (typeof data.note === "string") {
-					modStorage.deviousPadlock.itemGroups[data.group as AssetGroupName].note = data.note;
+					modStorage.deviousPadlock.itemGroups[data.group as AssetGroupItemName].note = data.note;
+				}
+				if (Array.isArray(data.blockedCommands)) {
+					modStorage.deviousPadlock.itemGroups[data.group as AssetGroupItemName].blockedCommands = data.blockedCommands
+						.map((c) => c.trim())
+						.filter((c) => c.startsWith("/") && c.length > 1);;
 				}
 			}
 		}
@@ -800,6 +871,27 @@ export function loadDeviousPadlock(): void {
 			args[0] = deviousPadlockImage;
 		}
 		return next(args);
+	});
+
+	hookFunction("CommandExecute", 20, (args, next) => {
+		const command = args[0].toLowerCase().trim();
+		let prevent = false;
+		const blockedCommands = Object.values(modStorage.deviousPadlock.itemGroups)
+			.map((v) => v.blockedCommands ?? [])
+			.reduce((accumulator, currentValue) => accumulator.concat(currentValue), []);
+		blockedCommands.forEach((c) => {
+			if (command?.startsWith(c)) {
+				chatSendCustomAction(
+					`${getNickname(
+						Player
+					)} tried to use blocked command ${c}`
+				);
+				return prevent = true;
+			}
+		});
+		if (prevent) return false;
+		return next(args);
+
 	});
 }
 

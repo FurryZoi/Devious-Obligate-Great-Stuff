@@ -1,7 +1,7 @@
-import bcModSdk, { PatchHook } from "bondage-club-mod-sdk";
+import bcModSdk, { PatchHook, ModSDKModInfo, GetDotedPathType } from "bondage-club-mod-sdk";
 import { getModVersion } from "@/index";
 
-const modSdk  = bcModSdk.registerMod({
+const modSdk = bcModSdk.registerMod({
     name: "DOGS",
     fullName: "Devious Obligate Great Stuff",
     version: getModVersion(),
@@ -16,6 +16,18 @@ export function patchFunction(functionName: string, patches: Record<string, stri
     modSdk.patchFunction(functionName, patches);
 }
 
-export function callOriginal(functionName: string, args: any[]): any {
-    return modSdk.callOriginal(functionName, args);
+export function callOriginal<TFunctionName extends string>(
+	target: TFunctionName,
+	args: [...Parameters<GetDotedPathType<typeof globalThis, TFunctionName>>],
+	context?: any
+): ReturnType<GetDotedPathType<typeof globalThis, TFunctionName>> {
+	return modSdk.callOriginal(target, args);
+}
+
+export function getActiveMods(): ModSDKModInfo[] {
+    return bcModSdk.getModsInfo();
+}
+
+export function findModByName(name: string): boolean {
+    return !!bcModSdk.getModsInfo().find((m) => m.name === name);
 }

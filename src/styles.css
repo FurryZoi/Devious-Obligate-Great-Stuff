@@ -70,9 +70,10 @@
     font-size: 2vw; 
     font-family: Comfortaa;
     padding: 3px 8px; 
-    color: white; 
+    color: white;
     border: none;
-    border-radius: 4px; 
+    border-radius: 4px;
+    word-wrap: break-word;
     background: rgb(107, 105, 158); 
     transition-duration: 0.4s;
 }
@@ -88,8 +89,8 @@
     font-family: Comfortaa; 
     color: white; 
     background: rgb(107, 105, 158); 
-    border: none; border-radius: 2px;
-    width: 80%; 
+    border: none !important; 
+    border-radius: 2px;
     padding: 6px;
 }
 
@@ -98,11 +99,11 @@
 }
 
 .dogsTextEdit::-webkit-scrollbar {
-    background: rgb(107 15 183);
+    background: rgb(107 15 183) !important;
 }
 
 .dogsTextEdit::-webkit-scrollbar-thumb {
-    background: #ffffff;
+    background: #ffffff !important;
 }
 
 .dogsTextEdit:focus {
@@ -141,22 +142,48 @@
     transition-duration: 0.4s;
 }
 
-.dogsCheckBox-btn[checked="true"] {
+.dogsCheckBox-btn[data-checked="true"] {
     background: #5713ba;
     border-color: #5713ba;
     transition-duration: 0.4s;
 }
 
-.dogsCheckBox-btn[checked="true"]:hover {
+.dogsCheckBox-btn[data-checked="true"]:hover {
     background: #7331d6;
     border-color: #7331d6;
     transition-duration: 0.4s;
 }
 
-.dogsCheckBox-btn[checked="true"]::before {
+.dogsCheckBox-btn[data-checked="true"]::before {
     content: "✔";
     color: white;
     font-size: 15px;
+}
+
+.dogsNavBtn {
+    cursor: pointer;
+    width: 90%;
+    border: 2px solid rgb(203 203 203 / 9%);
+    border-radius: 4px;
+    background: none;
+    color: white;
+    padding: clamp(2px, 2vw, 8px);
+    background: rgb(193 193 193 / 9%);
+    font-family: Comfortaa;
+    font-size: clamp(10px, 2vw, 24px);
+    font-weight: bold;
+    transition-duration: 0.25s;
+}
+
+.dogsNavBtn:hover {
+    border: 2px solid rgba(251, 251, 251, 0.09);
+    background: rgba(241, 241, 241, 0.09);
+    transition-duration: 0.25s;
+}
+
+.dogsNavBtn[data-active=true] {
+    pointer-events: none;
+    border: 2px solid #ffffffb8;
 }
 
 #dogsFullScreen {

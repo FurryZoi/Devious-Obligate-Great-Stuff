@@ -1,6 +1,6 @@
 {
   "name": "DOGS",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "src/index.ts",
   "scripts": {
     "dev": "esbuild src/index.ts --bundle --sourcemap --watch --outfile=dist/bundle.js --loader:.ts=ts --loader:.css=text --loader:.png=dataurl",
@@ -11,7 +11,7 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "bc-stubs": "^107.0.0",
+    "bc-stubs": "^112.0.0",
     "esbuild": "^0.23.1",
     "typescript": "^5.5.4"
   },
