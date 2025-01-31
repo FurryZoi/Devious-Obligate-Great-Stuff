@@ -1447,7 +1447,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     hookFunction("CommandExecute", 20, (args, next) => {
       const command = args[0].toLowerCase().trim();
       let prevent = false;
-      const blockedCommands = Object.values(modStorage.deviousPadlock.itemGroups).map((v) => v.blockedCommands ?? []).reduce((accumulator, currentValue) => accumulator.concat(currentValue), []);
+      const blockedCommands = Object.values(modStorage.deviousPadlock.itemGroups ?? {}).map((v) => v.blockedCommands ?? []).reduce((accumulator, currentValue) => accumulator.concat(currentValue), []);
       blockedCommands.forEach((c) => {
         if (command?.startsWith(c)) {
           chatSendCustomAction(
