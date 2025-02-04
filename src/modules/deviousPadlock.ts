@@ -159,12 +159,12 @@ function canPutDeviousPadlock(groupName: AssetGroupItemName, target1: Character,
 	if (permission === DeviousPadlockPutPermission.FRIENDS_AND_HIGHER) return (
 		// @ts-ignore
 		target1.FriendList?.includes(target2.MemberNumber) || target2.FriendList?.includes(target1.MemberNumber) ||
-		target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) ||
+		target2.WhiteList?.includes(target1.MemberNumber) ||
 		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || 
 		target2.IsOwnedByCharacter(target1)
 	);
 	if (permission === DeviousPadlockPutPermission.WHITELIST_AND_HIGHER) return (
-		target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) ||
+		target2.WhiteList?.includes(target1.MemberNumber) ||
 		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || 
 		target2.IsOwnedByCharacter(target1)
 	);
@@ -214,13 +214,13 @@ function canSetAccessPermission(target1: Character, target2: Character, accessPe
 	if (accessPermission === DeviousPadlockAccessPermission.FRIENDS_AND_HIGHER) return (
 		// @ts-ignore
 		target1.FriendList?.includes(target2.MemberNumber) || target2.FriendList?.includes(target1.MemberNumber) ||
-		target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) ||
+		target2.WhiteList?.includes(target1.MemberNumber) ||
 		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || 
 		target2.IsOwnedByCharacter(target1)
 	);
 	if (accessPermission === DeviousPadlockAccessPermission.WHITELIST_AND_HIGHER) return (
 		// @ts-ignore
-		target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) ||
+		target2.WhiteList?.includes(target1.MemberNumber) ||
 		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || 
 		target2.IsOwnedByCharacter(target1)
 	);
@@ -357,7 +357,7 @@ function checkDeviousPadlocksTimers(): void {
 		if (unlockTime && new Date(unlockTime) < new Date()) {
 			const itemName = InventoryGet(Player, group).Craft?.Name 
 				? InventoryGet(Player, group).Craft.Name 
-				: InventoryGet(Player, group).Asset.Name;	
+				: InventoryGet(Player, group).Asset.Description;	
 			chatSendCustomAction(`The devious padlock opens on ${getNickname(Player)}'s ${itemName} with loud click`);
 			delete modStorage.deviousPadlock.itemGroups[group];
 			InventoryUnlock(Player, group);
