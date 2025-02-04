@@ -190,13 +190,13 @@ function canAccessDeviousPadlock(groupName: AssetGroupItemName, target1: Charact
 	if (permissionKey === DeviousPadlockAccessPermission.FRIENDS_AND_HIGHER) return (
 		// @ts-ignore
 		target1.FriendList?.includes(target2.MemberNumber) || target2.FriendList?.includes(target1.MemberNumber) ||
-		target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) ||
+		target2.WhiteList?.includes(target1.MemberNumber) ||
 		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || 
 		target2.IsOwnedByCharacter(target1)
 	);
 	if (permissionKey === DeviousPadlockAccessPermission.WHITELIST_AND_HIGHER) return (
 		// @ts-ignore
-		target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) ||
+		target2.WhiteList?.includes(target1.MemberNumber) ||
 		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || 
 		target2.IsOwnedByCharacter(target1)
 	);
@@ -891,7 +891,6 @@ export function loadDeviousPadlock(): void {
 		});
 		if (prevent) return false;
 		return next(args);
-
 	});
 }
 
