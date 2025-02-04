@@ -910,11 +910,11 @@ One of mods you are using is using an old version of SDK. It will work for now b
     if (permissionKey === 0 /* EVERYONE_EXCEPT_WEARER */) return true;
     if (permissionKey === 4 /* FRIENDS_AND_HIGHER */) return (
       // @ts-ignore
-      target1.FriendList?.includes(target2.MemberNumber) || target2.FriendList?.includes(target1.MemberNumber) || target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) || target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1)
+      target1.FriendList?.includes(target2.MemberNumber) || target2.FriendList?.includes(target1.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) || target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1)
     );
     if (permissionKey === 5 /* WHITELIST_AND_HIGHER */) return (
       // @ts-ignore
-      target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) || target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1)
+      target2.WhiteList?.includes(target1.MemberNumber) || target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1)
     );
     if (permissionKey === 1 /* FAMILY_AND_HIGHER */) return target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
     if (permissionKey === 2 /* LOVERS_AND_HIGHER */) return target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
