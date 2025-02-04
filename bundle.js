@@ -893,9 +893,9 @@ One of mods you are using is using an old version of SDK. It will work for now b
     if (target1.MemberNumber === target2.MemberNumber) return true;
     if (permission === 0 /* FRIENDS_AND_HIGHER */) return (
       // @ts-ignore
-      target1.FriendList?.includes(target2.MemberNumber) || target2.FriendList?.includes(target1.MemberNumber) || target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) || target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1)
+      target1.FriendList?.includes(target2.MemberNumber) || target2.FriendList?.includes(target1.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) || target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1)
     );
-    if (permission === 1 /* WHITELIST_AND_HIGHER */) return target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) || target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
+    if (permission === 1 /* WHITELIST_AND_HIGHER */) return target2.WhiteList?.includes(target1.MemberNumber) || target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
     if (permission === 2 /* LOVERS_AND_HIGHER */) return target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
     return true;
   }
@@ -925,11 +925,11 @@ One of mods you are using is using an old version of SDK. It will work for now b
     if (accessPermission === 0 /* EVERYONE_EXCEPT_WEARER */) return target1.MemberNumber !== target2.MemberNumber;
     if (accessPermission === 4 /* FRIENDS_AND_HIGHER */) return (
       // @ts-ignore
-      target1.FriendList?.includes(target2.MemberNumber) || target2.FriendList?.includes(target1.MemberNumber) || target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) || target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1)
+      target1.FriendList?.includes(target2.MemberNumber) || target2.FriendList?.includes(target1.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) || target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1)
     );
     if (accessPermission === 5 /* WHITELIST_AND_HIGHER */) return (
       // @ts-ignore
-      target1.WhiteList?.includes(target2.MemberNumber) || target2.WhiteList?.includes(target1.MemberNumber) || target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1)
+      target2.WhiteList?.includes(target1.MemberNumber) || target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1)
     );
     if (accessPermission === 1 /* FAMILY_AND_HIGHER */) return target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
     if (accessPermission === 2 /* LOVERS_AND_HIGHER */) return target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
@@ -1035,7 +1035,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     Object.keys(modStorage.deviousPadlock.itemGroups).forEach((group) => {
       const unlockTime = modStorage.deviousPadlock.itemGroups[group].unlockTime;
       if (unlockTime && new Date(unlockTime) < /* @__PURE__ */ new Date()) {
-        const itemName = InventoryGet(Player, group).Craft?.Name ? InventoryGet(Player, group).Craft.Name : InventoryGet(Player, group).Asset.Name;
+        const itemName = InventoryGet(Player, group).Craft?.Name ? InventoryGet(Player, group).Craft.Name : InventoryGet(Player, group).Asset.Description;
         chatSendCustomAction(`The devious padlock opens on ${getNickname(Player)}'s ${itemName} with loud click`);
         delete modStorage.deviousPadlock.itemGroups[group];
         InventoryUnlock(Player, group);
