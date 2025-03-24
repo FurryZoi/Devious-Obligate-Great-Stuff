@@ -231,7 +231,7 @@ export function chatSendLocal(message: string, align: "center" | "left" = "cente
 }
 
 export function chatSendChangelog(): void {
-	const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>• Added function for <!resetting devious padlocks configurations!>.</li><li>• <!Redesigned GUI!> of devious padlock menu with the addition of new function.</li><li>• The ability to allow <!everyone without exception!> put devious padlock was <!returned!>.</li><li>• Added more options in <!access permissions!> settings of devious padlocks.</li></ul></div>`;
+	const text = `<div style='padding: 3px;'><!DOGS!> version ${getModVersion()}<br><br>Changes: <ul><li>• Fixed critical bug that caused devious padlocks to spam.</li></ul></div>`;
 	chatSendLocal(text, "left");
 }
 

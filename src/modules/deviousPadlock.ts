@@ -7,6 +7,7 @@ import {
 import { remoteControlState } from "./remoteControl";
 import deviousPadlockImage from "@/images/devious-padlock.png";
 import backArrowImage from "@/images/back-arrow.png";
+import { cloneDeep } from "lodash-es";
 
 export const deviousPadlock = {
 	AllowType: [],
@@ -85,12 +86,12 @@ function createDeviousPadlock(): void {
 }
 
 function getSavedItemData(item: Item): TSavedItem {
-	return {
+	return cloneDeep({
 		name: item.Asset.Name,
 		color: item.Color,
 		craft: item.Craft,
 		property: item.Property
-	}
+	});
 }
 
 export function getNextDeviousPadlockPutPermission(p: DeviousPadlockPutPermission): DeviousPadlockPutPermission {
@@ -241,9 +242,9 @@ function checkDeviousPadlocks(target: Character): void {
 	if (modStorage.deviousPadlock.itemGroups) {
 		let padlocksChangedItemNames: string[] = [];
 		let pushChatRoom: boolean = false;
-		Object.keys(modStorage.deviousPadlock.itemGroups).forEach((groupName) => {
-			const currentItem = InventoryGet(Player, groupName as AssetGroupName);
-			const savedItem: TSavedItem = modStorage.deviousPadlock.itemGroups[groupName].item;
+		Object.keys(modStorage.deviousPadlock.itemGroups).forEach((groupName: AssetGroupItemName) => {
+			const currentItem = InventoryGet(Player, groupName);
+			const savedItem = modStorage.deviousPadlock.itemGroups[groupName].item;
 
 			const property = currentItem?.Property;
 			const padlockChanged = !(
@@ -287,21 +288,22 @@ function checkDeviousPadlocks(target: Character): void {
 					JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property))
 				)
 			) {
-				if (canAccessDeviousPadlock(groupName as AssetGroupItemName, target, Player)) {
+				if (canAccessDeviousPadlock(groupName, target, Player)) {
 					if (padlockChanged) {
 						delete modStorage.deviousPadlock.itemGroups[groupName];
 					} else {
 						modStorage.deviousPadlock.itemGroups[groupName].item = getSavedItemData(currentItem);
 					}
 				} else {
-					const difficulty = AssetGet(Player.AssetFamily, groupName as AssetGroupName, savedItem.name).Difficulty;
-					let newItem: Item = callOriginal("InventoryWear", [Player, savedItem.name, groupName as AssetGroupItemName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft]);
+					const difficulty = AssetGet(Player.AssetFamily, groupName, savedItem.name).Difficulty;
+					let newItem: Item = callOriginal("InventoryWear", [Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft]);
 					newItem.Property = {
 						...getValidProperties(savedItem.property),
 						...getIgnoredProperties(currentItem?.Asset?.Name === savedItem.name ? currentItem.Property : newItem.Property)
 					};
 					if (newItem.Property.Name !== deviousPadlock.Name) newItem.Property.Name = deviousPadlock.Name;
 					if (newItem.Property.LockedBy !== "ExclusivePadlock") newItem.Property.LockedBy = "ExclusivePadlock";
+					modStorage.deviousPadlock.itemGroups[groupName].item = getSavedItemData(newItem);
 					if (padlockChanged) padlocksChangedItemNames.push(newItem.Craft?.Name ? newItem.Craft.Name : newItem.Asset.Description);
 					pushChatRoom = true;
 				}

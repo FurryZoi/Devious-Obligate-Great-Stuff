@@ -1,6 +1,6 @@
 {
   "name": "DOGS",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "main": "src/index.ts",
   "scripts": {
     "dev": "esbuild src/index.ts --bundle --sourcemap --watch --outfile=dist/bundle.js --loader:.ts=ts --loader:.css=text --loader:.png=dataurl",
@@ -11,11 +11,13 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/lodash-es": "^4.17.12",
     "bc-stubs": "^112.0.0",
     "esbuild": "^0.23.1",
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "bondage-club-mod-sdk": "^1.2.0"
+    "bondage-club-mod-sdk": "^1.2.0",
+    "lodash-es": "^4.17.21"
   }
 }
