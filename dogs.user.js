@@ -8,6 +8,8 @@
 // @match https://www.bondageprojects.elementfx.com/*
 // @match https://bondage-europe.com/*
 // @match https://www.bondage-europe.com/*
+// @match https://www.bondageprojects.com/*
+// @match https://bondageprojects.com/*
 // @run-at document-end
 // @grant none
 // ==/UserScript==
