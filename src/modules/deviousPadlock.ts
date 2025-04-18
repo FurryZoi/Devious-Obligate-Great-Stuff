@@ -698,7 +698,7 @@ export function loadDeviousPadlock(): void {
 	hookFunction("InventoryLock", 20, (args, next) => {
 		const [ C, Item, Lock, MemberNumber ] = args as [Character, Item | AssetGroupName, Item | AssetLockType, null | number | string];
 		// @ts-ignore
-		if ([Lock.Name, Lock].includes(deviousPadlock.Name)) {
+		if ([Lock.Asset?.Name, Lock].includes(deviousPadlock.Name)) {
 			args[2] = "ExclusivePadlock";
 			if (args[1].Property) {
 				args[1].Property.Name = deviousPadlock.Name;
@@ -708,6 +708,7 @@ export function loadDeviousPadlock(): void {
 				};
 			}
 		}
+		console.log(args);
 		return next(args);
 	});
 

@@ -14,7 +14,7 @@
     "@types/lodash-es": "^4.17.12",
     "bc-stubs": "^112.0.0",
     "esbuild": "^0.23.1",
-    "typescript": "^5.5.4"
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "bondage-club-mod-sdk": "^1.2.0",
