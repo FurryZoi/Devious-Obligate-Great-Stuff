@@ -2478,7 +2478,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     });
     hookFunction("InventoryLock", 20, (args, next) => {
       const [C, Item, Lock, MemberNumber] = args;
-      if ([Lock.Name, Lock].includes(deviousPadlock.Name)) {
+      if ([Lock.Asset?.Name, Lock].includes(deviousPadlock.Name)) {
         args[2] = "ExclusivePadlock";
         if (args[1].Property) {
           args[1].Property.Name = deviousPadlock.Name;
@@ -2488,6 +2488,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
           };
         }
       }
+      console.log(args);
       return next(args);
     });
     hookFunction("DialogSetStatus", 20, (args, next) => {
