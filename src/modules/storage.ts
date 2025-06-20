@@ -1,33 +1,40 @@
 import { getModVersion } from "@/index";
-import { chatSendDOGSMessage, getPlayer } from "./utils";
-import { hookFunction } from "./bcModSdk";
-import { RemoteControlPermission } from "./remoteControl";
-import { DeviousPadlockPutPermission, DeviousPadlockAccessPermission } from "./deviousPadlock";
+import { getPlayer, MOD_DATA } from "zois-core";
+import { messagesManager } from "zois-core/messaging";
+import { hookFunction, HookPriority } from "zois-core/modsApi";
+import { RemoteConnectMinimumRole } from "./remoteControl";
+import { PutPadlockMinimumRole, KeyHolderMinimumRole } from "./deviousPadlock";
+import { cloneDeep } from "lodash-es";
 
-export type TSavedItem = {
+
+export type SavedItem = {
     name: string
     color: ItemColor
     craft: CraftingItem
     property: ItemProperties
 }
 
-export interface IModStorage {
+export interface ModStorage {
     remoteControl: {
         state?: boolean
         notifyOthers?: boolean
-        permission?: RemoteControlPermission
+        connectMinimumRole?: RemoteConnectMinimumRole
     },
     deviousPadlock: {
         state?: boolean
-        permission?: DeviousPadlockPutPermission
+        putMinimumRole?: PutPadlockMinimumRole
         itemGroups?: Record<AssetGroupItemName, {
-            item: TSavedItem
+            item: SavedItem
             owner: number
-            accessPermission?: DeviousPadlockAccessPermission
+            minimumRole?: KeyHolderMinimumRole
             memberNumbers?: number[]
             note?: string
             blockedCommands?: string[]
-            unlockTime?: number
+            unlockTime?: string
+            combination?: {
+                type: "PIN-Code" | "password"
+                hash: string
+            }
         }>
     },
     misc: {
@@ -37,8 +44,8 @@ export interface IModStorage {
     version: string
 }
 
-export let modStorage: IModStorage;
-let modStorageSaveString: string;
+
+export let modStorage: ModStorage;
 
 export function initStorage(): void {
     const data = {
@@ -47,48 +54,40 @@ export function initStorage(): void {
         misc: {},
         version: getModVersion(),
     };
-    
+
     if (typeof Player.ExtensionSettings.DOGS === "string") {
         modStorage = JSON.parse(LZString.decompressFromBase64(Player.ExtensionSettings.DOGS)) ?? data;
     } else modStorage = data
-    
+
     Object.keys(data).forEach((key) => {
         if (modStorage[key] === undefined) {
             modStorage[key] = data[key];
         }
     });
 
-    modStorageSaveString = JSON.stringify(modStorage);
     migrateModStorage();
-    chatSendDOGSMessage("syncStorage", {
+    messagesManager.sendPacket("syncStorage", {
         storage: modStorage,
     });
 
-    hookFunction("ChatRoomMessage", 20, (args, next) => {
-        const message = args[0];
-        const sender = getPlayer(message.Sender);
-        if (!sender) return next(args);
-        if (message.Content === "dogsMsg" && !sender.IsPlayer()) {
-            const msg = message.Dictionary.msg;
-            const data = message.Dictionary.data;
-            if (msg === "syncStorage") {
-                if (!sender.DOGS) {
-                    chatSendDOGSMessage("syncStorage", {
-                        storage: modStorage,
-                    }, sender.MemberNumber);
-                }
-                sender.DOGS = data.storage;
-            }
+    messagesManager.onPacket("syncStorage", (data, sender) => {
+        if (!sender.DOGS) {
+            messagesManager.sendPacket("syncStorage", {
+                storage: modStorage
+            }, sender.MemberNumber);
         }
-        next(args);
+        sender.DOGS = data.storage;
     });
-    
-    hookFunction("ChatRoomSync", -20, (args, next) => {
+
+    hookFunction("ChatRoomSync", HookPriority.OBSERVE, (args, next) => {
         next(args);
-        chatSendDOGSMessage("syncStorage", {
+        messagesManager.sendPacket("syncStorage", {
             storage: modStorage,
         });
     });
+
+    //@ts-ignore
+    // window.modStorage = modStorage;
 }
 
 function migrateModStorage(): void {
@@ -110,21 +109,37 @@ function migrateModStorage(): void {
                 d.item.property = d.item.Property;
                 delete d.item.Property;
             }
+            if (d.item.accessPermission) {
+                d.item.minimumRole = d.item.accessPermission;
+                delete d.item.accessPermission;
+            }
             delete d.item.Difficulty;
             delete d.item.Group;
         });
     }
+    //@ts-ignore
+    if (modStorage.remoteControl.permission) {
+        //@ts-ignore
+        modStorage.remoteControl.connectMinimumRole = modStorage.remoteControl.permission;
+        //@ts-ignore
+        delete modStorage.remoteControl.permission;
+    }
+    //@ts-ignore
+    if (modStorage.deviousPadlock.permission) {
+        //@ts-ignore
+        modStorage.deviousPadlock.putMinimumRole = modStorage.deviousPadlock.permission;
+        //@ts-ignore
+        delete modStorage.deviousPadlock.permission;
+    }
+    syncStorage();
 }
 
-function updateModStorage(): void {
+
+export function syncStorage(): void {
     if (typeof modStorage !== "object") return;
-	if (JSON.stringify(modStorage) === modStorageSaveString) return;
-	modStorageSaveString = JSON.stringify(modStorage);
-	Player.ExtensionSettings.DOGS = LZString.compressToBase64(JSON.stringify(modStorage));
-	ServerPlayerExtensionSettingsSync("DOGS");
-    chatSendDOGSMessage("syncStorage", {
+    Player.ExtensionSettings.DOGS = LZString.compressToBase64(JSON.stringify(modStorage));
+    ServerPlayerExtensionSettingsSync("DOGS");
+    messagesManager.sendPacket("syncStorage", {
         storage: modStorage,
     });
 }
-
-setInterval(updateModStorage, 800);

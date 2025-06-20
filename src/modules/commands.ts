@@ -1,24 +1,26 @@
-import { remoteControlState, remoteControlTarget, setRemoteControlState, setRemoteControlTarget } from "./remoteControl";
-import { beautifyMessage, chatSendBeep, chatSendLocal, chatSendChangelog } from "./utils";
+import { toastsManager } from "zois-core/popups";
+import { messagesManager } from "zois-core/messaging";
+import { setRemoteControlIsInteracting } from "./remoteControl";
+import { chatSendChangelog } from "@/index";
 
 
-interface ICommand {
+interface Command {
     name: string
     description: string
     args?: string
     action: (text: string) => void
 }
 
-const commands: ICommand[] = [
+const commands: Command[] = [
     {
         name: "help",
         description: "Open DOGS help menu",
         action: () => {
-            let msg = "<div style='padding: 0.4vw;'><!DOGS!> commands:</div>";
+            let msg = "<p style='padding: 0.4vw; font-family: Comfortaa, sans-serif;'><b>DOGS</b> commands:</p>";
             for (const c of commands) {
-                msg += `<div style='padding: 0.4vw;'><!/dogs ${c.name}!> ${c.args ? `${c.args}` : ""} - ${c.description}</div>`;
+                msg += `<div style='padding: 0.4vw; font-family: Comfortaa, sans-serif;'><b>/dogs ${c.name}</b> ${c.args ? `${c.args}` : ""} - <i>${c.description}</i></div>`;
             }
-            chatSendLocal(beautifyMessage(msg), "left");
+            messagesManager.sendLocal(msg);
         }
     },
     {
@@ -30,40 +32,63 @@ const commands: ICommand[] = [
         name: "remote",
         description: "Use remote control",
         args: "[member number]",
-        action: (text) => {
+        action: async (text) => {
             const args = getArgs(text);
-            const targetId = parseInt(args[0]);
-            if (!targetId) {
-                return chatSendLocal(
+            const targetNumber = parseInt(args[0]);
+            if (!targetNumber) {
+                return messagesManager.sendLocal(
                     `Example: /dogs remote <character id>`
                 );
-            }	
+            }
 
-            chatSendBeep({
-                action: "remoteControlRequest"
-            }, targetId);
-            setRemoteControlState("loading");
-            setRemoteControlTarget(targetId);
-            ChatRoomHideElements();
-            ChatRoomStatusUpdate("Preference");
-            
-            setTimeout(function () {
-                if (remoteControlState === "loading") {
-                    setRemoteControlState(null);
-                    setRemoteControlTarget(null);
-                    chatSendLocal("The remote request <!timed out!>! Target player may be <!offline!> or not using <!DOGS!>!");
-                }
-            }, 5000);
+            const toastId = toastsManager.spinner({
+                title: "Connecting...",
+                message: `Member number: ${targetNumber}`
+            });
+
+            const { data, isError } = await messagesManager.sendRequest<{
+                rejectReason?: string
+                bundle?: ServerAccountDataSynced
+            }>({
+                type: "beep",
+                message: "remoteControlConnect",
+                target: targetNumber
+            });
+
+            toastsManager.removeSpinner(toastId);
+
+            if (isError) {
+                return toastsManager.error({
+                    title: "Connection was not established",
+                    message: "Something wrong happened... Maybe target player offline or not using DOGS?",
+                    duration: 6000
+                });
+            }
+
+            if (data.rejectReason) {
+                return toastsManager.error({
+                    title: "Connection rejected",
+                    message: data.rejectReason,
+                    duration: 6000
+                });
+            }
+
+            if (!data.bundle) return;
+            if (!ServerPlayerIsInChatRoom()) return;
+            if (CurrentScreen !== "ChatRoom") CommonSetScreen("Online", "ChatRoom");
+            const C = CharacterLoadOnline(data.bundle, targetNumber);
+            setRemoteControlIsInteracting(true);
+            ChatRoomFocusCharacter(C);
+            if (!C.AllowItem) C.AllowItem = true;
+            DialogChangeMode("items");
+            DialogChangeFocusToGroup(C, "ItemArms");
         }
     }
 ];
 
 function getArgs(text: string): string[] {
-	return text.split(",").map((arg) => {
-		return arg.trim();
-	});
+    return text.split(",").map((arg) => arg.trim());
 }
-
 
 export function loadCommands(): void {
     CommandCombine([
@@ -74,11 +99,11 @@ export function loadCommands(): void {
                 const commandName = text.split(" ")[0];
                 const commandText = text.split(" ").slice(1).join(" ");
                 const command = commands.find((c) => c.name === commandName);
-    
+
                 if (command) {
                     command.action(commandText);
                 } else {
-                    chatSendLocal(
+                    messagesManager.sendLocal(
                         "Unknown command, use <!/dogs help!> to view a list of all available commands!"
                     );
                 }

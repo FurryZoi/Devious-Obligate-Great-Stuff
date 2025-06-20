@@ -1,10 +1,10 @@
 {
   "name": "DOGS",
-  "version": "1.0.9",
+  "version": "2.0.0",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "esbuild src/index.ts --bundle --sourcemap --watch --outfile=dist/bundle.js --loader:.ts=ts --loader:.css=text --loader:.png=dataurl",
-    "build": "esbuild src/index.ts --bundle --sourcemap --outfile=dist/bundle.js --loader:.ts=ts --loader:.css=text --loader:.png=dataurl"
+    "dev": "esbuild src/index.ts --bundle --minify --legal-comments=none --sourcemap --watch --outfile=dist/bundle.js --loader:.ts=ts --loader:.css=text --loader:.png=dataurl --loader:.svg=dataurl",
+    "build": "esbuild src/index.ts --bundle --minify --legal-comments=none --sourcemap --outfile=dist/bundle.js --loader:.ts=ts --loader:.css=text --loader:.png=dataurl --loader:.svg=dataurl"
   },
   "keywords": [],
   "author": "",
@@ -12,12 +12,15 @@
   "description": "",
   "devDependencies": {
     "@types/lodash-es": "^4.17.12",
-    "bc-stubs": "^112.0.0",
-    "esbuild": "^0.23.1",
+    "bc-stubs": "117.0.0-Beta.1",
+    "esbuild": "^0.25.5",
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "bondage-club-mod-sdk": "^1.2.0",
-    "lodash-es": "^4.17.21"
+    "lodash-es": "^4.17.21",
+    "zois-core": "^1.0.10"
+  },
+  "pnpm": {
+    "overrides": {}
   }
 }

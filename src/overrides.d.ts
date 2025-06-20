@@ -1,5 +1,5 @@
 interface Character {
-    DOGS?: import("@/modules/storage").IModStorage
+    DOGS?: import("@/modules/storage").ModStorage
 }
 
 interface ItemProperties {

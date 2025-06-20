@@ -3,11 +3,20 @@ import { loadRemoteControl } from "@/modules/remoteControl";
 import { loadSettingsMenu } from "@/modules/settingsMenu";
 import { loadCommands } from "@/modules/commands";
 import { loadDeviousPadlock } from "@/modules/deviousPadlock";
-import { chatSendChangelog, consoleLog, isVersionNewer, waitFor } from "@/modules/utils";
+import { registerCore, isVersionNewer, waitFor } from "zois-core";
 import css from "./styles.css";
+import { toastsManager } from "zois-core/popups";
+import { messagesManager } from "zois-core/messaging";
+import { version } from "../package.json";
+
 
 export function getModVersion(): string {
-    return "1.0.9";
+    return version;
+}
+
+export function chatSendChangelog(): void {
+    const text = `<div class="dogsChangelog" style=''><b>DOGS</b> v${getModVersion()}<br><br>Changes: <ul><li>Devious padlock was completely redesigned with new configurations and UI.</li><li>Mostly just technical changes.</li></ul></div>`;
+    messagesManager.sendLocal(text);
 }
 
 const font = document.createElement("link");
@@ -20,13 +29,27 @@ const style = document.createElement("style");
 style.innerHTML = css;
 document.head.append(style);
 
+registerCore({
+    name: "DOGS",
+    fullName: "Devious Obligate Great Stuff",
+    key: "DOGS",
+    version: getModVersion(),
+    repository: "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff.git",
+    fontFamily: "Comfortaa"
+});
+
 waitFor(() => typeof window.Player?.MemberNumber === "number").then(() => {
     initStorage();
     loadSettingsMenu();
     loadCommands();
     loadRemoteControl();
     loadDeviousPadlock();
-    consoleLog(`Ready! v${getModVersion()}`);
+    console.log(`Ready! v${getModVersion()}`);
+    toastsManager.success({
+        title: `DOGS loaded`,
+        message: `v${getModVersion()}`,
+        duration: 4000
+    });
 
     if (isVersionNewer(getModVersion(), modStorage.version)) {
         if (modStorage.misc.autoShowChangelog ?? true) {
@@ -42,6 +65,7 @@ waitFor(() => typeof window.Player?.MemberNumber === "number").then(() => {
         } else modStorage.version = getModVersion();
     }
 });
+
 
 
 
