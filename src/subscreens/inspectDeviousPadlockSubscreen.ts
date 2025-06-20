@@ -25,24 +25,17 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
     private keyDownListener: (e: KeyboardEvent) => void;
 
     private onKeyDown(e: KeyboardEvent): void {
-        for (const [i, input] of this.pincodeCombinationInputs.entries()) {
-            if (e.key === "Backspace") {
-                const t = this.pincodeCombinationInputs.toReversed().find((w) => w.value !== "");
-                if (t) {
-                    t.value = "";
-                    t.focus();
-                }
-                return e.preventDefault();
+        if (this.pincodeCombinationInputs.length === 0) return;
+        if (e.key === "Backspace") {
+            const t = this.pincodeCombinationInputs.toReversed().find((w) => w.value !== "");
+            if (t) {
+                t.value = "";
+                t.focus();
             }
-            if (input.value === "") {
-                if (!Number.isInteger(parseInt(e.key))) return e.preventDefault();
-                if (document.activeElement !== input) input.focus();
-                input.value = e.key;
-                if (i === this.pincodeCombinationInputs.length - 1) this.checkCombination(this.pincodeCombinationInputs);
-                else this.pincodeCombinationInputs[i + 1].focus();
-                return e.preventDefault();
-            }
+            return e.preventDefault();
         }
+        const emptyInput = this.pincodeCombinationInputs.find((w) => w.value === "");
+        if (emptyInput) emptyInput.focus();
     }
 
     private async checkCombination(combinationElement: HTMLInputElement[] | HTMLInputElement) {
@@ -58,10 +51,17 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                 duration: 3000
             });
         } else {
-            if (Array.isArray(combinationElement)) combinationElement.forEach((e) => e.style.setProperty("border-color", "red", "important"));
-            else combinationElement.style.setProperty("border-color", "red", "important");
+            if (Array.isArray(combinationElement)) {
+                combinationElement.forEach((e) => {
+                    e.style.setProperty("border-color", "red", "important");
+                    setTimeout(() => e.value = "", 500);
+                });
+                combinationElement[0].focus();
+            } else {
+                combinationElement.style.setProperty("border-color", "red", "important");
+            }
         }
-        if (Array.isArray(combinationElement)) MainCanvas.canvas.focus();
+        // if (Array.isArray(combinationElement)) MainCanvas.canvas.focus();
         document.querySelectorAll("button").forEach((b) => b.textContent === "Save" && b.classList.toggle("zcDisabled", !this.canEdit()));
         document.querySelectorAll("button").forEach((b) => b.textContent === "Remove Padlock" && b.classList.toggle("zcDisabled", !this.padlockSettings.combinationToUnlock.isCorrect));
     }
@@ -209,6 +209,17 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                                         width: 60,
                                         height: 80,
                                         value: this.padlockSettings.combinationToUnlock.value[i] ?? "",
+                                        onInput: () => {
+                                            if (input.value === "") return this.pincodeCombinationInputs[(i - 1) === -1 ? 0 : i - 1].focus();
+                                            if (!Number.isInteger(parseInt(input.value))) return input.value = "";
+                                            if (input.value.length > 1) return input.value = input.value[0];
+                                            const emptyInput = this.pincodeCombinationInputs.find((w) => w.value === "");
+                                            if (emptyInput) {
+                                                emptyInput.focus();
+                                            } else {
+                                                this.checkCombination(this.pincodeCombinationInputs);
+                                            }
+                                        }
                                     });
                                     input.setAttribute("maxlength", 1);
                                     this.pincodeCombinationInputs.push(input as HTMLInputElement);
@@ -554,7 +565,7 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
             currentTabName: "General"
         });
     }
-    
+
     exit(): void {
         super.exit();
         CommonSetScreen("Online", "ChatRoom");

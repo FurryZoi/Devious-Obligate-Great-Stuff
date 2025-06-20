@@ -95,7 +95,7 @@ export function loadCommands(): void {
         {
             Tag: "dogs",
             Description: "Execute DOGS command",
-            Action: function (text) {
+            Action: (text) => {
                 const commandName = text.split(" ")[0];
                 const commandText = text.split(" ").slice(1).join(" ");
                 const command = commands.find((c) => c.name === commandName);
@@ -104,7 +104,7 @@ export function loadCommands(): void {
                     command.action(commandText);
                 } else {
                     messagesManager.sendLocal(
-                        "Unknown command, use <!/dogs help!> to view a list of all available commands!"
+                        "Unknown command, use <b>/dogs help</b> to view a list of all available commands."
                     );
                 }
             }
