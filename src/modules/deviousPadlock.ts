@@ -7,6 +7,7 @@ import deviousPadlockImage from "@/images/devious-padlock.png";
 import { cloneDeep } from "lodash-es";
 import { InspectDeviousPadlockSubscreen } from "@/subscreens/inspectDeviousPadlockSubscreen";
 import { remoteControlIsInteracting } from "./remoteControl";
+import { smartGetItemName } from "zois-core/wardrobe";
 
 export const deviousPadlock: AssetDefinition.Item = {
 	Effect: [],
@@ -439,9 +440,26 @@ export function loadDeviousPadlock(): void {
 		getCurrentSubscreen().click();
 	};
 
+	ServerPlayerChatRoom.register({
+		screen: "InspectDeviousPadlock",
+		callback: () => getCurrentSubscreen() instanceof InspectDeviousPadlockSubscreen
+	});
 
+	//TODO: Remove
 	messagesManager.onPacket("changeDeviousPadlockConfigurations", (data, sender) => {
 		changePadlockConfigurations(data.groupName as AssetGroupItemName, data.config as DeviousPadlockConfigurations, sender);
+		const itemName = smartGetItemName(InventoryGet(Player, data.groupName));
+		messagesManager.sendAction(
+			`${getNickname(sender)} changed devious padlock's configurations on ${getNickname(Player)}'s ${itemName}`
+		);
+	});
+
+	messagesManager.onPacket("changePadlockConfigurations", (data, sender) => {
+		changePadlockConfigurations(data.groupName as AssetGroupItemName, data.config as DeviousPadlockConfigurations, sender);
+		const itemName = smartGetItemName(InventoryGet(Player, data.groupName));
+		messagesManager.sendAction(
+			`${getNickname(sender)} changed devious padlock's configurations on ${getNickname(Player)}'s ${itemName}`
+		);
 	});
 
 	messagesManager.onPacket("removePadlock", async (data, sender) => {
@@ -450,10 +468,14 @@ export function loadDeviousPadlock(): void {
 				await hashCombination(data.combination) ===
 				modStorage.deviousPadlock.itemGroups[data.groupName as AssetGroupItemName].combination.hash
 			) {
+				const itemName = smartGetItemName(InventoryGet(Player, data.groupName));
 				delete modStorage.deviousPadlock.itemGroups[data.groupName as AssetGroupItemName];
 				InventoryUnlock(Player, data.groupName as AssetGroupItemName);
 				ChatRoomCharacterUpdate(Player);
 				syncStorage();
+				messagesManager.sendAction(
+					`${getNickname(sender)} entered the correct combination and devious padlock was unlocked on ${getNickname(Player)}'s ${itemName}`
+				);
 			}
 		}
 	});

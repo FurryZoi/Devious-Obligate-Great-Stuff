@@ -15,7 +15,7 @@ export function getModVersion(): string {
 }
 
 export function chatSendChangelog(): void {
-    const text = `<div class="dogsChangelog" style=''><b>DOGS</b> v${getModVersion()}<br><br>Changes: <ul><li>Devious padlock was completely redesigned with new configurations and UI.</li><li>Mostly just technical changes.</li></ul></div>`;
+    const text = `<div class="dogsChangelog"><b>DOGS</b> v${getModVersion()}<br><br>Changes: <ul><li>More messages and tips.</li><li>Show member name when someone connecting remotely.</li></ul></div>`;
     messagesManager.sendLocal(text);
 }
 

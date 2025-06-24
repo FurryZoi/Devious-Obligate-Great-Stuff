@@ -65,7 +65,6 @@ export class RemoteControlSubscreen extends BaseSubscreen {
                 }),
             isBold: true,
             onChange(value) {
-                console.log(value);
                 modStorage.remoteControl.connectMinimumRole = value
             },
         });

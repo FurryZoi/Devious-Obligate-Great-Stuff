@@ -58,7 +58,6 @@ export class MainSubscreen extends BaseSubscreen {
     exit(): void {
         super.exit();
         syncStorage();
-        console.log("Synced!")
         PreferenceSubscreenExtensionsClear();
     }
 }

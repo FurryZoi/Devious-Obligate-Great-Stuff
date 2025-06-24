@@ -39,7 +39,7 @@ export function hasPermissionForRemoteControl(targetId: number): boolean {
 
 
 export function loadRemoteControl(): void {
-	messagesManager.onRequest("remoteControlConnect", (data, senderNumber: number) => {
+	messagesManager.onRequest("remoteControlConnect", (data, senderNumber: number, senderName) => {
 		if (!hasPermissionForRemoteControl(senderNumber)) {
 			return {
 				rejectReason: `You don't fit minimum role`
@@ -53,7 +53,7 @@ export function loadRemoteControl(): void {
 		if (!remoteControlControllers.includes(senderNumber)) {
 			remoteControlControllers.push(senderNumber);
 		}
-		messagesManager.sendLocal(`${senderNumber} remotely connected to you.`);
+		messagesManager.sendLocal(`<b>${senderName} (${senderNumber})</b> remotely connected to you.`);
 		return {
 			bundle: {
 				ID: Player.OnlineID,
@@ -87,7 +87,7 @@ export function loadRemoteControl(): void {
 		};
 	});
 
-	messagesManager.onRequest("remoteControlUpdate", (data, senderNumber: number) => {
+	messagesManager.onRequest("remoteControlUpdate", (data, senderNumber: number, senderName) => {
 		if (
 			!hasPermissionForRemoteControl(senderNumber) ||
 			!remoteControlControllers.includes(senderNumber) ||
@@ -104,7 +104,7 @@ export function loadRemoteControl(): void {
 			senderNumber
 		);
 		ChatRoomCharacterUpdate(Player);
-		messagesManager.sendLocal(`${senderNumber} remotely changed your appearance.`);
+		messagesManager.sendLocal(`<b>${senderName} (${senderNumber})</b> remotely changed your appearance.`);
 		if (modStorage.remoteControl.notifyOthers ?? true) {
 			messagesManager.sendAction(`${getNickname(Player)}'s appearance was remotely changed`);
 		}

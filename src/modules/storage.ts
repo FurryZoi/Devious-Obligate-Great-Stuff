@@ -109,23 +109,23 @@ function migrateModStorage(): void {
                 d.item.property = d.item.Property;
                 delete d.item.Property;
             }
-            if (d.item.accessPermission) {
-                d.item.minimumRole = d.item.accessPermission;
-                delete d.item.accessPermission;
+            if (d.accessPermission) {
+                d.minimumRole = d.item.accessPermission;
+                delete d.accessPermission;
             }
             delete d.item.Difficulty;
             delete d.item.Group;
         });
     }
     //@ts-ignore
-    if (modStorage.remoteControl.permission) {
+    if (typeof modStorage.remoteControl.permission === "number") {
         //@ts-ignore
         modStorage.remoteControl.connectMinimumRole = modStorage.remoteControl.permission;
         //@ts-ignore
         delete modStorage.remoteControl.permission;
     }
     //@ts-ignore
-    if (modStorage.deviousPadlock.permission) {
+    if (typeof modStorage.deviousPadlock.permission === "number") {
         //@ts-ignore
         modStorage.deviousPadlock.putMinimumRole = modStorage.deviousPadlock.permission;
         //@ts-ignore

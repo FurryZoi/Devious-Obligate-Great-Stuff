@@ -4,6 +4,8 @@ import { ModStorage, modStorage, syncStorage } from "@/modules/storage";
 import { canSetKeyHolderMinimumRole, changePadlockConfigurations, DeviousPadlockConfigurations, hashCombination, hasKeyToPadlock, KeyHolderMinimumRole } from "@/modules/deviousPadlock";
 import { dialogsManager, toastsManager } from "zois-core/popups";
 import { messagesManager } from "zois-core/messaging";
+import { getNickname } from "zois-core";
+import { smartGetItemName } from "zois-core/wardrobe";
 
 
 const minimumRolesNames = {
@@ -114,11 +116,23 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
             onClick: async () => {
                 if (this.target.IsPlayer()) {
                     await changePadlockConfigurations(this.itemGroupName, this.padlockSettings, Player);
+                    const itemName = smartGetItemName(InventoryGet(Player, this.itemGroupName));
+                    messagesManager.sendAction(
+                        `${getNickname(Player)} changed devious padlock's configurations on <possessive> ${itemName}`
+                    );
                 } else {
-                    messagesManager.sendPacket("changeDeviousPadlockConfigurations", {
-                        groupName: this.itemGroupName,
-                        config: this.padlockSettings
-                    }, this.target.MemberNumber);
+                    //TODO: Remove
+                    if (this.target.DOGS.version === "2.0.0") {
+                        messagesManager.sendPacket("changeDeviousPadlockConfigurations", {
+                            groupName: this.itemGroupName,
+                            config: this.padlockSettings
+                        }, this.target.MemberNumber);
+                    } else {
+                        messagesManager.sendPacket("changePadlockConfigurations", {
+                            groupName: this.itemGroupName,
+                            config: this.padlockSettings
+                        }, this.target.MemberNumber);
+                    }
                 }
                 this.exit();
             }
@@ -256,10 +270,14 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                                     if (!confirmation) return;
                                     if (this.target.IsPlayer()) {
                                         if (this.padlockSettings.combinationToUnlock.isCorrect) {
+                                            const itemName = smartGetItemName(InventoryGet(Player, this.itemGroupName));
                                             delete modStorage.deviousPadlock.itemGroups[this.itemGroupName];
                                             InventoryUnlock(Player, this.itemGroupName);
                                             ChatRoomCharacterUpdate(Player);
                                             syncStorage();
+                                            messagesManager.sendAction(
+                                                `${getNickname(Player)} entered the correct combination and devious padlock was unlocked on <possessive> ${itemName}`
+                                            );
                                             this.exit();
                                         }
                                     } else {
@@ -338,7 +356,8 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                             onClick: () => {
                                 this.padlockSettings.combinationToLock.type = this.padlockSettings.combinationToLock.type === "password" ? "PIN-Code" : "password";
                                 combinationTypeBtn.textContent = `Type: ${this.padlockSettings.combinationToLock.type === "password" ? "password" : "PIN-Code"}`;
-                                combination.setAttribute("maxlength", this.padlockSettings.combinationToLock.type === "password" ? "20" : "6");
+                                combination.setAttribute("maxlength", this.padlockSettings.combinationToLock?.type === "password" ? "25" : "6");
+                                combination.setAttribute("minlength", this.padlockSettings.combinationToLock?.type === "password" ? "1" : "6");
                             }
                         });
 
@@ -360,6 +379,7 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                             }
                         });
                         combination.setAttribute("maxlength", this.padlockSettings.combinationToLock?.type === "password" ? "25" : "6");
+                        combination.setAttribute("minlength", this.padlockSettings.combinationToLock?.type === "password" ? "1" : "6");
 
                         this.createButton({
                             text: "Reset",
