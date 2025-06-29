@@ -318,6 +318,7 @@ function checkDeviousPadlocks(target: Character): void {
 					JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property))
 				)
 			) {
+				// console.log(currentItem, savedItem);
 				if (hasKeyToPadlock(groupName, target, Player)) {
 					if (padlockChanged) {
 						delete modStorage.deviousPadlock.itemGroups[groupName];
@@ -326,13 +327,14 @@ function checkDeviousPadlocks(target: Character): void {
 					}
 				} else {
 					const difficulty = AssetGet(Player.AssetFamily, groupName, savedItem.name).Difficulty;
-					let newItem: Item = callOriginal("InventoryWear", [Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft]);
+					let newItem: Item = InventoryWear(Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft);
 					newItem.Property = {
 						...getValidProperties(savedItem.property),
 						...getIgnoredProperties(currentItem?.Asset?.Name === savedItem.name ? currentItem.Property : newItem.Property)
 					};
 					if (newItem.Property.Name !== deviousPadlock.Name) newItem.Property.Name = deviousPadlock.Name;
 					if (newItem.Property.LockedBy !== "ExclusivePadlock") newItem.Property.LockedBy = "ExclusivePadlock";
+					ValidationSanitizeLock(Player, newItem);
 					modStorage.deviousPadlock.itemGroups[groupName].item = getSavedItemData(newItem);
 					if (padlockChanged) padlocksChangedItemNames.push(newItem.Craft?.Name ? newItem.Craft.Name : newItem.Asset.Description);
 					pushChatRoom = true;
@@ -352,9 +354,9 @@ function checkDeviousPadlocks(target: Character): void {
 			if (deviousPadlockTriggerCooldown.count === 0) deviousPadlockTriggerCooldown.firstTriggerTime = Date.now();
 			deviousPadlockTriggerCooldown.count++;
 			if (deviousPadlockTriggerCooldown.count > MAX_TRIGGER_COUNT) {
+				deviousPadlockTriggerCooldown.count = 0;
 				if ((Date.now() - deviousPadlockTriggerCooldown.firstTriggerTime) < MAX_FIRST_TRIGGER_INTERVAL) {
 					deviousPadlockTriggerCooldown.state = true;
-					deviousPadlockTriggerCooldown.count = 0;
 					messagesManager.sendAction(`[COOLDOWN] Devious padlocks were disabled for ${COOLDOWN_TIME / (1000 * 60)} minutes, please disable DOGS mod if this message repeats`);
 					setTimeout(() => {
 						deviousPadlockTriggerCooldown.state = false;
@@ -420,7 +422,11 @@ export function loadDeviousPadlock(): void {
 			Group: g as AssetGroupName
 		});
 		const changed = ValidationSanitizeProperties(Player, appearanceItem);
-		if (changed) modStorage.deviousPadlock.itemGroups[g].item = getSavedItemData(appearanceItem);
+		if (changed) {
+			console.log(g)
+			modStorage.deviousPadlock.itemGroups[g].item = getSavedItemData(appearanceItem);
+			syncStorage();
+		}
 	});
 	checkDeviousPadlocks(Player);
 	setInterval(checkDeviousPadlocksTimers, 1000);
