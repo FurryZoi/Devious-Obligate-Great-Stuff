@@ -1,4 +1,4 @@
-import { initStorage, modStorage } from "@/modules/storage";
+import { initStorage, modStorage, syncStorage } from "@/modules/storage";
 import { loadRemoteControl } from "@/modules/remoteControl";
 import { loadSettingsMenu } from "@/modules/settingsMenu";
 import { loadCommands } from "@/modules/commands";
@@ -55,14 +55,19 @@ waitFor(() => typeof window.Player?.MemberNumber === "number").then(() => {
         if (modStorage.misc.autoShowChangelog ?? true) {
             if (ServerPlayerIsInChatRoom()) {
                 modStorage.version = getModVersion();
+                syncStorage();
                 chatSendChangelog();
             } else {
                 ServerSocket.once("ChatRoomSync", () => {
                     modStorage.version = getModVersion();
+                    syncStorage();
                     chatSendChangelog();
                 });
             }
-        } else modStorage.version = getModVersion();
+        } else {
+            modStorage.version = getModVersion();
+            syncStorage();
+        }
     }
 });
 
