@@ -3,7 +3,7 @@ import { loadRemoteControl } from "@/modules/remoteControl";
 import { loadSettingsMenu } from "@/modules/settingsMenu";
 import { loadCommands } from "@/modules/commands";
 import { loadDeviousPadlock } from "@/modules/deviousPadlock";
-import { registerCore, isVersionNewer, waitFor } from "zois-core";
+import { registerCore, isVersionNewer, waitFor, getRandomNumber } from "zois-core";
 import css from "./styles.css";
 import { toastsManager } from "zois-core/popups";
 import { messagesManager } from "zois-core/messaging";
@@ -39,36 +39,38 @@ registerCore({
 });
 
 waitFor(() => typeof window.Player?.MemberNumber === "number").then(() => {
-    initStorage();
-    loadSettingsMenu();
-    loadCommands();
-    loadRemoteControl();
-    loadDeviousPadlock();
-    console.log(`Ready! v${getModVersion()}`);
-    toastsManager.success({
-        title: `DOGS loaded`,
-        message: `v${getModVersion()}`,
-        duration: 4000
-    });
+    setTimeout(() => {
+        initStorage();
+        loadSettingsMenu();
+        loadCommands();
+        loadRemoteControl();
+        loadDeviousPadlock();
+        console.log(`Ready! v${getModVersion()}`);
+        toastsManager.success({
+            title: `DOGS loaded`,
+            message: `v${getModVersion()}`,
+            duration: 4000
+        });
 
-    if (isVersionNewer(getModVersion(), modStorage.version)) {
-        if (modStorage.misc.autoShowChangelog ?? true) {
-            if (ServerPlayerIsInChatRoom()) {
-                modStorage.version = getModVersion();
-                syncStorage();
-                chatSendChangelog();
-            } else {
-                ServerSocket.once("ChatRoomSync", () => {
+        if (isVersionNewer(getModVersion(), modStorage.version)) {
+            if (modStorage.misc.autoShowChangelog ?? true) {
+                if (ServerPlayerIsInChatRoom()) {
                     modStorage.version = getModVersion();
                     syncStorage();
                     chatSendChangelog();
-                });
+                } else {
+                    ServerSocket.once("ChatRoomSync", () => {
+                        modStorage.version = getModVersion();
+                        syncStorage();
+                        chatSendChangelog();
+                    });
+                }
+            } else {
+                modStorage.version = getModVersion();
+                syncStorage();
             }
-        } else {
-            modStorage.version = getModVersion();
-            syncStorage();
         }
-    }
+    }, getRandomNumber(3000, 6000));
 });
 
 
