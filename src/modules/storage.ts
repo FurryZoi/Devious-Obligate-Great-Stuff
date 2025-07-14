@@ -86,7 +86,7 @@ export function initStorage(): void {
         });
     });
 
-    // @ts-ignore
+    //@ts-ignore
     // window.modStorage = modStorage;
 }
 

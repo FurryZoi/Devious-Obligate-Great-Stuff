@@ -334,6 +334,7 @@ function checkDeviousPadlocks(target: Character): void {
 					};
 					if (newItem.Property.Name !== deviousPadlock.Name) newItem.Property.Name = deviousPadlock.Name;
 					if (newItem.Property.LockedBy !== "ExclusivePadlock") newItem.Property.LockedBy = "ExclusivePadlock";
+					ValidationSanitizeProperties(Player, newItem);
 					ValidationSanitizeLock(Player, newItem);
 					modStorage.deviousPadlock.itemGroups[groupName].item = getSavedItemData(newItem);
 					if (padlockChanged) padlocksChangedItemNames.push(newItem.Craft?.Name ? newItem.Craft.Name : newItem.Asset.Description);
@@ -423,7 +424,6 @@ export function loadDeviousPadlock(): void {
 		});
 		const changed = ValidationSanitizeProperties(Player, appearanceItem);
 		if (changed) {
-			console.log(g)
 			modStorage.deviousPadlock.itemGroups[g].item = getSavedItemData(appearanceItem);
 			syncStorage();
 		}
