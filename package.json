@@ -1,6 +1,6 @@
 {
   "name": "DOGS",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "main": "src/index.ts",
   "scripts": {
     "dev": "esbuild src/index.ts --bundle --minify --legal-comments=none --sourcemap --watch --outfile=dist/bundle.js --loader:.ts=ts --loader:.css=text --loader:.png=dataurl --loader:.svg=dataurl",
@@ -12,9 +12,9 @@
   "description": "",
   "devDependencies": {
     "@types/lodash-es": "^4.17.12",
-    "bc-stubs": "117.0.0-Beta.1",
-    "esbuild": "^0.25.6",
-    "typescript": "^5.8.3"
+    "bc-stubs": "119.0.0-Beta.1",
+    "esbuild": "^0.25.9",
+    "typescript": "^5.9.2"
   },
   "dependencies": {
     "lodash-es": "^4.17.21",

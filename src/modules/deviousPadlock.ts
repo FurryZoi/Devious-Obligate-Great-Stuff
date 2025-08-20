@@ -110,9 +110,9 @@ export function registerDeviousPadlockInModStorage(group: AssetGroupItemName, ow
 	syncStorage();
 }
 
-export function inspectDeviousPadlock(target: Character, item: Item, itemGroup: AssetItemGroup): void {
+export async function inspectDeviousPadlock(): Promise<void> {
 	//@ts-ignore
-	CommonSetScreen("Character", "InspectDeviousPadlock");
+	await CommonSetScreen("Character", "InspectDeviousPadlock");
 	DialogLeave();
 }
 
@@ -434,7 +434,8 @@ export function loadDeviousPadlock(): void {
 	//@ts-ignore
 	window.InspectDeviousPadlockBackground = "Sheet";
 	//@ts-ignore
-	window.InspectDeviousPadlockLoad = () => {
+	window.InspectDeviousPadlockLoad = async () => {
+		console.log(CurrentCharacter);
 		setSubscreen(new InspectDeviousPadlockSubscreen(CurrentCharacter, CurrentCharacter.FocusGroup));
 	};
 	//@ts-ignore
@@ -494,7 +495,7 @@ export function loadDeviousPadlock(): void {
 				CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS
 			)
 		) {
-			inspectDeviousPadlock(CurrentCharacter, item, CurrentCharacter.FocusGroup);
+			inspectDeviousPadlock();
 			// DialogChangeMode("items");
 			return;
 		}
