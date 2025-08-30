@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "lodash-es": "^4.17.21",
-    "zois-core": "^1.1.1"
+    "zois-core": "^1.1.2"
   },
   "pnpm": {
     "overrides": {}
