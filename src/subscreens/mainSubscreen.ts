@@ -4,6 +4,7 @@ import { RemoteControlSubscreen } from "./remoteControlSubscreen";
 import { syncStorage } from "@/modules/storage";
 import { MiscSubscreen } from "./miscSubscreen";
 import { MOD_DATA, version } from "zois-core";
+import { TypeModule } from "zois-core/ui-modules";
 
 export class MainSubscreen extends BaseSubscreen {
     get name(): string {
@@ -35,24 +36,18 @@ export class MainSubscreen extends BaseSubscreen {
             });
         });
 
-        this.createButton({
-            text: `DOGS v${MOD_DATA.version}`,
+        this.createCard({
+            name: `Version`,
+            value: MOD_DATA.version,
             anchor: "bottom-right",
             x: 80,
             y: 65,
-            width: 240,
-            padding: 3
+            modules: {
+                value: [
+                    new TypeModule({ duration: 850 })
+                ]
+            }
         });
-
-        this.createText({
-            text: `ZC v${version}`,
-            anchor: "bottom-right",
-            x: 210,
-            y: 78,
-            width: 100,
-            fontSize: 2,
-            withBackground: true
-        }).style.borderRadius = "4px";
     }
 
     exit(): void {

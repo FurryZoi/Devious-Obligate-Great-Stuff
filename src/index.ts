@@ -3,7 +3,7 @@ import { loadRemoteControl } from "@/modules/remoteControl";
 import { loadSettingsMenu } from "@/modules/settingsMenu";
 import { loadCommands } from "@/modules/commands";
 import { loadDeviousPadlock } from "@/modules/deviousPadlock";
-import { registerCore, isVersionNewer, waitFor, getRandomNumber } from "zois-core";
+import { registerCore, isVersionNewer, waitForStart, injectStyles } from "zois-core";
 import css from "./styles.css";
 import { toastsManager } from "zois-core/popups";
 import { messagesManager } from "zois-core/messaging";
@@ -25,52 +25,48 @@ font.rel = "stylesheet";
 font.type = "text/css";
 document.head.append(font);
 
-const style = document.createElement("style");
-style.innerHTML = css;
-document.head.append(style);
+waitForStart(() => {
+    registerCore({
+        name: "DOGS",
+        fullName: "Devious Obligate Great Stuff",
+        key: "DOGS",
+        version: getModVersion(),
+        repository: "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff.git",
+        fontFamily: "Comfortaa"
+    });
 
-registerCore({
-    name: "DOGS",
-    fullName: "Devious Obligate Great Stuff",
-    key: "DOGS",
-    version: getModVersion(),
-    repository: "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff.git",
-    fontFamily: "Comfortaa"
-});
+    injectStyles(css);
 
-waitFor(() => typeof window.Player?.MemberNumber === "number").then(() => {
-    setTimeout(() => {
-        initStorage();
-        loadSettingsMenu();
-        loadCommands();
-        loadRemoteControl();
-        loadDeviousPadlock();
-        console.log(`Ready! v${getModVersion()}`);
-        toastsManager.success({
-            title: `DOGS loaded`,
-            message: `v${getModVersion()}`,
-            duration: 4000
-        });
+    initStorage();
+    loadSettingsMenu();
+    loadCommands();
+    loadRemoteControl();
+    loadDeviousPadlock();
+    console.log(`Ready! v${getModVersion()}`);
+    toastsManager.success({
+        title: `DOGS loaded`,
+        message: `v${getModVersion()}`,
+        duration: 4000
+    });
 
-        if (isVersionNewer(getModVersion(), modStorage.version)) {
-            if (modStorage.misc.autoShowChangelog ?? true) {
-                if (ServerPlayerIsInChatRoom()) {
+    if (isVersionNewer(getModVersion(), modStorage.version)) {
+        if (modStorage.misc.autoShowChangelog ?? true) {
+            if (ServerPlayerIsInChatRoom()) {
+                modStorage.version = getModVersion();
+                syncStorage();
+                chatSendChangelog();
+            } else {
+                ServerSocket.once("ChatRoomSync", () => {
                     modStorage.version = getModVersion();
                     syncStorage();
                     chatSendChangelog();
-                } else {
-                    ServerSocket.once("ChatRoomSync", () => {
-                        modStorage.version = getModVersion();
-                        syncStorage();
-                        chatSendChangelog();
-                    });
-                }
-            } else {
-                modStorage.version = getModVersion();
-                syncStorage();
+                });
             }
+        } else {
+            modStorage.version = getModVersion();
+            syncStorage();
         }
-    }, getRandomNumber(3000, 6000));
+    }
 });
 
 
