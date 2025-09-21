@@ -71,7 +71,7 @@ export function loadRemoteControl(): void {
 				Game: {},
 				Inventory: {},
 				LimitedItems: {},
-				ItemPermission: Player.ItemPermission,
+				ItemPermission: Player.AllowedInteractions,
 				Lovership: Player.Lovership,
 				LabelColor: Player.LabelColor,
 				MemberNumber: Player.MemberNumber,
@@ -82,7 +82,8 @@ export function loadRemoteControl(): void {
 				Reputation: Player.Reputation,
 				Title: Player.Title,
 				WhiteList: [],
-				Appearance: ServerAppearanceBundle(Player.Appearance)
+				Appearance: ServerAppearanceBundle(Player.Appearance),
+				AllowedInteractions: Player.AllowedInteractions
 			} as ServerAccountDataSynced
 		};
 	});
@@ -149,12 +150,12 @@ export function loadRemoteControl(): void {
 			DialogLeave();
 			if (data.wasChanged) {
 				toastsManager.success({
-					message: "Your changes was applied",
+					message: "Your changes were applied",
 					duration: 5000
 				});
 			} else {
 				toastsManager.error({
-					message: "Your changes wasn't applied",
+					message: "Your changes weren't applied",
 					duration: 5000
 				});
 			}
