@@ -12,8 +12,8 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       zois-core:
-        specifier: ^1.1.7
-        version: 1.1.7
+        specifier: ^1.1.8
+        version: 1.1.8
     devDependencies:
       '@types/lodash-es':
         specifier: ^4.17.12
@@ -296,8 +296,8 @@ packages:
     resolution: {integrity: sha512-QKxVRxiRACQcVuQEYFsI1hhkrMlrXHPegbbd1yn9UHOmRxY+si12nQYzri3vbzt8VdTTRviqcKxcyllFas5z2A==}
     engines: {node: '>=0.4.0'}
 
-  zois-core@1.1.7:
-    resolution: {integrity: sha512-GHNkzYU1lNYCChOmMswjYxPfOlaKwxnxxB4w/ON1IxK7z49gqDowGyzRf5vzPPJxR7lRAnJLFGvaORG9zrEUyw==}
+  zois-core@1.1.8:
+    resolution: {integrity: sha512-KP/Kz3xp3p9FaUl/slFd8SfUP301b5BH0BIY7+mHgNFx2j8a772Z1+stywy5ZRSxfLq41gE+3SPLghJ3etCQjw==}
 
   zustand@5.0.8:
     resolution: {integrity: sha512-gyPKpIaxY9XcO2vSMrLbiER7QMAMGOQZVRdJ6Zi782jkbzZygq5GI9nG8g+sMgitRtndwaBSl7uiqC49o1SSiw==}
@@ -521,7 +521,7 @@ snapshots:
 
   xmlhttprequest-ssl@2.0.0: {}
 
-  zois-core@1.1.7:
+  zois-core@1.1.8:
     dependencies:
       bondage-club-mod-sdk: 1.2.0
       class-transformer: 0.5.1
