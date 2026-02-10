@@ -327,7 +327,7 @@ function checkDeviousPadlocks(target: Character): void {
 					let newItem: Item = InventoryWear(Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft);
 					newItem.Property = {
 						...getValidProperties(savedItem.property),
-						...getIgnoredProperties(currentItem?.Asset?.Name === savedItem.name ? currentItem.Property : newItem.Property)
+						...getIgnoredProperties(currentItem?.Asset?.Name === savedItem.name ? currentItem.Property : savedItem.property)
 					};
 					if (newItem.Property.Name !== deviousPadlock.Name) newItem.Property.Name = deviousPadlock.Name;
 					if (newItem.Property.LockedBy !== "ExclusivePadlock") newItem.Property.LockedBy = "ExclusivePadlock";
@@ -338,6 +338,9 @@ function checkDeviousPadlocks(target: Character): void {
 					pushChatRoom = true;
 					syncStorage();
 				}
+			} else if (JSON.stringify(getIgnoredProperties(currentItem?.Property)) !== JSON.stringify(getIgnoredProperties(savedItem.property))) {
+				modStorage.deviousPadlock.itemGroups[groupName].item = getSavedItemData(currentItem);
+				syncStorage();
 			}
 		});
 
