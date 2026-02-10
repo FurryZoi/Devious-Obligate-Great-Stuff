@@ -20,6 +20,12 @@ export const deviousPadlock: AssetDefinition.Item = {
 	RemoveTime: 1000
 };
 
+export enum BasePadlock {
+	EXCLUSIVE = "ExclusivePadlock",
+	LOVERS = "LoversPadlock",
+	OWNER = "OwnerPadlock",
+};
+
 export enum PutPadlockMinimumRole {
 	PUBLIC = 3,
 	FRIEND = 0,
@@ -50,6 +56,7 @@ export interface DeviousPadlockConfigurations {
 		type: "PIN-Code" | "password"
 		value: string
 	}
+	baseLock: BasePadlock
 	unlockTime: string
 	keyHolders: {
 		minimumRole: KeyHolderMinimumRole
@@ -103,10 +110,18 @@ export function registerDeviousPadlockInModStorage(group: AssetGroupItemName, ow
 		modStorage.deviousPadlock.itemGroups = {};
 	}
 	const currentItem = InventoryGet(Player, group);
-	modStorage.deviousPadlock.itemGroups[group] = {
+	const lockDef: ModStorage["deviousPadlock"]["itemGroups"][AssetGroupItemName] = {
 		item: getSavedItemData(currentItem),
-		owner: ownerId
+		owner: ownerId,
 	};
+
+	const lockedBy = currentItem?.Property?.LockedBy;
+	if (lockedBy && lockedBy !== BasePadlock.EXCLUSIVE && Object.values(BasePadlock).includes(lockedBy as BasePadlock)) {
+		lockDef.baseLock = lockedBy as BasePadlock;
+		lockDef.minimumRole = basePadlockMinimumRole(lockDef.baseLock);
+	}
+
+	modStorage.deviousPadlock.itemGroups[group] = lockDef;
 	syncStorage();
 }
 
@@ -114,6 +129,41 @@ export async function inspectDeviousPadlock(): Promise<void> {
 	//@ts-ignore
 	await CommonSetScreen("Character", "InspectDeviousPadlock");
 	DialogLeave();
+}
+
+export function canUseBasePadlock(target1: Character, target2: Character, padlockOwner: number, baseLock: BasePadlock): boolean {
+	if (target1.MemberNumber !== padlockOwner) return false;
+
+	/*
+		NOTE:
+		We handle the special case of BlockLoverLockOwner on changePadlockConfigurations rather than here,
+		both due to easier LogQuery handling and to ensure that we don't accidentally restrict owners from
+		getting to the owner padlock (in the inspect subscreen) as a result of the intermediary lovers padlock
+		being disabled for them, preventing back/next navigation.
+
+		We also handle Block*LockSelf in changePadlockConfigurations as well, though solely for the aforementioned
+		ease of handling.
+	*/
+	if (baseLock === BasePadlock.EXCLUSIVE) return true;
+	if (baseLock === BasePadlock.LOVERS) return (
+		(target1.MemberNumber === target2.MemberNumber && target2.Lovership.length > 0) ||
+		target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1)
+	)
+	if (baseLock === BasePadlock.OWNER) return (
+		(target1.MemberNumber === target2.MemberNumber && target2.Ownership != null) ||
+		target2.IsOwnedByCharacter(target1)
+	)
+	return false;
+}
+
+export function basePadlockMinimumRole(baseLock: BasePadlock, currentMinimumRole?: KeyHolderMinimumRole): KeyHolderMinimumRole {
+	if (baseLock === BasePadlock.LOVERS) {
+		if (currentMinimumRole === KeyHolderMinimumRole.OWNER) return currentMinimumRole;
+		return KeyHolderMinimumRole.LOVER;
+	}
+	if (baseLock === BasePadlock.OWNER) return KeyHolderMinimumRole.OWNER;
+	// Default (includes BasePadlock.EXCLUSIVE)
+	return currentMinimumRole ?? KeyHolderMinimumRole.EVERYONE_EXCEPT_WEARER;
 }
 
 export function canPutDeviousPadlock(groupName: AssetGroupItemName, target1: Character, target2: Character): boolean {
@@ -253,6 +303,27 @@ export async function changePadlockConfigurations(
 			}
 		}
 	}
+	if (typeof config?.baseLock === "string" && canUseBasePadlock(sender, Player, modStorage.deviousPadlock.itemGroups[groupName].owner, config.baseLock)) {
+		if (
+			modStorage.deviousPadlock.itemGroups[groupName].baseLock !== config.baseLock &&
+			!(config.baseLock === BasePadlock.LOVERS && Player.IsOwnedByCharacter(sender) && LogQuery("BlockLoverLockOwner", "LoverRule")) &&
+			!(Player.MemberNumber === sender.MemberNumber && (
+				(config.baseLock === BasePadlock.OWNER && LogQuery("BlockOwnerLockSelf", "OwnerRule")) ||
+				(config.baseLock === BasePadlock.LOVERS && LogQuery("BlockLoverLockSelf", "LoverRule"))
+			))
+		) {
+			const item = InventoryGet(Player, groupName);
+			if (item && item.Property.LockedBy !== config.baseLock) {
+				item.Property.LockedBy = config.baseLock;
+				item.Property.LockMemberNumber = modStorage.deviousPadlock.itemGroups[groupName].owner;
+				const successful = ValidationSanitizeLock(Player, item);
+				if (successful) {
+					modStorage.deviousPadlock.itemGroups[groupName].baseLock = config.baseLock;
+					ChatRoomCharacterUpdate(Player);
+				}
+			}
+		}
+	}
 	if (typeof config?.note === "string") {
 		modStorage.deviousPadlock.itemGroups[groupName].note = config.note;
 	}
@@ -275,11 +346,13 @@ function checkDeviousPadlocks(target: Character): void {
 		Object.keys(modStorage.deviousPadlock.itemGroups).forEach((groupName: AssetGroupItemName) => {
 			const currentItem = InventoryGet(Player, groupName);
 			const savedItem = modStorage.deviousPadlock.itemGroups[groupName].item;
+			const owner = modStorage.deviousPadlock.itemGroups[groupName].owner;
+			const basePadlock = modStorage.deviousPadlock.itemGroups[groupName].baseLock ?? BasePadlock.EXCLUSIVE;
 
 			const property = currentItem?.Property;
 			const padlockChanged = !(
 				property?.Name === deviousPadlock.Name
-				&& property?.LockedBy === "ExclusivePadlock"
+				&& property?.LockedBy === basePadlock
 			);
 
 			const ignoredProperties = [
@@ -330,7 +403,8 @@ function checkDeviousPadlocks(target: Character): void {
 						...getIgnoredProperties(currentItem?.Asset?.Name === savedItem.name ? currentItem.Property : savedItem.property)
 					};
 					if (newItem.Property.Name !== deviousPadlock.Name) newItem.Property.Name = deviousPadlock.Name;
-					if (newItem.Property.LockedBy !== "ExclusivePadlock") newItem.Property.LockedBy = "ExclusivePadlock";
+					if (newItem.Property.LockedBy !== basePadlock) newItem.Property.LockedBy = basePadlock;
+					if (newItem.Property.LockMemberNumber !== owner) newItem.Property.LockMemberNumber = owner;
 					ValidationSanitizeProperties(Player, newItem);
 					ValidationSanitizeLock(Player, newItem);
 					modStorage.deviousPadlock.itemGroups[groupName].item = getSavedItemData(newItem);
@@ -371,7 +445,7 @@ function checkDeviousPadlocks(target: Character): void {
 	Player.Appearance.forEach((item) => {
 		if (
 			item.Property?.Name === deviousPadlock.Name &&
-			item.Property?.LockedBy === "ExclusivePadlock"
+			Object.values(BasePadlock).includes(item.Property?.LockedBy as BasePadlock)
 		) {
 			if (
 				!modStorage.deviousPadlock.itemGroups ||
@@ -486,19 +560,21 @@ export function loadDeviousPadlock(): void {
 		}
 	});
 
-	hookFunction("InventoryItemMiscExclusivePadlockDraw", HookPriority.ADD_BEHAVIOR, (args, next) => {
-		const item = InventoryGet(CurrentCharacter, CurrentCharacter.FocusGroup.Name);
-		if (
-			item.Property?.Name === deviousPadlock.Name &&
-			(
-				CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS
-			)
-		) {
-			inspectDeviousPadlock();
-			// DialogChangeMode("items");
-			return;
-		}
-		next(args);
+	Object.values(BasePadlock).forEach((baseLock) => {
+		hookFunction(`InventoryItemMisc${baseLock}Draw`, HookPriority.ADD_BEHAVIOR, (args, next) => {
+			const item = InventoryGet(CurrentCharacter, CurrentCharacter.FocusGroup.Name);
+			if (
+				item.Property?.Name === deviousPadlock.Name &&
+				(
+					CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS
+				)
+			) {
+				inspectDeviousPadlock();
+				// DialogChangeMode("items");
+				return;
+			}
+			next(args);
+		});
 	});
 
 	hookFunction("DialogCanUnlock", HookPriority.ADD_BEHAVIOR, (args, next) => {
@@ -534,7 +610,7 @@ export function loadDeviousPadlock(): void {
 		const [C, Item, Lock, MemberNumber] = args as [Character, Item | AssetGroupName, Item | AssetLockType, null | number | string];
 		// @ts-ignore
 		if ([Lock.Asset?.Name, Lock].includes(deviousPadlock.Name)) {
-			args[2] = "ExclusivePadlock";
+			args[2] = Object.values(BasePadlock).includes((typeof Lock === "string" ? Lock : Lock.Asset?.Name) as BasePadlock) ? Lock : BasePadlock.EXCLUSIVE;
 			if (args[1].Property) {
 				args[1].Property.Name = deviousPadlock.Name;
 			} else {

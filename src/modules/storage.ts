@@ -3,7 +3,7 @@ import { getPlayer, MOD_DATA } from "zois-core";
 import { messagesManager } from "zois-core/messaging";
 import { hookFunction, HookPriority } from "zois-core/modsApi";
 import { RemoteConnectMinimumRole } from "./remoteControl";
-import { PutPadlockMinimumRole, KeyHolderMinimumRole } from "./deviousPadlock";
+import { PutPadlockMinimumRole, KeyHolderMinimumRole, BasePadlock } from "./deviousPadlock";
 import { cloneDeep } from "lodash-es";
 
 
@@ -26,6 +26,7 @@ export interface ModStorage {
         itemGroups?: Record<AssetGroupItemName, {
             item: SavedItem
             owner: number
+            baseLock?: BasePadlock
             minimumRole?: KeyHolderMinimumRole
             memberNumbers?: number[]
             note?: string

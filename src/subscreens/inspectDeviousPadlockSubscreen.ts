@@ -1,12 +1,18 @@
 import { BaseSubscreen, setSubscreen } from "zois-core/ui";
 import icon from "@/images/settings-devious-padlock.png";
 import { ModStorage, modStorage, syncStorage } from "@/modules/storage";
-import { canSetKeyHolderMinimumRole, changePadlockConfigurations, DeviousPadlockConfigurations, hashCombination, hasKeyToPadlock, KeyHolderMinimumRole } from "@/modules/deviousPadlock";
+import { BasePadlock, basePadlockMinimumRole, canSetKeyHolderMinimumRole, canUseBasePadlock, changePadlockConfigurations, DeviousPadlockConfigurations, hashCombination, hasKeyToPadlock, KeyHolderMinimumRole } from "@/modules/deviousPadlock";
 import { dialogsManager, toastsManager } from "zois-core/popups";
 import { messagesManager } from "zois-core/messaging";
 import { getNickname } from "zois-core";
 import { smartGetItemName } from "zois-core/wardrobe";
 
+
+const basePadlockNames = {
+    [BasePadlock.EXCLUSIVE]: "Exclusive Padlock",
+    [BasePadlock.LOVERS]: "Lovers Padlock",
+    [BasePadlock.OWNER]: "Owner Padlock"
+};
 
 const minimumRolesNames = {
     [KeyHolderMinimumRole.EVERYONE_EXCEPT_WEARER]: "Everyone except wearer",
@@ -83,6 +89,7 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                 minimumRole: deviousPadlock.itemGroups[itemGroup.Name].minimumRole ?? KeyHolderMinimumRole.EVERYONE_EXCEPT_WEARER,
                 memberNumbers: deviousPadlock.itemGroups[itemGroup.Name].memberNumbers ?? [],
             },
+            baseLock: deviousPadlock.itemGroups[itemGroup.Name].baseLock ?? BasePadlock.EXCLUSIVE,
             unlockTime: deviousPadlock.itemGroups[itemGroup.Name].unlockTime,
             note: deviousPadlock.itemGroups[itemGroup.Name].note ?? "",
             blockedCommands: deviousPadlock.itemGroups[itemGroup.Name].blockedCommands ?? [],
@@ -310,28 +317,36 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                         this.drawPolylineArrow({
                             points: [
                                 {
-                                    x: 800,
-                                    y: 650
+                                    x: 1500,
+                                    y: 540
                                 },
                                 {
                                     x: 800,
-                                    y: 550
+                                    y: 540
                                 }
                             ]
                         });
                         this.drawPolylineArrow({
                             points: [
                                 {
+                                    x: 1700,
+                                    y: 500
+                                },
+                                {
+                                    x: 1700,
+                                    y: 430
+                                }
+                            ]
+                        });
+                        this.drawPolylineArrow({
+                            points: [
+                                {
+                                    x: 950,
+                                    y: 900,
+                                },
+                                {
                                     x: 800,
-                                    y: 650
-                                },
-                                {
-                                    x: 1500,
-                                    y: 650
-                                },
-                                {
-                                    x: 1500,
-                                    y: 440
+                                    y: 900,
                                 }
                             ]
                         });
@@ -444,14 +459,54 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                         });
 
                         this.createText({
-                            text: "In addition to the key, the padlock can be unlocked in other ways",
-                            x: 500,
-                            y: 150,
-                            width: 600,
-                            anchor: "bottom-left",
+                            text: "<b>Base Lock</b>",
+                            x: 100,
+                            y: 660,
+                            width: 850,
                             withBackground: true,
                             padding: 2
                         });
+
+                        this.createBackNextButton({
+                            x: 100,
+                            y: 780,
+                            width: 850,
+                            height: 80,
+                            currentIndex: Object.values(BasePadlock)
+                                .indexOf(this.padlockSettings.baseLock),
+                            isBold: true,
+                            items: Object.values(BasePadlock)
+                                .map((r) => [basePadlockNames[r], r]),
+                            onChange: (value) => {
+                                this.padlockSettings.baseLock = value;
+                                this.padlockSettings.keyHolders.minimumRole = basePadlockMinimumRole(value, this.padlockSettings.keyHolders.minimumRole);
+                                if (value !== BasePadlock.EXCLUSIVE) this.padlockSettings.keyHolders.memberNumbers = [];
+                            },
+                            isDisabled: (value) =>
+                                !this.canEdit() ||
+                                !canUseBasePadlock(Player, this.target, this.padlockSettings.owner, value)
+                        });
+
+                        this.createText({
+                            text: "In addition to the key, the padlock can be unlocked in other ways",
+                            x: 80,
+                            y: 210,
+                            width: 400,
+                            anchor: "bottom-right",
+                            withBackground: true,
+                            padding: 2
+                        });
+
+                        this.createText({
+                            text: "The padlock's owner (original applicator) may set the base padlock used in BC. This can reduce the triggers resulting from other users' tampering. Non-Exclusive base locks disables 'Member Numbers' keyholders & forces 'Minimum Role' to at least match the base BC lock.",
+                            x: 510,
+                            y: 60,
+                            width: 510,
+                            fontSize: 3,
+                            anchor: "bottom-right",
+                            withBackground: true,
+                            padding: 2
+                        })
                     }
                 },
                 {
@@ -477,7 +532,7 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                                 .slice(Object.values(KeyHolderMinimumRole).length / 2)
                                 .map((r) => [minimumRolesNames[r], r]),
                             onChange: (value) => this.padlockSettings.keyHolders.minimumRole = value,
-                            isDisabled: (value) => !this.canEdit() || !canSetKeyHolderMinimumRole(Player, this.target, value)
+                            isDisabled: (value) => !this.canEdit() || !canSetKeyHolderMinimumRole(Player, this.target, value) || basePadlockMinimumRole(this.padlockSettings.baseLock, value) !== value
                         });
 
                         this.createInputList({
@@ -488,7 +543,7 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                             height: 500,
                             value: this.padlockSettings.keyHolders.memberNumbers,
                             numbersOnly: true,
-                            isDisabled: () => !this.canEdit(),
+                            isDisabled: () => !this.canEdit() || this.padlockSettings.baseLock !== BasePadlock.EXCLUSIVE,
                             onChange: (value: number[]) => {
                                 this.padlockSettings.keyHolders.memberNumbers = value;
                             }
@@ -498,7 +553,7 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                             x: 1200,
                             y: 259,
                             width: 700,
-                            text: "The minimum role which will always have the key to the padlock",
+                            text: "The minimum role which will always have the key to the padlock. Must meet base lock minimum.",
                             withBackground: true,
                             padding: 2
                         });
@@ -507,7 +562,7 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                             x: 1000,
                             y: 500,
                             width: 900,
-                            text: "Member numbers which will always have the key to the padlock",
+                            text: "Member numbers which will always have the key to the padlock. Disabled if base lock is not 'Exclusive'",
                             withBackground: true,
                             padding: 2
                         });
