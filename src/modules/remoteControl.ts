@@ -54,6 +54,7 @@ export function loadRemoteControl(): void {
 			remoteControlControllers.push(senderNumber);
 		}
 		messagesManager.sendLocal(`<b>${senderName} (${senderNumber})</b> remotely connected to you.`);
+		const pb = ServerPackItemPermissions(Player.PermissionItems);
 		return {
 			bundle: {
 				ID: Player.OnlineID,
@@ -62,7 +63,7 @@ export function loadRemoteControl(): void {
 				ArousalSettings: Player.ArousalSettings,
 				AssetFamily: Player.AssetFamily,
 				BlackList: Player.BlackList,
-				BlockItems: Player.BlockItems,
+				BlockItems: pb.BlockItems,
 				Crafting: null,
 				Creation: Player.Creation,
 				Description: Player.Description,
@@ -70,8 +71,9 @@ export function loadRemoteControl(): void {
 				FavoriteItems: {},
 				Game: {},
 				Inventory: {},
-				LimitedItems: {},
+				LimitedItems: pb.LimitedItems,
 				ItemPermission: Player.AllowedInteractions,
+				AllowedInteractions: Player.AllowedInteractions,
 				Lovership: Player.Lovership,
 				LabelColor: Player.LabelColor,
 				MemberNumber: Player.MemberNumber,
@@ -83,7 +85,6 @@ export function loadRemoteControl(): void {
 				Title: Player.Title,
 				WhiteList: [],
 				Appearance: ServerAppearanceBundle(Player.Appearance),
-				AllowedInteractions: Player.AllowedInteractions
 			} as ServerAccountDataSynced
 		};
 	});

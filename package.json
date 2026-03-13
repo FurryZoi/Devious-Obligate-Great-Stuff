@@ -12,15 +12,18 @@
   "description": "",
   "devDependencies": {
     "@types/lodash-es": "^4.17.12",
-    "bc-stubs": "122.0.0",
-    "esbuild": "^0.27.0",
+    "bc-stubs": "126.0.0-Beta.1",
+    "esbuild": "^0.27.4",
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "lodash-es": "^4.17.21",
-    "zois-core": "^1.1.8"
+    "lodash-es": "^4.17.23",
+    "zois-core": "^1.2.1"
   },
   "pnpm": {
-    "overrides": {}
+    "overrides": {},
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }

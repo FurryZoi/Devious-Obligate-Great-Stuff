@@ -248,25 +248,13 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                                 padding: 2,
                                 isDisabled: () => !this.padlockSettings.combinationToUnlock.isCorrect,
                                 onClick: async () => {
-                                    const confirmation = await dialogsManager.showDialog({
-                                        type: "choice_one",
-                                        title: "Padlock Removing",
-                                        body: "Are you sure you want to remove padlock?",
-                                        width: 1200,
-                                        buttons: {
-                                            direction: "row",
-                                            list: [
-                                                {
-                                                    text: "Remove padlock",
-                                                    value: true
-                                                },
-                                                {
-                                                    text: "Cancel",
-                                                    value: false
-                                                }
-                                            ]
-                                        }
-                                    });
+                                    const confirmation = await dialogsManager.pick({
+                                        message: "Are you sure you want to remove padlock?",
+                                        options: [
+                                            { name: "Remove padlock", value: true, },
+                                            { name: "Cancel", value: false, },
+                                        ],
+                                    })
                                     if (!confirmation) return;
                                     if (this.target.IsPlayer()) {
                                         if (this.padlockSettings.combinationToUnlock.isCorrect) {

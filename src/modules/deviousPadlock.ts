@@ -116,7 +116,7 @@ export async function inspectDeviousPadlock(): Promise<void> {
 	DialogLeave();
 }
 
-export function canPutDeviousPadlock(groupName: AssetGroupItemName, target1: Character, target2: Character): boolean {
+export function canPutDeviousPadlock(groupName: AssetGroupName, target1: Character, target2: Character): boolean {
 	let storage: ModStorage;
 	if (target2.IsPlayer()) storage = modStorage;
 	else storage = target2.DOGS;
@@ -444,7 +444,7 @@ export function loadDeviousPadlock(): void {
 	};
 
 	ServerPlayerChatRoom.register({
-		screen: "InspectDeviousPadlock",
+		screen: "InspectDeviousPadlock" as ScreenName,
 		callback: () => getCurrentSubscreen() instanceof InspectDeviousPadlockSubscreen
 	});
 
@@ -495,7 +495,7 @@ export function loadDeviousPadlock(): void {
 			// DialogChangeMode("items");
 			return;
 		}
-		next(args);
+		return next(args);
 	});
 
 	hookFunction("DialogCanUnlock", HookPriority.ADD_BEHAVIOR, (args, next) => {
@@ -528,14 +528,14 @@ export function loadDeviousPadlock(): void {
 	});
 
 	hookFunction("InventoryLock", HookPriority.ADD_BEHAVIOR, (args, next) => {
-		const [C, Item, Lock, MemberNumber] = args as [Character, Item | AssetGroupName, Item | AssetLockType, null | number | string];
-		// @ts-ignore
-		if ([Lock.Asset?.Name, Lock].includes(deviousPadlock.Name)) {
+		const [C, ItemOrGroupName, Lock, MemberNumber] = args;
+		const Item = typeof ItemOrGroupName === 'string' ? InventoryGet(C, ItemOrGroupName) : ItemOrGroupName;
+		if (Lock === deviousPadlock.Name || CommonIsObject(Lock) && Lock.Asset?.Name === deviousPadlock.Name) {
 			args[2] = "ExclusivePadlock";
-			if (args[1].Property) {
-				args[1].Property.Name = deviousPadlock.Name;
+			if ("Property" in Item) {
+				Item.Property.Name = deviousPadlock.Name;
 			} else {
-				args[1].Property = {
+				Item.Property = {
 					Name: deviousPadlock.Name
 				};
 			}
@@ -613,6 +613,12 @@ export function loadDeviousPadlock(): void {
 		return next(args);
 	});
 
+	interface DeviousInventoryIcon {
+		name: string;
+		iconSrc: string;
+		tooltipText: String;
+	}
+
 	hookFunction("DialogGetLockIcon", HookPriority.ADD_BEHAVIOR, (args, next) => {
 		const item: Item = args[0];
 		if (InventoryItemHasEffect(item, "Lock")) {
@@ -622,14 +628,13 @@ export function loadDeviousPadlock(): void {
 				if (CurrentCharacter !== null && !CurrentCharacter.IsPlayer() && !CurrentCharacter.DOGS) {
 					return next(args);
 				}
-				if (GameVersion === "R110") return [deviousPadlock.Name];
-				return [
-					{
-						name: deviousPadlock.Name,
-						iconSrc: deviousPadlockImage,
-						tooltipText: `Locked with Devious Padlock from DOGS mod`
-					}
-				];
+				const icon: DeviousInventoryIcon = {
+					name: deviousPadlock.Name,
+					iconSrc: deviousPadlockImage,
+					tooltipText: `Locked with Devious Padlock from DOGS mod`
+				};
+				// Cursed, but we're returning our own icon data here
+				return [icon] as unknown as InventoryIcon[];
 			}
 		}
 		return next(args);
@@ -650,7 +655,7 @@ export function loadDeviousPadlock(): void {
 	// Fixing Preview Screen
 	hookFunction("DrawPreviewIcons", HookPriority.ADD_BEHAVIOR, (args, next) => {
 		const icons = args[0];
-		if (typeof icons === "object") args[0] = args[0].map((i) => i.name ?? i);
+		if (CommonIsObject(icons)) args[0] = icons.map((i: InventoryIcon | DeviousInventoryIcon) => typeof i === "string" ? i : i.name as InventoryIcon);
 		return next(args);
 	});
 

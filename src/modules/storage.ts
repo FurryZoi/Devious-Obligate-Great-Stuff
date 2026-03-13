@@ -80,10 +80,11 @@ export function initStorage(): void {
     });
 
     hookFunction("ChatRoomSync", HookPriority.OBSERVE, (args, next) => {
-        next(args);
+        const ret = next(args);
         messagesManager.sendPacket("syncStorage", {
             storage: modStorage,
         });
+        return ret;
     });
 
     //@ts-ignore
