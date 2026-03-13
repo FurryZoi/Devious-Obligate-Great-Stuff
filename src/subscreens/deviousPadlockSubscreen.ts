@@ -11,7 +11,7 @@ const putPadlockMinimumRolesNames = {
     [PutPadlockMinimumRole.WHITELIST]: "Whitelist",
     [PutPadlockMinimumRole.LOVER]: "Lover",
     [PutPadlockMinimumRole.OWNER]: "Owner"
-};
+} as const;
 
 export class DeviousPadlockSubscreen extends BaseSubscreen {
     get name(): string {
@@ -27,12 +27,12 @@ export class DeviousPadlockSubscreen extends BaseSubscreen {
     }
 
     load(): void {
-        super.load();
+        super.load?.();
         this.createCheckbox({
             text: "Enabled",
             x: 100,
             y: 300,
-            isChecked: modStorage.deviousPadlock.state,
+            isChecked: !!modStorage.deviousPadlock.state,
             onChange() {
                 modStorage.deviousPadlock.state = !modStorage.deviousPadlock.state;
             },
@@ -52,7 +52,7 @@ export class DeviousPadlockSubscreen extends BaseSubscreen {
             height: 80,
             currentIndex: Object.values(PutPadlockMinimumRole).slice(Object.values(PutPadlockMinimumRole).length / 2).indexOf(modStorage.deviousPadlock.putMinimumRole ?? PutPadlockMinimumRole.PUBLIC),
             items: Object.values(PutPadlockMinimumRole).slice(Object.values(PutPadlockMinimumRole).length / 2).map((r) => {
-                return [putPadlockMinimumRolesNames[r], r];
+                return [putPadlockMinimumRolesNames[r as PutPadlockMinimumRole], r];
             }),
             isBold: true,
             onChange(value) {
@@ -79,14 +79,16 @@ export class DeviousPadlockSubscreen extends BaseSubscreen {
             icon: "Icons/ServiceBell.png",
             isDisabled: () => Player.GetDifficulty() !== 0,
             onClick: () => {
-                Object.keys(modStorage.deviousPadlock.itemGroups).forEach((k: AssetGroupItemName) => {
-                    modStorage.deviousPadlock.itemGroups[k] = Object.fromEntries(
-                        ["owner", "item"].map((n) => [n, modStorage.deviousPadlock.itemGroups[k][n]])
-                    ) as {
-                        item: SavedItem
-                        owner: number
-                    };
-                });
+                const itemGroups = (modStorage.deviousPadlock.itemGroups ??= {});
+                for (const _groupName in itemGroups) {
+                    const groupName = _groupName as AssetGroupItemName;
+                    const item = itemGroups[groupName]!;
+                    const resetGroup = {
+                        item: item.item,
+                        owner: item?.owner,
+                    }
+                    itemGroups[groupName] = resetGroup;
+                }
                 toastsManager.success({
                     message: "Devious padlocks configurations have been successfully reset",
                     duration: 4500

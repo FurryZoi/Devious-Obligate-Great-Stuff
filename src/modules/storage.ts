@@ -9,9 +9,9 @@ import { cloneDeep } from "lodash-es";
 
 export type SavedItem = {
     name: string
-    color: ItemColor
-    craft: CraftingItem
-    property: ItemProperties
+    color?: ItemColor
+    craft?: CraftingItem
+    property?: ItemProperties
 }
 
 export interface ModStorage {
@@ -23,7 +23,7 @@ export interface ModStorage {
     deviousPadlock: {
         state?: boolean
         putMinimumRole?: PutPadlockMinimumRole
-        itemGroups?: Record<AssetGroupItemName, {
+        itemGroups?: Partial<Record<AssetGroupItemName, {
             item: SavedItem
             owner: number
             minimumRole?: KeyHolderMinimumRole
@@ -35,7 +35,7 @@ export interface ModStorage {
                 type: "PIN-Code" | "password"
                 hash: string
             }
-        }>
+        }>>
     },
     misc: {
         autoShowChangelog?: boolean
@@ -48,22 +48,28 @@ export interface ModStorage {
 export let modStorage: ModStorage;
 
 export function initStorage(): void {
-    const data = {
+    const defaults = {
         remoteControl: {},
         deviousPadlock: {},
         misc: {},
         version: getModVersion(),
     };
 
-    if (typeof Player.ExtensionSettings.DOGS === "string") {
-        modStorage = JSON.parse(LZString.decompressFromBase64(Player.ExtensionSettings.DOGS)) ?? data;
-    } else modStorage = data
-
-    Object.keys(data).forEach((key) => {
-        if (modStorage[key] === undefined) {
-            modStorage[key] = data[key];
+    try {
+        if (typeof Player.ExtensionSettings.DOGS === "string") {
+            const data = LZString.decompressFromBase64(Player.ExtensionSettings.DOGS)
+            if (data) modStorage = JSON.parse(data);
         }
-    });
+    } catch (error) {
+        console.error('DOGS failed to initialize storage:', error);
+    } finally {
+        modStorage ??= defaults
+    }
+
+    for (const key in defaults) {
+        // @ts-expect-error Make sure we get defaults if the key ends up missing
+        modStorage[key] ??= defaults[key];
+    }
 
     migrateModStorage();
     messagesManager.sendPacket("syncStorage", {

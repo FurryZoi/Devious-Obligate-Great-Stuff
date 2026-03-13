@@ -65,7 +65,7 @@ const commands: Command[] = [
                 });
             }
 
-            if (data.rejectReason) {
+            if (data?.rejectReason) {
                 return toastsManager.error({
                     title: "Connection rejected",
                     message: data.rejectReason,
@@ -73,7 +73,7 @@ const commands: Command[] = [
                 });
             }
 
-            if (!data.bundle) return;
+            if (!data?.bundle) return;
             if (!ServerPlayerIsInChatRoom()) return;
             if (CurrentScreen !== "ChatRoom") CommonSetScreen("Online", "ChatRoom");
             const C = CharacterLoadOnline(data.bundle, targetNumber);

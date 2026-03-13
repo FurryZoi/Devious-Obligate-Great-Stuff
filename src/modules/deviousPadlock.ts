@@ -17,7 +17,8 @@ export const deviousPadlock: AssetDefinition.Item = {
 	Time: 10,
 	Value: 70,
 	Wear: false,
-	RemoveTime: 1000
+	RemoveTime: 1000,
+	DynamicDescription(C) { return "Devious Padlock"},
 };
 
 export enum PutPadlockMinimumRole {
@@ -82,9 +83,10 @@ function createDeviousPadlock(): void {
 	});
 
 	const assetGroup = AssetGroupGet("Female3DCG", "ItemMisc");
+	if (!assetGroup) {
+		throw new Error('Unable to find ItemMisc group?');
+	}
 	AssetAdd(assetGroup, deviousPadlock, AssetFemale3DCGExtended);
-	// @ts-ignore
-	AssetGet("Female3DCG", "ItemMisc", deviousPadlock.Name).Description = "Devious Padlock";
 	InventoryAdd(Player, deviousPadlock.Name, "ItemMisc");
 }
 
@@ -98,11 +100,9 @@ function getSavedItemData(item: Item): SavedItem {
 }
 
 export function registerDeviousPadlockInModStorage(group: AssetGroupItemName, ownerId: number): void {
-	if (!modStorage.deviousPadlock.itemGroups) {
-		// @ts-ignore
-		modStorage.deviousPadlock.itemGroups = {};
-	}
 	const currentItem = InventoryGet(Player, group);
+	if (!currentItem) return;
+	modStorage.deviousPadlock.itemGroups ??= {};
 	modStorage.deviousPadlock.itemGroups[group] = {
 		item: getSavedItemData(currentItem),
 		owner: ownerId
@@ -111,29 +111,34 @@ export function registerDeviousPadlockInModStorage(group: AssetGroupItemName, ow
 }
 
 export async function inspectDeviousPadlock(): Promise<void> {
-	//@ts-ignore
-	await CommonSetScreen("Character", "InspectDeviousPadlock");
+	const screen = ["Character", "InspectDeviousPadlock"] as unknown as ScreenSpecifier;
+	await CommonSetScreen(...screen);
 	DialogLeave();
 }
 
+function isFriend(a: Character, b: Character) {
+	return a.IsPlayer() && a.HasOnFriendlist(b) || b.IsPlayer() && b.HasOnFriendlist(a);
+}
+
+function isInFamilyOfCharacter(a: Character, b: Character) {
+	return a.IsInFamilyOfMemberNumber(b.MemberNumber!);
+}
+
 export function canPutDeviousPadlock(groupName: AssetGroupName, target1: Character, target2: Character): boolean {
-	let storage: ModStorage;
-	if (target2.IsPlayer()) storage = modStorage;
-	else storage = target2.DOGS;
-	if (!storage?.deviousPadlock?.state) return;
+	const storage = target2.IsPlayer() ? modStorage : target2.DOGS;
+	if (!storage?.deviousPadlock?.state) return false;
 	const minimumRole = storage?.deviousPadlock?.putMinimumRole ?? PutPadlockMinimumRole.PUBLIC;
 	if (target1.MemberNumber === target2.MemberNumber) return true;
 	if (minimumRole === PutPadlockMinimumRole.PUBLIC) return true;
 	if (minimumRole === PutPadlockMinimumRole.FRIEND) return (
-		// @ts-ignore
-		target1.FriendList?.includes(target2.MemberNumber) || target2.FriendList?.includes(target1.MemberNumber) ||
-		target2.WhiteList?.includes(target1.MemberNumber) ||
-		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) ||
+		isFriend(target1, target2) ||
+		target2.HasOnWhitelist(target1) ||
+		isInFamilyOfCharacter(target1, target2) || target1.IsLoverOfCharacter(target2) ||
 		target2.IsOwnedByCharacter(target1)
 	);
 	if (minimumRole === PutPadlockMinimumRole.WHITELIST) return (
-		target2.WhiteList?.includes(target1.MemberNumber) ||
-		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) ||
+		target2.HasOnWhitelist(target1) ||
+		isInFamilyOfCharacter(target1, target2) || target1.IsLoverOfCharacter(target2) ||
 		target2.IsOwnedByCharacter(target1)
 	);
 	if (minimumRole === PutPadlockMinimumRole.LOVER) return (
@@ -146,29 +151,26 @@ export function canPutDeviousPadlock(groupName: AssetGroupName, target1: Charact
 export function hasKeyToPadlock(groupName: AssetGroupItemName, target1: Character, target2: Character): boolean {
 	if (!target1.CanInteract()) return false;
 	if (!target2.IsPlayer() && !target2.DOGS) return false;
-	const owner = target2.IsPlayer() ?
-		modStorage.deviousPadlock.itemGroups?.[groupName]?.owner
-		: target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.owner;
-	const minimumRole = target2.IsPlayer() ?
-		(modStorage.deviousPadlock.itemGroups?.[groupName]?.minimumRole ?? KeyHolderMinimumRole.EVERYONE_EXCEPT_WEARER)
-		: (target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.minimumRole ?? KeyHolderMinimumRole.EVERYONE_EXCEPT_WEARER);
-	const memberNumbers = target2.IsPlayer() ? (modStorage.deviousPadlock.itemGroups?.[groupName]?.memberNumbers ?? []) : (target2.DOGS?.deviousPadlock?.itemGroups?.[groupName]?.memberNumbers ?? []);
-	if (target1.MemberNumber === owner || memberNumbers.includes(target1.MemberNumber)) return true;
+	const storage = target2.IsPlayer() ? modStorage : target2.DOGS;
+	if (!storage) return false;
+	const owner = storage.deviousPadlock.itemGroups?.[groupName]?.owner
+	const minimumRole = (storage.deviousPadlock.itemGroups?.[groupName]?.minimumRole ?? KeyHolderMinimumRole.EVERYONE_EXCEPT_WEARER);
+	const memberNumbers = storage.deviousPadlock.itemGroups?.[groupName]?.memberNumbers ?? [];
+	if (target1.MemberNumber === owner || target1.MemberNumber !== undefined && memberNumbers.includes(target1.MemberNumber)) return true;
 	if (minimumRole === KeyHolderMinimumRole.EVERYONE_EXCEPT_WEARER) return target1.MemberNumber !== target2.MemberNumber;
 	if (minimumRole === KeyHolderMinimumRole.FRIEND) return (
-		//@ts-ignore
-		target1.FriendList?.includes(target2.MemberNumber) || target2.FriendList?.includes(target1.MemberNumber) ||
-		target2.WhiteList?.includes(target1.MemberNumber) ||
-		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) ||
+		isFriend(target1, target2) ||
+		target2.HasOnWhitelist(target1) ||
+		isInFamilyOfCharacter(target1, target2) || target1.IsLoverOfCharacter(target2) ||
 		target2.IsOwnedByCharacter(target1)
 	);
 	if (minimumRole === KeyHolderMinimumRole.WHITELIST) return (
-		target2.WhiteList?.includes(target1.MemberNumber) ||
-		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) ||
+		target2.HasOnWhitelist(target1) ||
+		isInFamilyOfCharacter(target1, target2) || target1.IsLoverOfCharacter(target2) ||
 		target2.IsOwnedByCharacter(target1)
 	);
 	if (minimumRole === KeyHolderMinimumRole.FAMILY) return (
-		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) ||
+		isInFamilyOfCharacter(target1, target2) || target1.IsLoverOfCharacter(target2) ||
 		target2.IsOwnedByCharacter(target1)
 	);
 	if (minimumRole === KeyHolderMinimumRole.LOVER) return target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
@@ -180,19 +182,18 @@ export function canSetKeyHolderMinimumRole(target1: Character, target2: Characte
 	if (target1.MemberNumber === target2.MemberNumber) return true;
 	if (minimumRole === KeyHolderMinimumRole.EVERYONE_EXCEPT_WEARER) return true;
 	if (minimumRole === KeyHolderMinimumRole.FRIEND) return (
-		// @ts-ignore
-		target1.FriendList?.includes(target2.MemberNumber) || target2.FriendList?.includes(target1.MemberNumber) ||
-		target2.WhiteList?.includes(target1.MemberNumber) ||
-		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) ||
+		isFriend(target1, target2) ||
+		target2.HasOnWhitelist(target1) ||
+		isInFamilyOfCharacter(target1, target2) || target1.IsLoverOfCharacter(target2) ||
 		target2.IsOwnedByCharacter(target1)
 	);
 	if (minimumRole === KeyHolderMinimumRole.WHITELIST) return (
-		target2.WhiteList?.includes(target1.MemberNumber) ||
-		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) ||
+		target2.HasOnWhitelist(target1) ||
+		isInFamilyOfCharacter(target1, target2) || target1.IsLoverOfCharacter(target2) ||
 		target2.IsOwnedByCharacter(target1)
 	);
 	if (minimumRole === KeyHolderMinimumRole.FAMILY) return (
-		target1.IsInFamilyOfMemberNumber(target2.MemberNumber) || target1.IsLoverOfCharacter(target2) ||
+		isInFamilyOfCharacter(target1, target2) || target1.IsLoverOfCharacter(target2) ||
 		target2.IsOwnedByCharacter(target1)
 	);
 	if (minimumRole === KeyHolderMinimumRole.LOVER) return target1.IsLoverOfCharacter(target2) || target2.IsOwnedByCharacter(target1);
@@ -205,7 +206,7 @@ export async function changePadlockConfigurations(
 	config: Partial<DeviousPadlockConfigurations>,
 	sender: Character
 ): Promise<void> {
-	if (!modStorage.deviousPadlock.itemGroups[groupName]) return;
+	if (!modStorage.deviousPadlock.itemGroups?.[groupName]) return;
 	if (typeof modStorage.deviousPadlock.itemGroups[groupName].combination?.hash === "string") {
 		if (
 			!hasKeyToPadlock(groupName, sender, Player) &&
@@ -272,9 +273,11 @@ function checkDeviousPadlocks(target: Character): void {
 	if (modStorage.deviousPadlock.itemGroups) {
 		let padlocksChangedItemNames: string[] = [];
 		let pushChatRoom: boolean = false;
-		Object.keys(modStorage.deviousPadlock.itemGroups).forEach((groupName: AssetGroupItemName) => {
+		for (const group in modStorage.deviousPadlock.itemGroups ?? {}) {
+			const groupName = group as AssetGroupItemName;
 			const currentItem = InventoryGet(Player, groupName);
-			const savedItem = modStorage.deviousPadlock.itemGroups[groupName].item;
+			if (!currentItem) continue;
+			const savedItem = modStorage.deviousPadlock.itemGroups[groupName]!.item;
 
 			const property = currentItem?.Property;
 			const padlockChanged = !(
@@ -287,31 +290,29 @@ function checkDeviousPadlocks(target: Character): void {
 				"TimeWorn", "TriggerCount"
 			];
 
-			const getValidProperties = (properties) => {
-				if (typeof properties === "object") {
-					const propertiesCopy = { ...properties };
-					ignoredProperties.forEach((p) => {
-						delete propertiesCopy[p];
-					});
-					return propertiesCopy;
-				}
-				return properties;
+			const getValidProperties = (properties: ItemProperties | undefined) => {
+				if (!CommonIsObject(properties)) return properties;
+				const propertiesCopy = { ...properties };
+				ignoredProperties.forEach((p) => {
+					delete (propertiesCopy as Record<any, any>)[p];
+				});
+				return propertiesCopy;
 			}
 
-			const getIgnoredProperties = (properties) => {
-				if (typeof properties === "object") {
-					const propertiesCopy = { ...properties };
-					Object.keys(propertiesCopy).forEach((p) => {
-						if (!ignoredProperties.includes(p)) delete propertiesCopy[p];
-					});
-					return propertiesCopy;
-				}
-				return properties;
+			const getIgnoredProperties = (properties: ItemProperties | undefined) => {
+				if (!CommonIsObject(properties)) return properties;
+				const propertiesCopy = { ...properties };
+				Object.keys(propertiesCopy).forEach((p) => {
+					if (!ignoredProperties.includes(p)) {
+						delete (propertiesCopy as Record<any, any>)[p];
+					}
+				});
+				return propertiesCopy;
 			}
 
 			if (
 				currentItem?.Asset?.Name !== savedItem.name ||
-				!colorsEqual(currentItem.Color, savedItem.color) ||
+				!colorsEqual(currentItem?.Color, savedItem.color) ||
 				JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) ||
 				JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property))
 			) {
@@ -319,27 +320,31 @@ function checkDeviousPadlocks(target: Character): void {
 					if (padlockChanged) {
 						delete modStorage.deviousPadlock.itemGroups[groupName];
 					} else {
-						modStorage.deviousPadlock.itemGroups[groupName].item = getSavedItemData(currentItem);
+						modStorage.deviousPadlock.itemGroups[groupName]!.item = getSavedItemData(currentItem);
 					}
 					syncStorage();
 				} else if (!deviousPadlockTriggerCooldown.state) {
-					const difficulty = AssetGet(Player.AssetFamily, groupName, savedItem.name).Difficulty;
-					let newItem: Item = InventoryWear(Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft);
+					const savedAsset = AssetGet(Player.AssetFamily, groupName, savedItem.name)
+					if (!savedAsset) continue;
+
+					const difficulty = savedAsset.Difficulty;
+					let newItem = InventoryWear(Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft);
+					if (!newItem) return;
 					newItem.Property = {
 						...getValidProperties(savedItem.property),
 						...getIgnoredProperties(currentItem?.Asset?.Name === savedItem.name ? currentItem.Property : newItem.Property)
 					};
-					if (newItem.Property.Name !== deviousPadlock.Name) newItem.Property.Name = deviousPadlock.Name;
-					if (newItem.Property.LockedBy !== "ExclusivePadlock") newItem.Property.LockedBy = "ExclusivePadlock";
+					newItem.Property!.Name = deviousPadlock.Name;
+					newItem.Property!.LockedBy = "ExclusivePadlock";
 					ValidationSanitizeProperties(Player, newItem);
 					ValidationSanitizeLock(Player, newItem);
-					modStorage.deviousPadlock.itemGroups[groupName].item = getSavedItemData(newItem);
+					modStorage.deviousPadlock.itemGroups[groupName]!.item = getSavedItemData(newItem);
 					if (padlockChanged) padlocksChangedItemNames.push(newItem.Craft?.Name ? newItem.Craft.Name : newItem.Asset.Description);
 					pushChatRoom = true;
 					syncStorage();
 				}
 			}
-		});
+		}
 
 		if (ServerPlayerIsInChatRoom() && pushChatRoom) {
 			ChatRoomCharacterUpdate(Player);
@@ -377,7 +382,9 @@ function checkDeviousPadlocks(target: Character): void {
 				if (!canPutDeviousPadlock(item.Asset.Group.Name as AssetGroupItemName, target, Player) || deviousPadlockTriggerCooldown.state) {
 					InventoryUnlock(Player, item.Asset.Group.Name as AssetGroupItemName);
 					ChatRoomCharacterUpdate(Player);
-				} else registerDeviousPadlockInModStorage(item.Asset.Group.Name as AssetGroupItemName, target.MemberNumber);
+				} else {
+					registerDeviousPadlockInModStorage(item.Asset.Group.Name as AssetGroupItemName, target.MemberNumber!);
+				}
 			}
 		}
 	});
@@ -385,19 +392,25 @@ function checkDeviousPadlocks(target: Character): void {
 
 function checkDeviousPadlocksTimers(): void {
 	if (!modStorage.deviousPadlock.itemGroups || deviousPadlockTriggerCooldown.state) return;
-	Object.keys(modStorage.deviousPadlock.itemGroups).forEach((group: AssetGroupItemName) => {
-		const unlockTime = modStorage.deviousPadlock.itemGroups[group].unlockTime;
+	let didUnlock = false;
+	for (const _groupName in modStorage.deviousPadlock.itemGroups ?? {}) {
+		const groupName = _groupName as AssetGroupItemName;
+		const unlockTime = modStorage.deviousPadlock.itemGroups[groupName]!.unlockTime;
+		const item = InventoryGet(Player, groupName);
+		if (!item) continue;
 		if (unlockTime && new Date(unlockTime) < new Date()) {
-			const itemName = InventoryGet(Player, group).Craft?.Name
-				? InventoryGet(Player, group).Craft.Name
-				: InventoryGet(Player, group).Asset.Description;
-			messagesManager.sendAction(`The devious padlock opens on ${getNickname(Player)}'s ${itemName} with loud click`);
-			delete modStorage.deviousPadlock.itemGroups[group];
+			const itemName = item.Craft?.Name ?? item.Asset.Description;
+			messagesManager.sendAction(`The devious padlock opens on ${getNickname(Player)}'s ${itemName} with a loud click`);
+			delete modStorage.deviousPadlock.itemGroups[groupName];
 			syncStorage();
-			InventoryUnlock(Player, group);
-			ChatRoomCharacterUpdate(Player);
+			InventoryUnlock(Player, groupName);
+			didUnlock = true;
 		}
-	});
+	}
+	// Only do that once instead of spamming it for each group
+	if (didUnlock) {
+		ChatRoomCharacterUpdate(Player);
+	}
 }
 
 export async function hashCombination(combination: string): Promise<string> {
@@ -410,37 +423,41 @@ export async function hashCombination(combination: string): Promise<string> {
 
 export function loadDeviousPadlock(): void {
 	createDeviousPadlock();
-	Object.keys(modStorage.deviousPadlock.itemGroups ?? {}).forEach((g) => {
-		const itemGroup = modStorage.deviousPadlock.itemGroups[g];
+	const itemGroups = (modStorage.deviousPadlock.itemGroups ??= {});
+	let needsSync = false;
+	for (const _groupName in itemGroups) {
+		const groupName = _groupName as AssetGroupItemName;
+		const itemGroup = itemGroups[groupName]!;
 		const appearanceItem = ServerBundledItemToAppearanceItem(Player.AssetFamily, {
 			Name: itemGroup.item.name,
 			Color: itemGroup.item.color,
 			Craft: itemGroup.item.craft,
 			Property: itemGroup.item.property,
-			Group: g as AssetGroupName
+			Group: groupName as AssetGroupName
 		});
+		if (!appearanceItem) return;
 		const changed = ValidationSanitizeProperties(Player, appearanceItem);
 		if (changed) {
-			modStorage.deviousPadlock.itemGroups[g].item = getSavedItemData(appearanceItem);
-			syncStorage();
+			itemGroups[groupName]!.item = getSavedItemData(appearanceItem);
+			needsSync = true;
 		}
-	});
+	}
+	if (needsSync) {
+		syncStorage();
+	}
 	checkDeviousPadlocks(Player);
 	setInterval(checkDeviousPadlocksTimers, 1000);
 
-	//@ts-ignore
+
 	window.InspectDeviousPadlockBackground = "Sheet";
-	//@ts-ignore
 	window.InspectDeviousPadlockLoad = async () => {
-		setSubscreen(new InspectDeviousPadlockSubscreen(CurrentCharacter, CurrentCharacter.FocusGroup));
+		setSubscreen(new InspectDeviousPadlockSubscreen(CurrentCharacter!, CurrentCharacter!.FocusGroup!));
 	};
-	//@ts-ignore
 	window.InspectDeviousPadlockRun = () => {
-		getCurrentSubscreen().run();
+		getCurrentSubscreen().run?.();
 	};
-	//@ts-ignore
 	window.InspectDeviousPadlockClick = () => {
-		getCurrentSubscreen().click();
+		getCurrentSubscreen().click?.();
 	};
 
 	ServerPlayerChatRoom.register({
@@ -451,7 +468,9 @@ export function loadDeviousPadlock(): void {
 	//TODO: Remove
 	messagesManager.onPacket("changeDeviousPadlockConfigurations", (data, sender) => {
 		changePadlockConfigurations(data.groupName as AssetGroupItemName, data.config as DeviousPadlockConfigurations, sender);
-		const itemName = smartGetItemName(InventoryGet(Player, data.groupName));
+		const item = InventoryGet(Player, data.groupName)
+		if (!item) return;
+		const itemName = smartGetItemName(item);
 		messagesManager.sendAction(
 			`${getNickname(sender)} changed devious padlock's configurations on ${getNickname(Player)}'s ${itemName}`
 		);
@@ -459,21 +478,28 @@ export function loadDeviousPadlock(): void {
 
 	messagesManager.onPacket("changePadlockConfigurations", (data, sender) => {
 		changePadlockConfigurations(data.groupName as AssetGroupItemName, data.config as DeviousPadlockConfigurations, sender);
-		const itemName = smartGetItemName(InventoryGet(Player, data.groupName));
+		const item = InventoryGet(Player, data.groupName)
+		if (!item) return;
+		const itemName = smartGetItemName(item);
 		messagesManager.sendAction(
 			`${getNickname(sender)} changed devious padlock's configurations on ${getNickname(Player)}'s ${itemName}`
 		);
 	});
 
 	messagesManager.onPacket("removePadlock", async (data, sender) => {
-		if (typeof data.combination === "string" && !!modStorage.deviousPadlock.itemGroups[data.groupName as AssetGroupItemName]) {
+		const itemGroups = (modStorage.deviousPadlock.itemGroups ??= {});
+		const groupName = data.groupName as AssetGroupItemName;
+		const item = InventoryGet(Player, groupName);
+		if (!item) return;
+
+		if (typeof data.combination === "string" && !!itemGroups[groupName]) {
 			if (
 				await hashCombination(data.combination) ===
-				modStorage.deviousPadlock.itemGroups[data.groupName as AssetGroupItemName].combination.hash
+				itemGroups[groupName].combination?.hash
 			) {
-				const itemName = smartGetItemName(InventoryGet(Player, data.groupName));
-				delete modStorage.deviousPadlock.itemGroups[data.groupName as AssetGroupItemName];
-				InventoryUnlock(Player, data.groupName as AssetGroupItemName);
+				const itemName = smartGetItemName(item);
+				delete itemGroups[groupName];
+				InventoryUnlock(Player, groupName);
 				ChatRoomCharacterUpdate(Player);
 				syncStorage();
 				messagesManager.sendAction(
@@ -484,43 +510,32 @@ export function loadDeviousPadlock(): void {
 	});
 
 	hookFunction("InventoryItemMiscExclusivePadlockDraw", HookPriority.ADD_BEHAVIOR, (args, next) => {
-		const item = InventoryGet(CurrentCharacter, CurrentCharacter.FocusGroup.Name);
-		if (
-			item.Property?.Name === deviousPadlock.Name &&
-			(
-				CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS
-			)
-		) {
+		const C = CurrentCharacter!;
+		const item = InventoryGet(C, C.FocusGroup!.Name);
+		if (item && item.Property?.Name === deviousPadlock.Name && (C.IsPlayer() || C.DOGS)) {
 			inspectDeviousPadlock();
-			// DialogChangeMode("items");
-			return;
+			return undefined as never;
 		}
 		return next(args);
 	});
 
 	hookFunction("DialogCanUnlock", HookPriority.ADD_BEHAVIOR, (args, next) => {
-		const [target, item] = args as [Character, Item];
-
-		if (
-			item?.Property?.Name === deviousPadlock.Name &&
-			(
-				target.IsPlayer() || target.DOGS
-			)
-		) {
-			if (
-				target.IsPlayer() &&
-				typeof modStorage.deviousPadlock.itemGroups?.[item.Asset?.Group?.Name] !== "object"
+		const [target, item] = args;
+		const itemGroupName = item.Asset?.Group?.Name as AssetGroupItemName;
+		if (item?.Property?.Name === deviousPadlock.Name && (target.IsPlayer() || target.DOGS)) {
+			if (target.IsPlayer() &&
+				!modStorage.deviousPadlock.itemGroups?.[itemGroupName]
 			) {
-				registerDeviousPadlockInModStorage(item.Asset.Group.Name as AssetGroupItemName, parseInt(item.Property.LockMemberNumber ?? Player.MemberNumber));
+				registerDeviousPadlockInModStorage(itemGroupName, Number(item.Property.LockMemberNumber ?? Player.MemberNumber));
 			}
-			return hasKeyToPadlock(target.FocusGroup?.Name, Player, target);
+			return hasKeyToPadlock(target.FocusGroup!.Name, Player, target);
 		}
 		return next(args);
 	});
 
 	hookFunction("InventoryUnlock", HookPriority.ADD_BEHAVIOR, (args, next) => {
-		const [target, group] = args as [Character, AssetGroupItemName];
-		const item = InventoryGet(target, group);
+		const [target, itemOrGroupName] = args;
+		const item = typeof itemOrGroupName === "string" ? InventoryGet(target, itemOrGroupName) : itemOrGroupName;
 		if (item?.Property?.Name === deviousPadlock.Name) {
 			delete item.Property.Name;
 		}
@@ -530,9 +545,10 @@ export function loadDeviousPadlock(): void {
 	hookFunction("InventoryLock", HookPriority.ADD_BEHAVIOR, (args, next) => {
 		const [C, ItemOrGroupName, Lock, MemberNumber] = args;
 		const Item = typeof ItemOrGroupName === 'string' ? InventoryGet(C, ItemOrGroupName) : ItemOrGroupName;
-		if (Lock === deviousPadlock.Name || CommonIsObject(Lock) && Lock.Asset?.Name === deviousPadlock.Name) {
+		if (Item && (Lock === deviousPadlock.Name || CommonIsObject(Lock) && Lock.Asset?.Name === deviousPadlock.Name)) {
 			args[2] = "ExclusivePadlock";
 			if ("Property" in Item) {
+				Item.Property ??= {};
 				Item.Property.Name = deviousPadlock.Name;
 			} else {
 				Item.Property = {
@@ -544,30 +560,29 @@ export function loadDeviousPadlock(): void {
 	});
 
 	hookFunction("DialogSetStatus", HookPriority.ADD_BEHAVIOR, (args, next) => {
-		const [status] = args as [string];
+		const C = CurrentCharacter!;
+		const [status] = args;
 		if (
 			typeof status === "string" &&
 			status.startsWith("This looks like its locked by a") &&
-			InventoryGet(CurrentCharacter, CurrentCharacter?.FocusGroup?.Name)
-				?.Property?.Name === deviousPadlock.Name &&
-			(
-				CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS
-			)
+			InventoryGet(C, C.FocusGroup!.Name)?.Property?.Name === deviousPadlock.Name &&
+			(C.IsPlayer() || C.DOGS)
 		) {
-			if (CurrentCharacter.IsPlayer()) {
+			if (C.IsPlayer()) {
 				args[0] = "This looks like its locked by a devious padlock, you are totally helpless :3";
 			} else {
-				args[0] = `This looks like its locked by a devious padlock, ${getNickname(CurrentCharacter)} is totally helpless :3`;
+				args[0] = `This looks like its locked by a devious padlock, ${getNickname(C)} is totally helpless :3`;
 			}
 		}
-		next(args);
+		return next(args);
 	});
 
 	hookFunction("ChatRoomCharacterItemUpdate", HookPriority.OBSERVE, (args, next) => {
 		if (remoteControlIsInteracting) return;
-		next(args);
+		const ret = next(args);
 		const [target, group] = args;
 		onAppearanceChange(Player, target);
+		return ret;
 	});
 
 	hookFunction("ChatRoomSyncItem", HookPriority.OBSERVE, (args, next) => {
@@ -648,7 +663,7 @@ export function loadDeviousPadlock(): void {
 
 	hookFunction("InventoryTogglePermission", HookPriority.ADD_BEHAVIOR, (args, next) => {
 		const item: Item = args[0];
-		if (item.Asset.Name === deviousPadlock.Name) return;
+		if (item.Asset.Name === deviousPadlock.Name) return undefined as never;
 		return next(args);
 	});
 
@@ -687,8 +702,9 @@ export function loadDeviousPadlock(): void {
 	});
 
 	hookFunction("TextLoad", HookPriority.OVERRIDE_BEHAVIOR, (args, next) => {
-		//@ts-ignore
-		if (CurrentScreen === "InspectDeviousPadlock") return;
+		if ((CurrentScreen as string) === "InspectDeviousPadlock") {
+			return undefined as never;
+		}
 		return next(args);
 	});
 }

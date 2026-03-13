@@ -11,12 +11,12 @@ export class MainSubscreen extends BaseSubscreen {
         return "Devious Obligate Good Stuff";
     }
 
-    get previousSubscreen(): BaseSubscreen {
+    get previousSubscreen(): BaseSubscreen | null {
         return null;
     }
 
     load(): void {
-        super.load();
+        super.load?.();
         [
             new DeviousPadlockSubscreen(),
             new RemoteControlSubscreen(),
@@ -51,7 +51,7 @@ export class MainSubscreen extends BaseSubscreen {
     }
 
     exit(): void {
-        super.exit();
+        super.exit?.();
         syncStorage();
         PreferenceSubscreenExtensionsClear();
     }

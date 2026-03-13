@@ -39,7 +39,8 @@ export function hasPermissionForRemoteControl(targetId: number): boolean {
 
 
 export function loadRemoteControl(): void {
-	messagesManager.onRequest("remoteControlConnect", (data, senderNumber: number, senderName) => {
+	messagesManager.onRequest("remoteControlConnect", (data, sender, senderName) => {
+		const senderNumber = typeof sender === "number" ? sender : sender.MemberNumber!;
 		if (!hasPermissionForRemoteControl(senderNumber)) {
 			return {
 				rejectReason: `You don't fit minimum role`
@@ -64,7 +65,6 @@ export function loadRemoteControl(): void {
 				AssetFamily: Player.AssetFamily,
 				BlackList: Player.BlackList,
 				BlockItems: pb.BlockItems,
-				Crafting: null,
 				Creation: Player.Creation,
 				Description: Player.Description,
 				Difficulty: Player.Difficulty,
@@ -89,7 +89,8 @@ export function loadRemoteControl(): void {
 		};
 	});
 
-	messagesManager.onRequest("remoteControlUpdate", (data, senderNumber: number, senderName) => {
+	messagesManager.onRequest("remoteControlUpdate", (data, sender, senderName) => {
+		const senderNumber = typeof sender === "number" ? sender : sender.MemberNumber!;
 		if (
 			!hasPermissionForRemoteControl(senderNumber) ||
 			!remoteControlControllers.includes(senderNumber) ||
@@ -131,10 +132,11 @@ export function loadRemoteControl(): void {
 	});
 
 	hookFunction("DialogMenuBack", HookPriority.ADD_BEHAVIOR, async (args, next) => {
+		const C = CurrentCharacter!;
 		if (remoteControlIsInteracting) {
 			const toastId = toastsManager.spinner({
 				title: "Updating appearance...",
-				message: `Member number: ${CurrentCharacter.MemberNumber}`
+				message: `Member number: ${C.MemberNumber}`
 			});
 			const { data, isError } = await messagesManager.sendRequest<{
 				wasChanged: boolean
@@ -142,14 +144,14 @@ export function loadRemoteControl(): void {
 				type: "beep",
 				message: "remoteControlUpdate",
 				data: {
-					bundle: ServerAppearanceBundle(CurrentCharacter.Appearance)
+					bundle: ServerAppearanceBundle(C.Appearance)
 				},
-				target: CurrentCharacter.MemberNumber
+				target: C.MemberNumber!
 			});
 			toastsManager.removeSpinner(toastId);
 			setRemoteControlIsInteracting(false);
 			DialogLeave();
-			if (data.wasChanged) {
+			if (data?.wasChanged) {
 				toastsManager.success({
 					message: "Your changes were applied",
 					duration: 5000

@@ -24,12 +24,12 @@ export class RemoteControlSubscreen extends BaseSubscreen {
     }
 
     load(): void {
-        super.load();
+        super.load?.();
         this.createCheckbox({
             text: "Enabled",
             x: 100,
             y: 300,
-            isChecked: modStorage.remoteControl.state,
+            isChecked: !!modStorage.remoteControl.state,
             onChange() {
                 modStorage.remoteControl.state = !modStorage.remoteControl.state;
             },
@@ -61,7 +61,7 @@ export class RemoteControlSubscreen extends BaseSubscreen {
             items: Object.values(RemoteConnectMinimumRole)
                 .slice(Object.values(RemoteConnectMinimumRole).length / 2)
                 .map((r) => {
-                    return [remoteConnectMinimumRolesNames[r], r];
+                    return [remoteConnectMinimumRolesNames[r as RemoteConnectMinimumRole], r];
                 }),
             isBold: true,
             onChange(value) {

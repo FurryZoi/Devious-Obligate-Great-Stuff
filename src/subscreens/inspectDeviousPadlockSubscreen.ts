@@ -24,7 +24,7 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
     private pincodeCombinationInputs: HTMLInputElement[] = [];
 
     private canEdit = () => hasKeyToPadlock(this.itemGroupName, Player, this.target) || this.padlockSettings.combinationToUnlock.isCorrect;
-    private keyDownListener: (e: KeyboardEvent) => void;
+    private keyDownListener?: (e: KeyboardEvent) => void;
 
     private onKeyDown(e: KeyboardEvent): void {
         if (this.pincodeCombinationInputs.length === 0) return;
@@ -75,26 +75,28 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
         if (target.IsPlayer()) {
             deviousPadlock = modStorage.deviousPadlock;
         } else {
-            deviousPadlock = target.DOGS.deviousPadlock;
+            deviousPadlock = target.DOGS?.deviousPadlock ?? {};
         }
+        const item = deviousPadlock.itemGroups?.[itemGroup.Name];
         this.padlockSettings = {
-            owner: deviousPadlock.itemGroups[itemGroup.Name].owner,
+            // XXX: not sure if that can happen?
+            owner: item?.owner ?? -1,
             keyHolders: {
-                minimumRole: deviousPadlock.itemGroups[itemGroup.Name].minimumRole ?? KeyHolderMinimumRole.EVERYONE_EXCEPT_WEARER,
-                memberNumbers: deviousPadlock.itemGroups[itemGroup.Name].memberNumbers ?? [],
+                minimumRole: item?.minimumRole ?? KeyHolderMinimumRole.EVERYONE_EXCEPT_WEARER,
+                memberNumbers: item?.memberNumbers ?? [],
             },
-            unlockTime: deviousPadlock.itemGroups[itemGroup.Name].unlockTime,
-            note: deviousPadlock.itemGroups[itemGroup.Name].note ?? "",
-            blockedCommands: deviousPadlock.itemGroups[itemGroup.Name].blockedCommands ?? [],
+            unlockTime: item?.unlockTime ?? "",
+            note: item?.note ?? "",
+            blockedCommands: item?.blockedCommands ?? [],
             combinationToLock: {
                 wasChanged: false,
-                type: deviousPadlock.itemGroups[itemGroup.Name].combination?.type ?? "PIN-Code",
+                type: item?.combination?.type ?? "PIN-Code",
                 value: "",
             },
             combinationToUnlock: {
-                isCorrect: null,
-                hash: deviousPadlock.itemGroups[itemGroup.Name].combination?.hash,
-                type: deviousPadlock.itemGroups[itemGroup.Name].combination?.type,
+                isCorrect: false,
+                hash: item?.combination?.hash ?? "",
+                type: item?.combination?.type ?? "PIN-Code",
                 value: "",
             }
         };
@@ -103,7 +105,7 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
     }
 
     load(): void {
-        super.load();
+        super.load?.();
         this.createButton({
             anchor: "bottom-right",
             x: 80,
@@ -116,13 +118,13 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
             onClick: async () => {
                 if (this.target.IsPlayer()) {
                     await changePadlockConfigurations(this.itemGroupName, this.padlockSettings, Player);
-                    const itemName = smartGetItemName(InventoryGet(Player, this.itemGroupName));
+                    const itemName = smartGetItemName(InventoryGet(Player, this.itemGroupName)!);
                     messagesManager.sendAction(
                         `${getNickname(Player)} changed devious padlock's configurations on <possessive> ${itemName}`
                     );
                 } else {
                     //TODO: Remove
-                    if (this.target.DOGS.version === "2.0.0") {
+                    if (this.target.DOGS?.version === "2.0.0") {
                         messagesManager.sendPacket("changeDeviousPadlockConfigurations", {
                             groupName: this.itemGroupName,
                             config: this.padlockSettings
@@ -258,8 +260,8 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                                     if (!confirmation) return;
                                     if (this.target.IsPlayer()) {
                                         if (this.padlockSettings.combinationToUnlock.isCorrect) {
-                                            const itemName = smartGetItemName(InventoryGet(Player, this.itemGroupName));
-                                            delete modStorage.deviousPadlock.itemGroups[this.itemGroupName];
+                                            const itemName = smartGetItemName(InventoryGet(Player, this.itemGroupName)!);
+                                            delete modStorage.deviousPadlock.itemGroups?.[this.itemGroupName];
                                             InventoryUnlock(Player, this.itemGroupName);
                                             ChatRoomCharacterUpdate(Player);
                                             syncStorage();
@@ -289,7 +291,8 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                         }
                     },
                     unload: () => {
-                        window.removeEventListener("keydown", this.keyDownListener);
+                        if (this.keyDownListener)
+                            window.removeEventListener("keydown", this.keyDownListener);
                     }
                 },
                 {
@@ -463,7 +466,7 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                             isBold: true,
                             items: Object.values(KeyHolderMinimumRole)
                                 .slice(Object.values(KeyHolderMinimumRole).length / 2)
-                                .map((r) => [minimumRolesNames[r], r]),
+                                .map((r) => [minimumRolesNames[r as KeyHolderMinimumRole], r]),
                             onChange: (value) => this.padlockSettings.keyHolders.minimumRole = value,
                             isDisabled: (value) => !this.canEdit() || !canSetKeyHolderMinimumRole(Player, this.target, value)
                         });
@@ -477,7 +480,7 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
                             value: this.padlockSettings.keyHolders.memberNumbers,
                             numbersOnly: true,
                             isDisabled: () => !this.canEdit(),
-                            onChange: (value: number[]) => {
+                            onChange: (value) => {
                                 this.padlockSettings.keyHolders.memberNumbers = value;
                             }
                         });
@@ -581,7 +584,7 @@ export class InspectDeviousPadlockSubscreen extends BaseSubscreen {
     }
 
     exit(): void {
-        super.exit();
+        super.exit?.();
         CommonSetScreen("Online", "ChatRoom");
     }
 }

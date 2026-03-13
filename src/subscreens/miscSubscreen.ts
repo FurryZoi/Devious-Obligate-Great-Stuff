@@ -17,7 +17,7 @@ export class MiscSubscreen extends BaseSubscreen {
     }
 
     load(): void {
-        super.load();
+        super.load?.();
         this.createCheckbox({
             text: "Automatically show changelog",
             x: 100,

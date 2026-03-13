@@ -3,5 +3,12 @@ interface Character {
 }
 
 interface ItemProperties {
-    Name: string
+    Name?: string
+}
+    
+interface Window {
+    InspectDeviousPadlockBackground: string;
+    InspectDeviousPadlockLoad: ScreenLoadHandler;
+    InspectDeviousPadlockRun: ScreenRunHandler;
+    InspectDeviousPadlockClick: MouseEventListener;
 }
