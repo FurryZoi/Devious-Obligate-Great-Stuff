@@ -9,10 +9,10 @@ export function loadSettingsMenu(): void {
 		ButtonText: "DOGS Settings",
 		Image: slaveryImage,
 		click: () => {
-			getCurrentSubscreen().click?.();
+			getCurrentSubscreen()?.click?.();
 		},
 		run: () => {
-			getCurrentSubscreen().run?.();
+			getCurrentSubscreen()?.run?.();
 		},
 		exit: () => false,
 		load: () => {
