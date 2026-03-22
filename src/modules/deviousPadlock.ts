@@ -670,7 +670,7 @@ export function loadDeviousPadlock(): void {
 	// Fixing Preview Screen
 	hookFunction("DrawPreviewIcons", HookPriority.ADD_BEHAVIOR, (args, next) => {
 		const icons = args[0];
-		if (CommonIsObject(icons)) args[0] = icons.map((i: InventoryIcon | DeviousInventoryIcon) => typeof i === "string" ? i : i.name as InventoryIcon);
+		if (CommonIsArray(icons)) args[0] = icons.map((i: InventoryIcon | DeviousInventoryIcon) => typeof i === "string" ? i : i.name as InventoryIcon);
 		return next(args);
 	});
 
