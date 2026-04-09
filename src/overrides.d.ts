@@ -5,7 +5,7 @@ interface Character {
 interface ItemProperties {
     Name?: string
 }
-    
+
 interface Window {
     InspectDeviousPadlockBackground: string;
     InspectDeviousPadlockLoad: ScreenLoadHandler;

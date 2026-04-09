@@ -14,19 +14,22 @@ export function loadDialogs() {
                 NextStage: `${MOD_DATA.name}_MagicSchoolLaboratoryTeacherRescue`,
                 Option: "Can you help me with Devious Padlock?",
                 Result: "(She giggles.) I see you are in trouble. I can remove this padlock using my magic at the rate of 1 padlock for 750 dollars. (She winks.)",
-                Group: "",
+                //@ts-expect-error
+                Group: null,
                 Prerequisite: `${MOD_DATA.name}_PlayerCanBeRescued`,
-                Trait: "",
-                Function: "",
+                //@ts-expect-error
+                Trait: null,
+                //@ts-expect-error
+                Function: null,
             },
             {
                 Stage: `${MOD_DATA.name}_MagicSchoolLaboratoryTeacherRescue`,
                 NextStage: "0",
                 Option: `Pay ${price}$`,
                 Result: "(She casts a spell and the devious padlocks disappears.) There you go! Be more careful next time, okay?",
-                Group: "",
+                Group: null,
                 Prerequisite: `${MOD_DATA.name}_PlayerHasMoney`,
-                Trait: "",
+                Trait: null,
                 Function: `${MOD_DATA.name}_StartRescue`,
             },
             {
@@ -34,10 +37,10 @@ export function loadDialogs() {
                 NextStage: "0",
                 Option: "I don't have that much money.",
                 Result: "Not my problem, come back when you have enough money.",
-                Group: "",
-                Prerequisite: "",
-                Trait: "",
-                Function: "",
+                Group: null,
+                Prerequisite: null,
+                Trait: null,
+                Function: null,
             }
         );
     });
