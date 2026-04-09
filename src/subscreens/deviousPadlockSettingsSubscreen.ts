@@ -1038,10 +1038,10 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
     }
 
     exit(): void {
+        super.exit?.();
         if (this.mode === "inspect-padlock") {
-            if (ServerPlayerIsInChatRoom()) CommonSetScreen("Online", "ChatRoom");
+            if (ChatRoomData !== null) CommonSetScreen("Online", "ChatRoom");
             else CommonSetScreen("Room", "MainHall");
         }
-        super.exit?.();
     }
 }
