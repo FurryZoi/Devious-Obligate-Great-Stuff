@@ -28467,11 +28467,11 @@ One of mods you are using is using an old version of SDK. It will work for now b
       });
     }
     exit() {
+      super.exit?.();
       if (this.mode === "inspect-padlock") {
-        if (ServerPlayerIsInChatRoom()) CommonSetScreen("Online", "ChatRoom");
+        if (ChatRoomData !== null) CommonSetScreen("Online", "ChatRoom");
         else CommonSetScreen("Room", "MainHall");
       }
-      super.exit?.();
     }
   };
 
@@ -29892,19 +29892,22 @@ One of mods you are using is using an old version of SDK. It will work for now b
           NextStage: `${p.name}_MagicSchoolLaboratoryTeacherRescue`,
           Option: "Can you help me with Devious Padlock?",
           Result: "(She giggles.) I see you are in trouble. I can remove this padlock using my magic at the rate of 1 padlock for 750 dollars. (She winks.)",
-          Group: "",
+          //@ts-expect-error
+          Group: null,
           Prerequisite: `${p.name}_PlayerCanBeRescued`,
-          Trait: "",
-          Function: ""
+          //@ts-expect-error
+          Trait: null,
+          //@ts-expect-error
+          Function: null
         },
         {
           Stage: `${p.name}_MagicSchoolLaboratoryTeacherRescue`,
           NextStage: "0",
           Option: `Pay ${price}$`,
           Result: "(She casts a spell and the devious padlocks disappears.) There you go! Be more careful next time, okay?",
-          Group: "",
+          Group: null,
           Prerequisite: `${p.name}_PlayerHasMoney`,
-          Trait: "",
+          Trait: null,
           Function: `${p.name}_StartRescue`
         },
         {
@@ -29912,10 +29915,10 @@ One of mods you are using is using an old version of SDK. It will work for now b
           NextStage: "0",
           Option: "I don't have that much money.",
           Result: "Not my problem, come back when you have enough money.",
-          Group: "",
-          Prerequisite: "",
-          Trait: "",
-          Function: ""
+          Group: null,
+          Prerequisite: null,
+          Trait: null,
+          Function: null
         }
       );
     });
