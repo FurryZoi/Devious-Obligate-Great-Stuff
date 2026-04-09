@@ -1,6 +1,6 @@
 import { BaseSubscreen } from "zois-core/ui";
-import icon from "@/images/settings-misc.png";
 import { modStorage } from "@/modules/storage";
+import { createElement, Settings2 } from "lucide";
 
 
 export class MiscSubscreen extends BaseSubscreen {
@@ -12,8 +12,8 @@ export class MiscSubscreen extends BaseSubscreen {
         return "Misc";
     }
 
-    get buttonIcon(): string {
-        return icon;
+    get buttonIcon(): SVGElement {
+        return createElement(Settings2);
     }
 
     load(): void {

@@ -1,0 +1,1 @@
+export const GITHUB_REPO_URL = "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff";

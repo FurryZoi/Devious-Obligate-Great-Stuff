@@ -17,6 +17,7 @@
 		"allowSyntheticDefaultImports": true,
 		"noEmit": true,
     "strict": true,
+    "experimentalDecorators": true,
     "baseUrl": "src",
     "paths": {
       "@/*": ["*"]

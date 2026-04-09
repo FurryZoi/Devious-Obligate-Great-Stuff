@@ -1,6 +1,6 @@
 import slaveryImage from "@/images/slavery.png";
 import { MainSubscreen } from "@/subscreens/mainSubscreen";
-import { BaseSubscreen, getCurrentSubscreen, setSubscreen } from "zois-core/ui";
+import { getCurrentSubscreen, setSubscreen } from "zois-core/ui";
 
 
 export function loadSettingsMenu(): void {
