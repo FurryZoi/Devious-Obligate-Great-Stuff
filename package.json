@@ -1,10 +1,10 @@
 {
   "name": "DOGS",
-  "version": "2.0.4",
+  "version": "2.1.0",
   "main": "src/index.ts",
   "scripts": {
     "dev": "esbuild src/index.ts --bundle --minify --legal-comments=none --sourcemap --watch --outfile=dist/bundle.js --loader:.ts=ts --loader:.css=text --loader:.png=dataurl --loader:.svg=dataurl",
-    "build": "esbuild src/index.ts --bundle --minify --legal-comments=none --sourcemap --outfile=dist/bundle.js --loader:.ts=ts --loader:.css=text --loader:.png=dataurl --loader:.svg=dataurl"
+    "build": "node ./build.mjs"
   },
   "keywords": [],
   "author": "",
@@ -12,13 +12,15 @@
   "description": "",
   "devDependencies": {
     "@types/lodash-es": "^4.17.12",
-    "bc-stubs": "122.0.0",
-    "esbuild": "^0.27.0",
+    "esbuild": "^0.27.7",
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "lodash-es": "^4.17.21",
-    "zois-core": "^1.1.8"
+    "bc-stubs": "126.0.0-Beta.1",
+    "lodash-es": "^4.18.1",
+    "lucide": "^1.7.0",
+    "reflect-metadata": "^0.2.2",
+    "zois-core": "1.2.1"
   },
   "pnpm": {
     "overrides": {}

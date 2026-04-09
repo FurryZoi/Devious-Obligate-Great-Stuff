@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { initStorage, modStorage, syncStorage } from "@/modules/storage";
 import { loadRemoteControl } from "@/modules/remoteControl";
 import { loadSettingsMenu } from "@/modules/settingsMenu";
@@ -8,6 +9,13 @@ import css from "./styles.css";
 import { toastsManager } from "zois-core/popups";
 import { messagesManager } from "zois-core/messaging";
 import { version } from "../package.json";
+import { DeviousPadlockSubscreen } from "./subscreens/deviousPadlockSubscreen";
+import { MainSubscreen } from "./subscreens/mainSubscreen";
+import { MiscSubscreen } from "./subscreens/miscSubscreen";
+import { RemoteControlSubscreen } from "./subscreens/remoteControlSubscreen";
+import { ProfilesSubscreen } from "./subscreens/profilesSubscreen";
+import { GITHUB_REPO_URL } from "./constants";
+import { loadDialogs } from "./modules/dialogs";
 
 
 export function getModVersion(): string {
@@ -15,15 +23,9 @@ export function getModVersion(): string {
 }
 
 export function chatSendChangelog(): void {
-    const text = `<div class="dogsChangelog"><b>DOGS</b> v${getModVersion()}<br><br>Changes: <ul><li>Devious padlock can be removed during cooldown</li></ul></div>`;
+    const text = `<div class="dogsChangelog"><b>DOGS</b> v${getModVersion()}<br><br>Changes: <ul><li>[Feature] Allow non-exclusive base padlocks (by leralc)</li><li>[Change] Restore ignored properties on remove (by leralc)</li><li>[Feature] Devious Padlock syncing between each other</li><li>[Change] Technical and UI improvements</li></ul></div>`;
     messagesManager.sendLocal(text);
 }
-
-const font = document.createElement("link");
-font.href = "https://fonts.googleapis.com/css2?family=Comfortaa";
-font.rel = "stylesheet";
-font.type = "text/css";
-document.head.append(font);
 
 waitForStart(() => {
     registerCore({
@@ -31,8 +33,15 @@ waitForStart(() => {
         fullName: "Devious Obligate Great Stuff",
         key: "DOGS",
         version: getModVersion(),
-        repository: "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff.git",
-        fontFamily: "Comfortaa"
+        repository: GITHUB_REPO_URL,
+        fontFamily: CommonGetFontName(),
+        deepLinkSubscreens: [
+            new DeviousPadlockSubscreen(),
+            new ProfilesSubscreen(),
+            new MainSubscreen(),
+            new MiscSubscreen(),
+            new RemoteControlSubscreen()
+        ]
     });
 
     injectStyles(css);
@@ -40,9 +49,10 @@ waitForStart(() => {
     initStorage();
     loadSettingsMenu();
     loadCommands();
+    loadDialogs();
     loadRemoteControl();
     loadDeviousPadlock();
-    console.log(`Ready! v${getModVersion()}`);
+    console.log(`DOGS Ready! v${getModVersion()}`);
     toastsManager.success({
         title: `DOGS loaded`,
         message: `v${getModVersion()}`,

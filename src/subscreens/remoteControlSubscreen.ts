@@ -1,7 +1,7 @@
 import { BaseSubscreen } from "zois-core/ui";
-import icon from "@/images/settings-remote-control.png";
 import { modStorage } from "@/modules/storage";
 import { RemoteConnectMinimumRole } from "@/modules/remoteControl";
+import { createElement, Radio } from "lucide";
 
 const remoteConnectMinimumRolesNames = {
     [RemoteConnectMinimumRole.FRIEND]: "Friend",
@@ -19,8 +19,8 @@ export class RemoteControlSubscreen extends BaseSubscreen {
         return "Remote Control";
     }
 
-    get buttonIcon(): string {
-        return icon;
+    get buttonIcon(): SVGElement {
+        return createElement(Radio);
     }
 
     load(): void {

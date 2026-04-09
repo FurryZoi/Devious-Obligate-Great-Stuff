@@ -3,7 +3,7 @@ import { getPlayer, MOD_DATA } from "zois-core";
 import { messagesManager } from "zois-core/messaging";
 import { hookFunction, HookPriority } from "zois-core/modsApi";
 import { RemoteConnectMinimumRole } from "./remoteControl";
-import { PutPadlockMinimumRole, KeyHolderMinimumRole, BasePadlock } from "./deviousPadlock";
+import { PutPadlockMinimumRole, KeyHolderMinimumRole, BasePadlock, DeviousPadlockSettings } from "./deviousPadlock";
 import { cloneDeep } from "lodash-es";
 
 
@@ -12,6 +12,20 @@ export type SavedItem = {
     color: ItemColor
     craft: CraftingItem
     property: ItemProperties
+}
+
+export interface DeviousPadlockProfile {
+    name: string
+    baseLock?: BasePadlock
+    minimumRole?: KeyHolderMinimumRole
+    memberNumbers?: number[]
+    note?: string
+    blockedCommands?: string[]
+    unlockTime?: string
+    combination?: {
+        type: "PIN-Code" | "password"
+        value: string
+    }
 }
 
 export interface ModStorage {
@@ -23,20 +37,13 @@ export interface ModStorage {
     deviousPadlock: {
         state?: boolean
         putMinimumRole?: PutPadlockMinimumRole
-        itemGroups?: Record<AssetGroupItemName, {
-            item: SavedItem
-            owner: number
-            baseLock?: BasePadlock
-            minimumRole?: KeyHolderMinimumRole
-            memberNumbers?: number[]
-            note?: string
-            blockedCommands?: string[]
-            unlockTime?: string
-            combination?: {
-                type: "PIN-Code" | "password"
-                hash: string
+        profiles?: DeviousPadlockProfile[]
+        synced?: (
+            Omit<DeviousPadlockSettings, "item" | "owner"> & {
+                groupNames: AssetGroupItemName[]
             }
-        }>
+        )[]
+        itemGroups?: Record<AssetGroupItemName, DeviousPadlockSettings>
     },
     misc: {
         autoShowChangelog?: boolean
@@ -80,7 +87,7 @@ export function initStorage(): void {
         sender.DOGS = data.storage;
     });
 
-    hookFunction("ChatRoomSync", HookPriority.OBSERVE, (args, next) => {
+    hookFunction("ChatRoomSync", HookPriority.OBSERVE, async (args, next) => {
         next(args);
         messagesManager.sendPacket("syncStorage", {
             storage: modStorage,
@@ -88,7 +95,7 @@ export function initStorage(): void {
     });
 
     //@ts-ignore
-    // window.modStorage = modStorage;
+    window.modStorage = modStorage;
 }
 
 function migrateModStorage(): void {

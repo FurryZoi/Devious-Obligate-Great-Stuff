@@ -1,8 +1,8 @@
 import { BaseSubscreen } from "zois-core/ui";
-import icon from "@/images/settings-devious-padlock.png";
 import { modStorage, SavedItem } from "@/modules/storage";
 import { PutPadlockMinimumRole } from "@/modules/deviousPadlock";
 import { toastsManager } from "zois-core/popups";
+import { createElement, LockKeyhole } from "lucide";
 
 
 const putPadlockMinimumRolesNames = {
@@ -22,8 +22,8 @@ export class DeviousPadlockSubscreen extends BaseSubscreen {
         return "Devious Padlock";
     }
 
-    get buttonIcon(): string {
-        return icon;
+    get buttonIcon(): SVGElement {
+        return createElement(LockKeyhole);
     }
 
     load(): void {
@@ -67,31 +67,6 @@ export class DeviousPadlockSubscreen extends BaseSubscreen {
             width: 800,
             withBackground: true,
             padding: 2
-        });
-
-        this.createButton({
-            text: "Emergency Reset",
-            anchor: "bottom-right",
-            x: 80,
-            y: 70,
-            padding: 3,
-            width: 600,
-            icon: "Icons/ServiceBell.png",
-            isDisabled: () => Player.GetDifficulty() !== 0,
-            onClick: () => {
-                Object.keys(modStorage.deviousPadlock.itemGroups).forEach((k: AssetGroupItemName) => {
-                    modStorage.deviousPadlock.itemGroups[k] = Object.fromEntries(
-                        ["owner", "item"].map((n) => [n, modStorage.deviousPadlock.itemGroups[k][n]])
-                    ) as {
-                        item: SavedItem
-                        owner: number
-                    };
-                });
-                toastsManager.success({
-                    message: "Devious padlocks configurations have been successfully reset",
-                    duration: 4500
-                });
-            }
         });
     }
 }

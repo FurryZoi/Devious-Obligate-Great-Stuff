@@ -1,13 +1,15 @@
-import { ModStorage, modStorage, SavedItem, syncStorage } from "./storage";
+import { ModStorage, modStorage, SavedItem, DeviousPadlockProfile, syncStorage } from "./storage";
 import { colorsEqual, getNickname, getPlayer, MOD_DATA, waitFor } from "zois-core";
 import { callOriginal, hookFunction, HookPriority } from "zois-core/modsApi";
 import { messagesManager } from "zois-core/messaging";
 import { getCurrentSubscreen, setSubscreen } from "zois-core/ui";
 import deviousPadlockImage from "@/images/devious-padlock.png";
-import { cloneDeep } from "lodash-es";
-import { InspectDeviousPadlockSubscreen } from "@/subscreens/inspectDeviousPadlockSubscreen";
+import { cloneDeep, get, isEqual } from "lodash-es";
+import { DeviousPadlockSettingsSubscreen } from "@/subscreens/deviousPadlockSettingsSubscreen";
 import { remoteControlIsInteracting } from "./remoteControl";
 import { smartGetItemName } from "zois-core/wardrobe";
+import { SyncPadlockMessageDto } from "@/dto/syncPadlockMessageDto";
+import { UpdatePadlockMessageDto } from "@/dto/updatePadlockMessageDto";
 
 export const deviousPadlock: AssetDefinition.Item = {
 	Effect: [],
@@ -43,28 +45,34 @@ export enum KeyHolderMinimumRole {
 	OWNER = 3
 };
 
-export interface DeviousPadlockConfigurations {
-	owner: number
-	combinationToUnlock: {
-		isCorrect: boolean
+export interface DeviousPadlockUpdateData {
+	baseLock?: DeviousPadlockSettings["baseLock"]
+	minimumRole?: DeviousPadlockSettings["minimumRole"]
+	memberNumbers?: DeviousPadlockSettings["memberNumbers"]
+	note?: DeviousPadlockSettings["note"]
+	blockedCommands?: DeviousPadlockSettings["blockedCommands"]
+	unlockTime?: DeviousPadlockSettings["unlockTime"]
+	combinationToLock?: {
 		type: "PIN-Code" | "password"
 		value: string
+	}
+	combinationToUnlock?: string
+};
+
+export interface DeviousPadlockSettings {
+	item: SavedItem
+	owner: number
+	baseLock?: BasePadlock
+	minimumRole?: KeyHolderMinimumRole
+	memberNumbers?: number[]
+	note?: string
+	blockedCommands?: string[]
+	unlockTime?: string
+	combination?: {
+		type: "PIN-Code" | "password"
 		hash: string
 	}
-	combinationToLock: {
-		wasChanged: boolean
-		type: "PIN-Code" | "password"
-		value: string
-	}
-	baseLock: BasePadlock
-	unlockTime: string
-	keyHolders: {
-		minimumRole: KeyHolderMinimumRole
-		memberNumbers: number[]
-	}
-	note: string
-	blockedCommands: string[]
-};
+}
 
 let deviousPadlockTriggerCooldown: {
 	count: number,
@@ -250,88 +258,143 @@ export function canSetKeyHolderMinimumRole(target1: Character, target2: Characte
 	return false;
 }
 
-export async function changePadlockConfigurations(
-	groupName: AssetGroupItemName,
-	config: Partial<DeviousPadlockConfigurations>,
-	sender: Character
-): Promise<void> {
-	if (!modStorage.deviousPadlock.itemGroups[groupName]) return;
-	if (typeof modStorage.deviousPadlock.itemGroups[groupName].combination?.hash === "string") {
+export function getPadlockSettings(target: Character, groupName: AssetGroupItemName): DeviousPadlockSettings | null {
+	if (target.IsPlayer()) {
+		if (!modStorage.deviousPadlock.itemGroups[groupName]) return null;
+		if (isItemGroupSynced(target, groupName)) {
+			return {
+				...getSyncConfigOfItemGroup(target, groupName),
+				item: modStorage.deviousPadlock.itemGroups[groupName].item,
+				owner: modStorage.deviousPadlock.itemGroups[groupName].owner
+			}
+		}
+		return modStorage.deviousPadlock.itemGroups[groupName];
+	}
+	if (!target.DOGS?.deviousPadlock?.itemGroups?.[groupName]) return null;
+	if (isItemGroupSynced(target, groupName)) {
+		return {
+			...getSyncConfigOfItemGroup(target, groupName),
+			item: target.DOGS.deviousPadlock.itemGroups[groupName].item,
+			owner: target.DOGS.deviousPadlock.itemGroups[groupName].owner
+		}
+	}
+	return target.DOGS.deviousPadlock.itemGroups[groupName];
+}
+
+export function getPadlocksAmount(target: Character) {
+	return target.Appearance.reduce((count, item) => {
+		if (item.Property?.Name === deviousPadlock.Name) return count + 1;
+		return count;
+	}, 0);
+}
+
+export async function validatePadlockSettingsUpdate(from: Character, settings: DeviousPadlockUpdateData, padlockGroupName: AssetGroupItemName): Promise<{
+	valid: true
+	data: DeviousPadlockUpdateData
+} | {
+	valid: false
+}> {
+	if (!modStorage.deviousPadlock?.itemGroups?.[padlockGroupName]) return { valid: false };
+	if (typeof modStorage.deviousPadlock.itemGroups[padlockGroupName].combination?.hash === "string" && typeof settings.combinationToUnlock === "string") {
 		if (
-			!hasKeyToPadlock(groupName, sender, Player) &&
+			!hasKeyToPadlock(padlockGroupName, from, Player) &&
 			(
-				await hashCombination(config?.combinationToUnlock?.value ?? "") !==
-				modStorage.deviousPadlock.itemGroups[groupName].combination?.hash
+				await hashCombination(settings.combinationToUnlock) !==
+				modStorage.deviousPadlock.itemGroups[padlockGroupName].combination?.hash
 			)
-		) return;
+		) return { valid: false };
 	} else {
-		if (!hasKeyToPadlock(groupName, sender, Player)) return;
+		if (!hasKeyToPadlock(padlockGroupName, from, Player)) return { valid: false };
 	}
-	if (config?.keyHolders?.minimumRole && canSetKeyHolderMinimumRole(sender, Player, config?.keyHolders?.minimumRole)) {
-		modStorage.deviousPadlock.itemGroups[groupName].minimumRole = config.keyHolders.minimumRole;
-	}
-	if (Array.isArray(config?.keyHolders?.memberNumbers)) {
-		modStorage.deviousPadlock.itemGroups[groupName].memberNumbers = config.keyHolders.memberNumbers.filter((n) => typeof n === "number");
-	}
-	if (typeof config?.unlockTime === "string") {
-		if (config.unlockTime.trim() === "") delete modStorage.deviousPadlock.itemGroups[groupName].unlockTime;
-		modStorage.deviousPadlock.itemGroups[groupName].unlockTime = config.unlockTime;
-	}
-	if (typeof config?.combinationToLock?.value === "string" && config?.combinationToLock?.wasChanged) {
-		if (config?.combinationToLock?.value.trim() === "") {
-			delete modStorage.deviousPadlock.itemGroups[groupName].combination;
-		} else {
-			if (
-				config.combinationToLock.type === "PIN-Code" &&
-				config.combinationToLock.value.length === 6 &&
-				Number.isInteger(parseInt(config.combinationToLock.value))
-			) {
-				modStorage.deviousPadlock.itemGroups[groupName].combination = {
-					type: "PIN-Code",
-					hash: await hashCombination(config.combinationToLock.value)
-				};
-			}
-			if (
-				config.combinationToLock.type === "password" &&
-				config.combinationToLock.value.trim() !== "" &&
-				config.combinationToLock.value.length <= 25
-			) {
-				modStorage.deviousPadlock.itemGroups[groupName].combination = {
-					type: "password",
-					hash: await hashCombination(config.combinationToLock.value)
-				};
-			}
-		}
-	}
-	if (typeof config?.baseLock === "string" && canUseBasePadlock(sender, Player, modStorage.deviousPadlock.itemGroups[groupName].owner, config.baseLock)) {
+	const data: DeviousPadlockUpdateData = {};
+	if (settings.combinationToLock) {
 		if (
-			modStorage.deviousPadlock.itemGroups[groupName].baseLock !== config.baseLock &&
-			!(config.baseLock === BasePadlock.LOVERS && Player.IsOwnedByCharacter(sender) && LogQuery("BlockLoverLockOwner", "LoverRule")) &&
-			!(Player.MemberNumber === sender.MemberNumber && (
-				(config.baseLock === BasePadlock.OWNER && LogQuery("BlockOwnerLockSelf", "OwnerRule")) ||
-				(config.baseLock === BasePadlock.LOVERS && LogQuery("BlockLoverLockSelf", "LoverRule"))
-			))
+			(
+				settings.combinationToLock.type === "PIN-Code" &&
+				settings.combinationToLock.value.length === 6 &&
+				Number.isInteger(parseInt(settings.combinationToLock.value))
+			) ||
+			(
+				settings.combinationToLock.type === "password" &&
+				settings.combinationToLock.value.trim() !== "" &&
+				settings.combinationToLock.value.length <= 25
+			)
 		) {
-			const item = InventoryGet(Player, groupName);
-			if (item && item.Property.LockedBy !== config.baseLock) {
-				item.Property.LockedBy = config.baseLock;
-				item.Property.LockMemberNumber = modStorage.deviousPadlock.itemGroups[groupName].owner;
-				const successful = ValidationSanitizeLock(Player, item);
-				if (successful) {
-					modStorage.deviousPadlock.itemGroups[groupName].baseLock = config.baseLock;
-					ChatRoomCharacterUpdate(Player);
-				}
-			}
+			data.combinationToLock = settings.combinationToLock;
 		}
 	}
-	if (typeof config?.note === "string") {
-		modStorage.deviousPadlock.itemGroups[groupName].note = config.note;
+	if (settings.minimumRole !== undefined && canSetKeyHolderMinimumRole(from, Player, settings.minimumRole)) {
+		data.minimumRole = settings.minimumRole;
 	}
-	if (Array.isArray(config?.blockedCommands)) {
-		modStorage.deviousPadlock.itemGroups[groupName].blockedCommands = config.blockedCommands
+	if (settings.memberNumbers) {
+		data.memberNumbers = settings.memberNumbers;
+	}
+	if (settings.unlockTime) {
+		data.unlockTime = settings.unlockTime.trim();
+	}
+	if (settings.combinationToLock) {
+		data.combinationToUnlock
+	}
+	if (settings.baseLock && canUseBasePadlock(from, Player, modStorage.deviousPadlock.itemGroups[padlockGroupName].owner, settings.baseLock)) {
+		if (
+			!(settings.baseLock === BasePadlock.LOVERS && Player.IsOwnedByCharacter(from) && LogQuery("BlockLoverLockOwner", "LoverRule")) &&
+			!(Player.MemberNumber === from.MemberNumber && (
+				(settings.baseLock === BasePadlock.OWNER && LogQuery("BlockOwnerLockSelf", "OwnerRule")) ||
+				(settings.baseLock === BasePadlock.LOVERS && LogQuery("BlockLoverLockSelf", "LoverRule"))
+			))
+		) data.baseLock = settings.baseLock;
+	}
+	if (settings.note) {
+		data.note = settings.note;
+	}
+	if (settings.blockedCommands) {
+		data.blockedCommands = settings.blockedCommands
 			.map((c) => c.trim())
 			.filter((c) => c.startsWith("/") && c.length > 1);
 	}
+	return { valid: true, data };
+}
+
+export async function changePadlockSettings(
+	groupName: AssetGroupItemName,
+	config: DeviousPadlockUpdateData
+): Promise<void> {
+	console.log("Changing padlock settings with config", config);
+	if (config.unlockTime) {
+		if (config.unlockTime === "") delete modStorage.deviousPadlock.itemGroups[groupName].unlockTime;
+		else modStorage.deviousPadlock.itemGroups[groupName].unlockTime = config.unlockTime;
+	}
+	if (config.combinationToLock) {
+		if (config?.combinationToLock?.value.trim() === "") {
+			delete modStorage.deviousPadlock.itemGroups[groupName].combination;
+		} else {
+			modStorage.deviousPadlock.itemGroups[groupName].combination = {
+				type: config.combinationToLock.type,
+				hash: await hashCombination(config.combinationToLock.value)
+			};
+		}
+	}
+	if (config.baseLock) {
+		const item = InventoryGet(Player, groupName);
+		if (item && item.Property.LockedBy !== config.baseLock) {
+			item.Property.LockedBy = config.baseLock;
+			item.Property.LockMemberNumber = modStorage.deviousPadlock.itemGroups[groupName].owner;
+			const successful = ValidationSanitizeLock(Player, item);
+			if (successful) {
+				modStorage.deviousPadlock.itemGroups[groupName].baseLock = config.baseLock;
+				ChatRoomCharacterUpdate(Player);
+			}
+		}
+	}
+	if (config.note) {
+		modStorage.deviousPadlock.itemGroups[groupName].note = config.note;
+	}
+	if (config.blockedCommands) {
+		modStorage.deviousPadlock.itemGroups[groupName].blockedCommands = config.blockedCommands;
+	}
+	if (config.memberNumbers) modStorage.deviousPadlock.itemGroups[groupName].memberNumbers = config.memberNumbers;
+	if (config.minimumRole !== undefined) modStorage.deviousPadlock.itemGroups[groupName].minimumRole = config.minimumRole;
+	unsyncItemGroups([groupName], false);
 	syncStorage();
 }
 
@@ -391,6 +454,7 @@ function checkDeviousPadlocks(target: Character): void {
 				if (hasKeyToPadlock(groupName, target, Player)) {
 					if (padlockChanged) {
 						delete modStorage.deviousPadlock.itemGroups[groupName];
+						unsyncItemGroups([groupName], false);
 					} else {
 						modStorage.deviousPadlock.itemGroups[groupName].item = getSavedItemData(currentItem);
 					}
@@ -470,6 +534,7 @@ function checkDeviousPadlocksTimers(): void {
 				: InventoryGet(Player, group).Asset.Description;
 			messagesManager.sendAction(`The devious padlock opens on ${getNickname(Player)}'s ${itemName} with loud click`);
 			delete modStorage.deviousPadlock.itemGroups[group];
+			unsyncItemGroups([group], false);
 			syncStorage();
 			InventoryUnlock(Player, group);
 			ChatRoomCharacterUpdate(Player);
@@ -485,16 +550,102 @@ export async function hashCombination(combination: string): Promise<string> {
 	return hashHex;
 }
 
+export function syncPadlockConfigurationWithItemGroups(groupNames: AssetGroupItemName[], config: Omit<DeviousPadlockSettings, "item" | "owner">, push = true) {
+	unsyncItemGroups(groupNames, false);
+	modStorage.deviousPadlock.synced ??= [];
+	const sameConfig = modStorage.deviousPadlock.synced.find(({ groupNames, ...rest }) => isEqual(rest, config));
+	if (sameConfig) {
+		sameConfig.groupNames.push(...groupNames);
+	} else {
+		modStorage.deviousPadlock.synced.push({
+			...config,
+			groupNames
+		});
+	}
+	if (push) syncStorage();
+}
+
+export function unsyncItemGroups(groupNames: AssetGroupItemName[], push = true) {
+	if (!modStorage.deviousPadlock.synced) return;
+	modStorage.deviousPadlock.synced = modStorage.deviousPadlock.synced.map((config) => {
+		config.groupNames ??= [];
+		config.groupNames = config.groupNames.filter((g) => !groupNames.includes(g));
+		return config;
+	}).filter((config) => config.groupNames.length > 0);
+	if (push) syncStorage();
+}
+
+export function isItemGroupSynced(target: Character, groupName: AssetGroupItemName): boolean {
+	if (target.IsPlayer()) {
+		if (!modStorage.deviousPadlock.synced) return false;
+		return modStorage.deviousPadlock.synced.some((config) => config.groupNames?.includes(groupName));
+	}
+	if (!target.DOGS?.deviousPadlock?.synced) return false;
+	return target.DOGS.deviousPadlock.synced.some((config) => config.groupNames?.includes(groupName));
+}
+
+export function getSyncConfigOfItemGroup(target: Character, groupName: AssetGroupItemName): Omit<DeviousPadlockSettings, "item" | "owner"> | null {
+	if (target.IsPlayer()) {
+		if (!modStorage.deviousPadlock.synced) return null;
+		const config = modStorage.deviousPadlock.synced.find((c) => c.groupNames.includes(groupName));
+		if (!config) return null;
+		const { groupNames, ...syncConfig } = config;
+		return syncConfig;
+	}
+	if (!target.DOGS?.deviousPadlock?.synced) return null;
+	const config = target.DOGS.deviousPadlock.synced.find((c) => c.groupNames.includes(groupName));
+	if (!config) return null;
+	const { groupNames, ...syncConfig } = config;
+	return syncConfig;
+}
+
+export function isItemGroupSyncedWithConfig(
+	target: Character,
+	groupName: AssetGroupItemName,
+	config: Omit<DeviousPadlockSettings, "item" | "owner">
+): boolean {
+	if (target.IsPlayer()) {
+		if (!modStorage.deviousPadlock.synced) return false;
+		return modStorage.deviousPadlock.synced.some((c) => {
+			const { groupNames, ..._c } = c;
+			return groupNames?.includes(groupName) && isEqual(_c, config);
+		});
+	}
+	if (!target.DOGS?.deviousPadlock?.synced) return false;
+	return target.DOGS.deviousPadlock.synced.some((c) => {
+		const { groupNames, ..._c } = c;
+		return groupNames?.includes(groupName) && isEqual(_c, config);
+	});
+}
+
 export function loadDeviousPadlock(): void {
 	createDeviousPadlock();
-	Object.keys(modStorage.deviousPadlock.itemGroups ?? {}).forEach((g) => {
+	Object.keys(modStorage.deviousPadlock.itemGroups ?? {}).forEach((g: AssetGroupItemName) => {
 		const itemGroup = modStorage.deviousPadlock.itemGroups[g];
+		if (
+			itemGroup.baseLock === BasePadlock.LOVERS &&
+			Player.Lovership.length === 0
+		) {
+			delete modStorage.deviousPadlock.itemGroups[g];
+			unsyncItemGroups([g], false);
+			syncStorage();
+			return;
+		}
+		if (
+			itemGroup.baseLock === BasePadlock.OWNER &&
+			Player.IsOwned() === false
+		) {
+			delete modStorage.deviousPadlock.itemGroups[g];
+			unsyncItemGroups([g], false);
+			syncStorage();
+			return;
+		}
 		const appearanceItem = ServerBundledItemToAppearanceItem(Player.AssetFamily, {
 			Name: itemGroup.item.name,
 			Color: itemGroup.item.color,
 			Craft: itemGroup.item.craft,
 			Property: itemGroup.item.property,
-			Group: g as AssetGroupName
+			Group: g
 		});
 		const changed = ValidationSanitizeProperties(Player, appearanceItem);
 		if (changed) {
@@ -509,7 +660,13 @@ export function loadDeviousPadlock(): void {
 	window.InspectDeviousPadlockBackground = "Sheet";
 	//@ts-ignore
 	window.InspectDeviousPadlockLoad = async () => {
-		setSubscreen(new InspectDeviousPadlockSubscreen(CurrentCharacter, CurrentCharacter.FocusGroup));
+		setSubscreen(
+			new DeviousPadlockSettingsSubscreen({
+				mode: "inspect-padlock",
+				itemGroup: CurrentCharacter.FocusGroup,
+				target: CurrentCharacter
+			})
+		);
 	};
 	//@ts-ignore
 	window.InspectDeviousPadlockRun = () => {
@@ -522,25 +679,33 @@ export function loadDeviousPadlock(): void {
 
 	ServerPlayerChatRoom.register({
 		screen: "InspectDeviousPadlock",
-		callback: () => getCurrentSubscreen() instanceof InspectDeviousPadlockSubscreen
+		callback: () => getCurrentSubscreen() instanceof DeviousPadlockSettingsSubscreen
 	});
 
-	//TODO: Remove
-	messagesManager.onPacket("changeDeviousPadlockConfigurations", (data, sender) => {
-		changePadlockConfigurations(data.groupName as AssetGroupItemName, data.config as DeviousPadlockConfigurations, sender);
+	messagesManager.onPacket("changePadlockSettings", UpdatePadlockMessageDto, async (data: UpdatePadlockMessageDto, sender) => {
+		const result = await validatePadlockSettingsUpdate(sender, data.config, data.groupName);
+		if (!result.valid) {
+			console.warn("DOGS", "Ignored invalid padlock update packet:", data);
+			return;
+		}
+		changePadlockSettings(data.groupName, result.data);
 		const itemName = smartGetItemName(InventoryGet(Player, data.groupName));
 		messagesManager.sendAction(
 			`${getNickname(sender)} changed devious padlock's configurations on ${getNickname(Player)}'s ${itemName}`
 		);
 	});
 
-	messagesManager.onPacket("changePadlockConfigurations", (data, sender) => {
-		changePadlockConfigurations(data.groupName as AssetGroupItemName, data.config as DeviousPadlockConfigurations, sender);
-		const itemName = smartGetItemName(InventoryGet(Player, data.groupName));
-		messagesManager.sendAction(
-			`${getNickname(sender)} changed devious padlock's configurations on ${getNickname(Player)}'s ${itemName}`
-		);
-	});
+	messagesManager.onPacket(
+		"syncPadlockConfigurations",
+		SyncPadlockMessageDto,
+		async (data: SyncPadlockMessageDto, sender) => {
+			for (const groupName of data.groupNames) {
+				const result = await validatePadlockSettingsUpdate(sender, data.settings, groupName);
+				if (!result.valid) data.groupNames.splice(data.groupNames.indexOf(groupName), 1);
+			}
+			syncPadlockConfigurationWithItemGroups(data.groupNames, data.settings);
+		}
+	);
 
 	messagesManager.onPacket("removePadlock", async (data, sender) => {
 		if (typeof data.combination === "string" && !!modStorage.deviousPadlock.itemGroups[data.groupName as AssetGroupItemName]) {
@@ -550,6 +715,7 @@ export function loadDeviousPadlock(): void {
 			) {
 				const itemName = smartGetItemName(InventoryGet(Player, data.groupName));
 				delete modStorage.deviousPadlock.itemGroups[data.groupName as AssetGroupItemName];
+				unsyncItemGroups([data.groupName], false);
 				InventoryUnlock(Player, data.groupName as AssetGroupItemName);
 				ChatRoomCharacterUpdate(Player);
 				syncStorage();
@@ -573,7 +739,7 @@ export function loadDeviousPadlock(): void {
 				// DialogChangeMode("items");
 				return;
 			}
-			next(args);
+			return next(args);
 		});
 	});
 
