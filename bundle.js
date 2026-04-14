@@ -28876,7 +28876,6 @@ One of mods you are using is using an old version of SDK. It will work for now b
       for (const group in modStorage.deviousPadlock.itemGroups ?? {}) {
         const groupName = group;
         const currentItem = InventoryGet(Player, groupName);
-        if (!currentItem) continue;
         const savedItem = modStorage.deviousPadlock.itemGroups[groupName].item;
         const owner = modStorage.deviousPadlock.itemGroups[groupName].owner;
         const basePadlock = modStorage.deviousPadlock.itemGroups[groupName].baseLock ?? "ExclusivePadlock" /* EXCLUSIVE */;
@@ -28918,7 +28917,11 @@ One of mods you are using is using an old version of SDK. It will work for now b
             syncStorage();
           } else if (!deviousPadlockTriggerCooldown.state) {
             const savedAsset = AssetGet(Player.AssetFamily, groupName, savedItem.name);
-            if (!savedAsset) continue;
+            if (!savedAsset) {
+              console.warn("DOGS", "Invalid asset: " + savedItem.name);
+              continue;
+            }
+            ;
             const difficulty = savedAsset.Difficulty;
             let newItem = InventoryWear(Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft);
             if (!newItem) return;
@@ -29184,7 +29187,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
         if (target.IsPlayer() && !modStorage.deviousPadlock.itemGroups?.[itemGroupName]) {
           registerDeviousPadlockInModStorage(itemGroupName, Number(item.Property.LockMemberNumber ?? Player.MemberNumber));
         }
-        return hasKeyToPadlock(target.FocusGroup.Name, Player, target);
+        return hasKeyToPadlock(item.Asset.Group.Name, Player, target);
       }
       return next(args);
     });
