@@ -68,5 +68,14 @@ export class DeviousPadlockSubscreen extends BaseSubscreen {
             withBackground: true,
             padding: 2
         });
+
+        this.createText({
+            text: "Tip: The witch from the Magic School can help you to remove padlocks if you do not have a high difficulty mode",
+            x: 900,
+            y: 700,
+            width: 800,
+            fontSize: 2.5,
+            padding: 2
+        });
     }
 }
