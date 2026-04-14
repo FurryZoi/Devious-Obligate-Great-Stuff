@@ -29488,6 +29488,14 @@ One of mods you are using is using an old version of SDK. It will work for now b
         withBackground: true,
         padding: 2
       });
+      this.createText({
+        text: "Tip: The witch from the Magic School can help you to remove padlocks if you do not have a high difficulty mode",
+        x: 900,
+        y: 700,
+        width: 800,
+        fontSize: 2.5,
+        padding: 2
+      });
     }
   };
 
