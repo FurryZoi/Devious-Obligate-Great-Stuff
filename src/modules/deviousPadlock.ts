@@ -779,12 +779,13 @@ export function loadDeviousPadlock(): void {
 		const [target, item] = args;
 		const itemGroupName = item.Asset?.Group?.Name as AssetGroupItemName;
 		if (item?.Property?.Name === deviousPadlock.Name && (target.IsPlayer() || target.DOGS)) {
-			if (target.IsPlayer() &&
+			if (
+				target.IsPlayer() &&
 				!modStorage.deviousPadlock.itemGroups?.[itemGroupName]
 			) {
 				registerDeviousPadlockInModStorage(itemGroupName, Number(item.Property.LockMemberNumber ?? Player.MemberNumber));
 			}
-			return hasKeyToPadlock(target.FocusGroup!.Name, Player, target);
+			return hasKeyToPadlock(item.Asset.Group.Name as AssetGroupItemName, Player, target);
 		}
 		return next(args);
 	});
