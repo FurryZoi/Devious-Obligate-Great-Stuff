@@ -25595,6 +25595,25 @@ One of mods you are using is using an old version of SDK. It will work for now b
     }, validationOptions);
   }
 
+  // node_modules/.pnpm/class-validator@0.14.4/node_modules/class-validator/esm5/decorator/typechecker/IsBoolean.js
+  var IS_BOOLEAN = "isBoolean";
+  function isBoolean(value) {
+    return value instanceof Boolean || typeof value === "boolean";
+  }
+  function IsBoolean(validationOptions) {
+    return ValidateBy({
+      name: IS_BOOLEAN,
+      validator: {
+        validate: function(value, args) {
+          return isBoolean(value);
+        },
+        defaultMessage: buildMessage(function(eachPrefix) {
+          return eachPrefix + "$property must be a boolean value";
+        }, validationOptions)
+      }
+    }, validationOptions);
+  }
+
   // node_modules/.pnpm/class-validator@0.14.4/node_modules/class-validator/esm5/decorator/typechecker/IsNumber.js
   var IS_NUMBER = "isNumber";
   function isNumber(value, options) {
@@ -27663,6 +27682,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
               hash: void 0
             },
             item: null,
+            name: void 0,
             owner: Player.MemberNumber
           });
           this.combinationToLock = {
@@ -27679,7 +27699,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
       }
       if (this.padlockSettings.minimumRole === void 0) this.padlockSettings.minimumRole = 0 /* EVERYONE_EXCEPT_WEARER */;
       if (this.padlockSettings.memberNumbers === void 0) this.padlockSettings.memberNumbers = [];
-      if (this.padlockSettings.blockedCommands === void 0) this.padlockSettings.blockedCommands = [];
+      if (this.padlockSettings.preventCheatCommands === void 0) this.padlockSettings.preventCheatCommands = false;
       if (this.padlockSettings.baseLock === void 0) this.padlockSettings.baseLock = "ExclusivePadlock" /* EXCLUSIVE */;
       if (this.padlockSettings.note === void 0) this.padlockSettings.note = "";
       this.combinationToUnlock = {
@@ -28226,18 +28246,17 @@ One of mods you are using is using an old version of SDK. It will work for now b
             }
           },
           {
-            name: "Commands Blocking",
+            name: "Advanced",
             load: () => {
-              this.createInputList({
-                title: "Blocked Commands",
+              this.createCheckbox({
+                text: "Prevent cheat commands executing",
                 x: 100,
                 y: 200,
-                width: 1800,
-                height: 600,
-                value: this.padlockSettings.blockedCommands,
+                width: 800,
+                isChecked: this.padlockSettings.preventCheatCommands,
                 isDisabled: () => !this.canEdit(),
-                onChange: (value) => {
-                  this.padlockSettings.blockedCommands = value;
+                onChange: () => {
+                  this.padlockSettings.preventCheatCommands = !this.padlockSettings.preventCheatCommands;
                 }
               });
             }
@@ -28512,7 +28531,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     minimumRole;
     memberNumbers;
     note;
-    blockedCommands;
+    preventCheatCommands;
     unlockTime;
     combinationToLock;
     combinationToUnlock;
@@ -28536,9 +28555,8 @@ One of mods you are using is using an old version of SDK. It will work for now b
   ], PadlockConfigDto.prototype, "note", 2);
   __decorateClass([
     IsOptional(),
-    IsArray(),
-    IsString({ each: true })
-  ], PadlockConfigDto.prototype, "blockedCommands", 2);
+    IsBoolean()
+  ], PadlockConfigDto.prototype, "preventCheatCommands", 2);
   __decorateClass([
     IsOptional(),
     IsString(),
@@ -28607,6 +28625,23 @@ One of mods you are using is using an old version of SDK. It will work for now b
       });
     })
   ], SyncPadlockMessageDto.prototype, "groupNames", 2);
+
+  // src/constants.ts
+  var GITHUB_REPO_URL = "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff";
+  var KNOWN_CHEAT_COMMANDS = [
+    "/release",
+    "/totalrelease",
+    "/quit",
+    "/wardrobe",
+    "/boost",
+    "/infolock",
+    "/removecollar",
+    "/resetdifficulty",
+    "/safeworditem",
+    "/solidity",
+    "/unlock",
+    "/untie"
+  ];
 
   // src/modules/deviousPadlock.ts
   var deviousPadlock = {
@@ -28797,7 +28832,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
       if (!hasKeyToPadlock(padlockGroupName, from, Player)) return { valid: false };
     }
     const data = {};
-    if (settings.combinationToLock) {
+    if (settings.combinationToLock !== void 0) {
       if (settings.combinationToLock.type === "PIN-Code" && settings.combinationToLock.value.length === 6 && Number.isInteger(parseInt(settings.combinationToLock.value)) || settings.combinationToLock.type === "password" && settings.combinationToLock.value.trim() !== "" && settings.combinationToLock.value.length <= 25) {
         data.combinationToLock = settings.combinationToLock;
       }
@@ -28805,34 +28840,31 @@ One of mods you are using is using an old version of SDK. It will work for now b
     if (settings.minimumRole !== void 0 && canSetKeyHolderMinimumRole(from, Player, settings.minimumRole)) {
       data.minimumRole = settings.minimumRole;
     }
-    if (settings.memberNumbers) {
+    if (settings.memberNumbers !== void 0) {
       data.memberNumbers = settings.memberNumbers;
     }
-    if (settings.unlockTime) {
+    if (settings.unlockTime !== void 0) {
       data.unlockTime = settings.unlockTime.trim();
     }
-    if (settings.combinationToLock) {
-      data.combinationToUnlock;
-    }
-    if (settings.baseLock && canUseBasePadlock(from, Player, modStorage.deviousPadlock.itemGroups[padlockGroupName].owner, settings.baseLock)) {
+    if (settings.baseLock !== void 0 && canUseBasePadlock(from, Player, modStorage.deviousPadlock.itemGroups[padlockGroupName].owner, settings.baseLock)) {
       if (!(settings.baseLock === "LoversPadlock" /* LOVERS */ && Player.IsOwnedByCharacter(from) && LogQuery("BlockLoverLockOwner", "LoverRule")) && !(Player.MemberNumber === from.MemberNumber && (settings.baseLock === "OwnerPadlock" /* OWNER */ && LogQuery("BlockOwnerLockSelf", "OwnerRule") || settings.baseLock === "LoversPadlock" /* LOVERS */ && LogQuery("BlockLoverLockSelf", "LoverRule")))) data.baseLock = settings.baseLock;
     }
-    if (settings.note) {
+    if (settings.note !== void 0) {
       data.note = settings.note;
     }
-    if (settings.blockedCommands) {
-      data.blockedCommands = settings.blockedCommands.map((c3) => c3.trim()).filter((c3) => c3.startsWith("/") && c3.length > 1);
+    if (settings.preventCheatCommands !== void 0) {
+      data.preventCheatCommands = settings.preventCheatCommands;
     }
     return { valid: true, data };
   }
   async function changePadlockSettings(groupName, config) {
     if (!modStorage.deviousPadlock.itemGroups?.[groupName]) return;
     console.log("Changing padlock settings with config", config);
-    if (config.unlockTime) {
+    if (config.unlockTime !== void 0) {
       if (config.unlockTime === "") delete modStorage.deviousPadlock.itemGroups[groupName].unlockTime;
       else modStorage.deviousPadlock.itemGroups[groupName].unlockTime = config.unlockTime;
     }
-    if (config.combinationToLock) {
+    if (config.combinationToLock !== void 0) {
       if (config?.combinationToLock?.value.trim() === "") {
         delete modStorage.deviousPadlock.itemGroups[groupName].combination;
       } else {
@@ -28842,26 +28874,27 @@ One of mods you are using is using an old version of SDK. It will work for now b
         };
       }
     }
-    if (config.baseLock) {
+    if (config.baseLock !== void 0) {
       const item = InventoryGet(Player, groupName);
       if (item && item.Property?.LockedBy !== config.baseLock) {
         item.Property ??= {};
         item.Property.LockedBy = config.baseLock;
         item.Property.LockMemberNumber = modStorage.deviousPadlock.itemGroups[groupName].owner;
-        const successful = ValidationSanitizeLock(Player, item);
-        if (successful) {
-          modStorage.deviousPadlock.itemGroups[groupName].baseLock = config.baseLock;
-          ChatRoomCharacterUpdate(Player);
+        const changed = ValidationSanitizeLock(Player, item);
+        if (changed) {
+          console.warn("DOGS", "Sanitized lock properties when changing BaseLock");
         }
+        modStorage.deviousPadlock.itemGroups[groupName].baseLock = config.baseLock;
+        ChatRoomCharacterUpdate(Player);
       }
     }
-    if (config.note) {
+    if (config.note !== void 0) {
       modStorage.deviousPadlock.itemGroups[groupName].note = config.note;
     }
-    if (config.blockedCommands) {
-      modStorage.deviousPadlock.itemGroups[groupName].blockedCommands = config.blockedCommands;
+    if (config.preventCheatCommands !== void 0) {
+      modStorage.deviousPadlock.itemGroups[groupName].preventCheatCommands = config.preventCheatCommands;
     }
-    if (config.memberNumbers) modStorage.deviousPadlock.itemGroups[groupName].memberNumbers = config.memberNumbers;
+    if (config.memberNumbers !== void 0) modStorage.deviousPadlock.itemGroups[groupName].memberNumbers = config.memberNumbers;
     if (config.minimumRole !== void 0) modStorage.deviousPadlock.itemGroups[groupName].minimumRole = config.minimumRole;
     unsyncItemGroups([groupName], false);
     syncStorage();
@@ -28906,7 +28939,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
           });
           return propertiesCopy;
         };
-        if (currentItem?.Asset?.Name !== savedItem.name || !T(currentItem?.Color, savedItem.color) || JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) || JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property))) {
+        if (currentItem?.Asset?.Name !== savedItem.name || !T(currentItem?.Color, savedItem.color) || JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) || JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property)) || padlockChanged) {
           if (hasKeyToPadlock(groupName, target, Player)) {
             if (padlockChanged) {
               delete modStorage.deviousPadlock.itemGroups[groupName];
@@ -28921,7 +28954,6 @@ One of mods you are using is using an old version of SDK. It will work for now b
               console.warn("DOGS", "Invalid asset: " + savedItem.name);
               continue;
             }
-            ;
             const difficulty = savedAsset.Difficulty;
             let newItem = InventoryWear(Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft);
             if (!newItem) return;
@@ -29305,15 +29337,25 @@ One of mods you are using is using an old version of SDK. It will work for now b
       return next(args);
     });
     l3("CommandExecute", f2.ADD_BEHAVIOR, (args, next) => {
+      for (const _itemGroup in modStorage.deviousPadlock.itemGroups ?? {}) {
+        const itemGroup = _itemGroup;
+        if (getPadlockSettings(Player, itemGroup)?.preventCheatCommands) {
+          break;
+        } else {
+          const len = Object.keys(modStorage.deviousPadlock.itemGroups).length;
+          if (itemGroup === Object.keys(modStorage.deviousPadlock.itemGroups)[len - 1]) {
+            return next(args);
+          }
+        }
+      }
       const command = args[0].toLowerCase().trim();
       let prevent = false;
-      const blockedCommands = Object.values(modStorage.deviousPadlock.itemGroups ?? {}).map((v3) => v3.blockedCommands ?? []).reduce((accumulator, currentValue) => accumulator.concat(currentValue), []);
-      blockedCommands.forEach((c3) => {
+      KNOWN_CHEAT_COMMANDS.forEach((c3) => {
         if (command?.startsWith(c3)) {
           g.sendAction(
             `${k3(
               Player
-            )} tried to use blocked command ${c3}`
+            )} tried to use cheat command ${c3}`
           );
           return prevent = true;
         }
@@ -29693,9 +29735,6 @@ One of mods you are using is using an old version of SDK. It will work for now b
     }
   };
 
-  // src/constants.ts
-  var GITHUB_REPO_URL = "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff";
-
   // src/subscreens/mainSubscreen.ts
   var MainSubscreen = class extends se {
     get name() {
@@ -29889,7 +29928,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
   var styles_default2 = "* {\n    margin: 0; \n    padding: 0;\n}\n\n.dogsChangelog {\n    font-family: Comfortaa, sans-serif;\n    padding: 0.25em;\n}\n\n.dogsChangelog ul {\n    padding-left: 1em;\n}\n\n.dogsChangelog ul li {\n    padding: 0.5em 0;\n}\n\n.adaptive-font-size {\n    font-size: clamp(10px, 2vw, 20px);\n}\n\n\n";
 
   // package.json
-  var version4 = "2.1.0";
+  var version4 = "2.1.1";
 
   // src/modules/dialogs.ts
   function loadDialogs() {
@@ -29978,7 +30017,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     return version4;
   }
   function chatSendChangelog() {
-    const text = `<div class="dogsChangelog"><b>DOGS</b> v${getModVersion()}<br><br>Changes: <ul><li>[Feature] Allow non-exclusive base padlocks (by leralc)</li><li>[Change] Restore ignored properties on remove (by leralc)</li><li>[Feature] Devious Padlock syncing between each other</li><li>[Change] Technical and UI improvements</li></ul></div>`;
+    const text = `<div class="dogsChangelog"><b>DOGS</b> v${getModVersion()}<br><br>Changes: <ul><li>[Change] Replaced "blocked commands" textarea with "prevent cheat commands" checkbox</li><li>[Fix] Fixed a bug with base lock change was not applied due to incorrect validation</li></ul></div>`;
     g.sendLocal(text);
   }
   v2(() => {
