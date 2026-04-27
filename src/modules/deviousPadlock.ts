@@ -10,6 +10,7 @@ import { remoteControlIsInteracting } from "./remoteControl";
 import { smartGetItemName } from "zois-core/wardrobe";
 import { SyncPadlockMessageDto } from "@/dto/syncPadlockMessageDto";
 import { UpdatePadlockMessageDto } from "@/dto/updatePadlockMessageDto";
+import { KNOWN_CHEAT_COMMANDS } from "@/constants";
 
 export const deviousPadlock: AssetDefinition.Item = {
 	Effect: [],
@@ -51,7 +52,7 @@ export interface DeviousPadlockUpdateData {
 	minimumRole?: DeviousPadlockSettings["minimumRole"]
 	memberNumbers?: DeviousPadlockSettings["memberNumbers"]
 	note?: DeviousPadlockSettings["note"]
-	blockedCommands?: DeviousPadlockSettings["blockedCommands"]
+	preventCheatCommands?: DeviousPadlockSettings["preventCheatCommands"]
 	unlockTime?: DeviousPadlockSettings["unlockTime"]
 	combinationToLock?: {
 		type: "PIN-Code" | "password"
@@ -67,7 +68,7 @@ export interface DeviousPadlockSettings {
 	minimumRole?: KeyHolderMinimumRole
 	memberNumbers?: number[]
 	note?: string
-	blockedCommands?: string[]
+	preventCheatCommands?: boolean
 	unlockTime?: string
 	combination?: {
 		type: "PIN-Code" | "password"
@@ -312,7 +313,7 @@ export async function validatePadlockSettingsUpdate(from: Character, settings: D
 		if (!hasKeyToPadlock(padlockGroupName, from, Player)) return { valid: false };
 	}
 	const data: DeviousPadlockUpdateData = {};
-	if (settings.combinationToLock) {
+	if (settings.combinationToLock !== undefined) {
 		if (
 			(
 				settings.combinationToLock.type === "PIN-Code" &&
@@ -331,16 +332,13 @@ export async function validatePadlockSettingsUpdate(from: Character, settings: D
 	if (settings.minimumRole !== undefined && canSetKeyHolderMinimumRole(from, Player, settings.minimumRole)) {
 		data.minimumRole = settings.minimumRole;
 	}
-	if (settings.memberNumbers) {
+	if (settings.memberNumbers !== undefined) {
 		data.memberNumbers = settings.memberNumbers;
 	}
-	if (settings.unlockTime) {
+	if (settings.unlockTime !== undefined) {
 		data.unlockTime = settings.unlockTime.trim();
 	}
-	if (settings.combinationToLock) {
-		data.combinationToUnlock
-	}
-	if (settings.baseLock && canUseBasePadlock(from, Player, modStorage.deviousPadlock.itemGroups[padlockGroupName].owner, settings.baseLock)) {
+	if (settings.baseLock !== undefined && canUseBasePadlock(from, Player, modStorage.deviousPadlock.itemGroups[padlockGroupName].owner, settings.baseLock)) {
 		if (
 			!(settings.baseLock === BasePadlock.LOVERS && Player.IsOwnedByCharacter(from) && LogQuery("BlockLoverLockOwner", "LoverRule")) &&
 			!(Player.MemberNumber === from.MemberNumber && (
@@ -349,13 +347,11 @@ export async function validatePadlockSettingsUpdate(from: Character, settings: D
 			))
 		) data.baseLock = settings.baseLock;
 	}
-	if (settings.note) {
+	if (settings.note !== undefined) {
 		data.note = settings.note;
 	}
-	if (settings.blockedCommands) {
-		data.blockedCommands = settings.blockedCommands
-			.map((c) => c.trim())
-			.filter((c) => c.startsWith("/") && c.length > 1);
+	if (settings.preventCheatCommands !== undefined) {
+		data.preventCheatCommands = settings.preventCheatCommands;
 	}
 	return { valid: true, data };
 }
@@ -366,11 +362,11 @@ export async function changePadlockSettings(
 ): Promise<void> {
 	if (!modStorage.deviousPadlock.itemGroups?.[groupName]) return;
 	console.log("Changing padlock settings with config", config);
-	if (config.unlockTime) {
+	if (config.unlockTime !== undefined) {
 		if (config.unlockTime === "") delete modStorage.deviousPadlock.itemGroups[groupName].unlockTime;
 		else modStorage.deviousPadlock.itemGroups[groupName].unlockTime = config.unlockTime;
 	}
-	if (config.combinationToLock) {
+	if (config.combinationToLock !== undefined) {
 		if (config?.combinationToLock?.value.trim() === "") {
 			delete modStorage.deviousPadlock.itemGroups[groupName].combination;
 		} else {
@@ -380,26 +376,27 @@ export async function changePadlockSettings(
 			};
 		}
 	}
-	if (config.baseLock) {
+	if (config.baseLock !== undefined) {
 		const item = InventoryGet(Player, groupName);
 		if (item && item.Property?.LockedBy !== config.baseLock) {
 			item.Property ??= {};
 			item.Property.LockedBy = config.baseLock;
 			item.Property.LockMemberNumber = modStorage.deviousPadlock.itemGroups[groupName].owner;
-			const successful = ValidationSanitizeLock(Player, item);
-			if (successful) {
-				modStorage.deviousPadlock.itemGroups[groupName].baseLock = config.baseLock;
-				ChatRoomCharacterUpdate(Player);
+			const changed = ValidationSanitizeLock(Player, item);
+			if (changed) {
+				console.warn("DOGS", "Sanitized lock properties when changing BaseLock");
 			}
+			modStorage.deviousPadlock.itemGroups[groupName].baseLock = config.baseLock;
+			ChatRoomCharacterUpdate(Player);
 		}
 	}
-	if (config.note) {
+	if (config.note !== undefined) {
 		modStorage.deviousPadlock.itemGroups[groupName].note = config.note;
 	}
-	if (config.blockedCommands) {
-		modStorage.deviousPadlock.itemGroups[groupName].blockedCommands = config.blockedCommands;
+	if (config.preventCheatCommands !== undefined) {
+		modStorage.deviousPadlock.itemGroups[groupName].preventCheatCommands = config.preventCheatCommands;
 	}
-	if (config.memberNumbers) modStorage.deviousPadlock.itemGroups[groupName].memberNumbers = config.memberNumbers;
+	if (config.memberNumbers !== undefined) modStorage.deviousPadlock.itemGroups[groupName].memberNumbers = config.memberNumbers;
 	if (config.minimumRole !== undefined) modStorage.deviousPadlock.itemGroups[groupName].minimumRole = config.minimumRole;
 	unsyncItemGroups([groupName], false);
 	syncStorage();
@@ -455,7 +452,8 @@ function checkDeviousPadlocks(target: Character): void {
 				currentItem?.Asset?.Name !== savedItem.name ||
 				!colorsEqual(currentItem?.Color, savedItem.color) ||
 				JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) ||
-				JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property))
+				JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property)) ||
+				padlockChanged
 			) {
 				if (hasKeyToPadlock(groupName, target, Player)) {
 					if (padlockChanged) {
@@ -470,7 +468,7 @@ function checkDeviousPadlocks(target: Character): void {
 					if (!savedAsset) {
 						console.warn("DOGS", "Invalid asset: " + savedItem.name);
 						continue;
-					};
+					}
 
 					const difficulty = savedAsset.Difficulty;
 					let newItem = InventoryWear(Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft);
@@ -939,17 +937,25 @@ export function loadDeviousPadlock(): void {
 	});
 
 	hookFunction("CommandExecute", HookPriority.ADD_BEHAVIOR, (args, next) => {
+		for (const _itemGroup in modStorage.deviousPadlock.itemGroups ?? {}) {
+			const itemGroup = _itemGroup as AssetGroupItemName;
+			if (getPadlockSettings(Player, itemGroup)?.preventCheatCommands) {
+				break;
+			} else {
+				const len = Object.keys(modStorage.deviousPadlock.itemGroups!).length;
+				if (itemGroup === Object.keys(modStorage.deviousPadlock.itemGroups!)[len - 1]) {
+					return next(args);
+				}
+			}
+		}
 		const command = args[0].toLowerCase().trim();
 		let prevent = false;
-		const blockedCommands = Object.values(modStorage.deviousPadlock.itemGroups ?? {})
-			.map((v) => v.blockedCommands ?? [])
-			.reduce((accumulator, currentValue) => accumulator.concat(currentValue), []);
-		blockedCommands.forEach((c) => {
+		KNOWN_CHEAT_COMMANDS.forEach((c) => {
 			if (command?.startsWith(c)) {
 				messagesManager.sendAction(
 					`${getNickname(
 						Player
-					)} tried to use blocked command ${c}`
+					)} tried to use cheat command ${c}`
 				);
 				return prevent = true;
 			}

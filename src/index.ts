@@ -23,7 +23,7 @@ export function getModVersion(): string {
 }
 
 export function chatSendChangelog(): void {
-    const text = `<div class="dogsChangelog"><b>DOGS</b> v${getModVersion()}<br><br>Changes: <ul><li>[Feature] Allow non-exclusive base padlocks (by leralc)</li><li>[Change] Restore ignored properties on remove (by leralc)</li><li>[Feature] Devious Padlock syncing between each other</li><li>[Change] Technical and UI improvements</li></ul></div>`;
+    const text = `<div class="dogsChangelog"><b>DOGS</b> v${getModVersion()}<br><br>Changes: <ul><li>[Change] Replaced "blocked commands" textarea with "prevent cheat commands" checkbox</li><li>[Fix] Fixed a bug with base lock change was not applied due to incorrect validation</li></ul></div>`;
     messagesManager.sendLocal(text);
 }
 

@@ -1,5 +1,5 @@
 import { BasePadlock, DeviousPadlockUpdateData, KeyHolderMinimumRole } from "@/modules/deviousPadlock";
-import { IsArray, isEnum, IsIn, IsNumber, IsOptional, IsString, Matches, registerDecorator, Type, ValidateNested, ValidationArguments, ValidationOptions } from "zois-core/validation";
+import { IsArray, IsBoolean, isEnum, IsIn, IsNumber, IsOptional, IsString, Matches, registerDecorator, Type, ValidateNested, ValidationArguments, ValidationOptions } from "zois-core/validation";
 
 function ValidateCustom(validator: (object: ValidationArguments["object"]) => boolean, validationOptions?: ValidationOptions) {
     return (object: Object, propertyName: string) => {
@@ -50,9 +50,8 @@ export class PadlockConfigDto implements DeviousPadlockUpdateData {
     note?: string;
 
     @IsOptional()
-    @IsArray()
-    @IsString({ each: true })
-    blockedCommands?: string[];
+    @IsBoolean()
+    preventCheatCommands?: boolean;
 
     @IsOptional()
     @IsString()

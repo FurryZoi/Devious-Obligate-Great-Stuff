@@ -164,6 +164,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         hash: undefined
                     },
                     item: null,
+                    name: undefined,
                     owner: Player.MemberNumber
                 });
                 this.combinationToLock = {
@@ -181,7 +182,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
 
         if (this.padlockSettings.minimumRole === undefined) this.padlockSettings.minimumRole = KeyHolderMinimumRole.EVERYONE_EXCEPT_WEARER;
         if (this.padlockSettings.memberNumbers === undefined) this.padlockSettings.memberNumbers = [];
-        if (this.padlockSettings.blockedCommands === undefined) this.padlockSettings.blockedCommands = [];
+        if (this.padlockSettings.preventCheatCommands === undefined) this.padlockSettings.preventCheatCommands = false;
         if (this.padlockSettings.baseLock === undefined) this.padlockSettings.baseLock = BasePadlock.EXCLUSIVE;
         if (this.padlockSettings.note === undefined) this.padlockSettings.note = "";
 
@@ -771,18 +772,17 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                     }
                 },
                 {
-                    name: "Commands Blocking",
+                    name: "Advanced",
                     load: () => {
-                        this.createInputList({
-                            title: "Blocked Commands",
+                        this.createCheckbox({
+                            text: "Prevent cheat commands executing",
                             x: 100,
                             y: 200,
-                            width: 1800,
-                            height: 600,
-                            value: this.padlockSettings.blockedCommands,
+                            width: 800,
+                            isChecked: this.padlockSettings.preventCheatCommands!,
                             isDisabled: () => !this.canEdit(),
-                            onChange: (value) => {
-                                this.padlockSettings.blockedCommands = value as string[];
+                            onChange: () => {
+                                this.padlockSettings.preventCheatCommands = !this.padlockSettings.preventCheatCommands;
                             }
                         });
                     }
