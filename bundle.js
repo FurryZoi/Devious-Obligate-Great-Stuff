@@ -25870,7 +25870,6 @@ One of mods you are using is using an old version of SDK. It will work for now b
       });
       return ret;
     });
-    window.modStorage = modStorage;
   }
   function migrateModStorage() {
     if (typeof modStorage.deviousPadlock.itemGroups === "object") {
@@ -29337,6 +29336,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
       return next(args);
     });
     l3("CommandExecute", f2.ADD_BEHAVIOR, (args, next) => {
+      if (modStorage.deviousPadlock.itemGroups === void 0 || Object.keys(modStorage.deviousPadlock.itemGroups).length === 0) return next(args);
       for (const _itemGroup in modStorage.deviousPadlock.itemGroups ?? {}) {
         const itemGroup = _itemGroup;
         if (getPadlockSettings(Player, itemGroup)?.preventCheatCommands) {
