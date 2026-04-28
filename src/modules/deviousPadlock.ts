@@ -937,6 +937,7 @@ export function loadDeviousPadlock(): void {
 	});
 
 	hookFunction("CommandExecute", HookPriority.ADD_BEHAVIOR, (args, next) => {
+		if (modStorage.deviousPadlock.itemGroups === undefined || Object.keys(modStorage.deviousPadlock.itemGroups).length === 0) return next(args);
 		for (const _itemGroup in modStorage.deviousPadlock.itemGroups ?? {}) {
 			const itemGroup = _itemGroup as AssetGroupItemName;
 			if (getPadlockSettings(Player, itemGroup)?.preventCheatCommands) {

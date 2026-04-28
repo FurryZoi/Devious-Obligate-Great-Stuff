@@ -100,9 +100,6 @@ export function initStorage(): void {
         });
         return ret;
     });
-
-    //@ts-ignore
-    window.modStorage = modStorage;
 }
 
 function migrateModStorage(): void {
