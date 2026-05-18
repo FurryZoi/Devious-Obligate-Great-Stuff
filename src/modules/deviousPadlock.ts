@@ -90,19 +90,38 @@ const MAX_TRIGGER_COUNT = 12;
 const MINIMUM_FIRST_TRIGGER_INTERVAL = 1000 * 14;
 const COOLDOWN_TIME = 1000 * 60 * 2;
 
+let hasLoadedDeviousPadlock = false;
+
+function padlockAssetIsReady(): boolean {
+	if (typeof AssetAdd !== "function") return false;
+	if (typeof AssetGroupGet !== "function") return false;
+	if (typeof AssetGet !== "function") return false;
+	if (!Array.isArray(AssetFemale3DCG)) return false;
+	if (!AssetFemale3DCGExtended) return false;
+	if (!AssetFemale3DCG.some((group) => group.Group === "ItemMisc")) return false;
+	return AssetGroupGet("Female3DCG", "ItemMisc") != null;
+}
+
 
 function createDeviousPadlock(): void {
-	AssetFemale3DCG.forEach((ele) => {
-		if (ele.Group === "ItemMisc") {
-			ele.Asset.push(deviousPadlock);
-		}
-	});
-
-	const assetGroup = AssetGroupGet("Female3DCG", "ItemMisc");
-	if (!assetGroup) {
-		throw new Error('Unable to find ItemMisc group?');
+	const itemMiscGroupDefinition = AssetFemale3DCG.find((group) => group.Group === "ItemMisc");
+	if (!itemMiscGroupDefinition) {
+		throw new Error("Unable to find ItemMisc group definition");
 	}
-	AssetAdd(assetGroup, deviousPadlock, AssetFemale3DCGExtended);
+	const itemMiscGroup = AssetGroupGet("Female3DCG", "ItemMisc");
+	if (!itemMiscGroup) {
+		throw new Error("Unable to find ItemMisc asset group");
+	}
+	const assetAddWithGroupDef = AssetAdd as unknown as (
+		group: AssetGroup,
+		assetDef: AssetDefinition,
+		extendedConfig: ExtendedItemMainConfig,
+		groupDef: AssetGroupDefinition
+	) => void;
+
+	if (!AssetGet("Female3DCG", "ItemMisc", deviousPadlock.Name)) {
+		assetAddWithGroupDef(itemMiscGroup, deviousPadlock, AssetFemale3DCGExtended, itemMiscGroupDefinition);
+	}
 	InventoryAdd(Player, deviousPadlock.Name, "ItemMisc");
 }
 
@@ -637,8 +656,17 @@ export function isItemGroupSyncedWithConfig(
 	});
 }
 
-export function loadDeviousPadlock(): void {
+export async function loadDeviousPadlock(): Promise<void> {
+	if (hasLoadedDeviousPadlock) return;
+	try {
+		await waitFor(padlockAssetIsReady);
+	} catch {
+		console.error("DOGS", "DeviousPadlock boot timed out: ItemMisc asset group is not ready");
+		return;
+	}
+
 	createDeviousPadlock();
+	hasLoadedDeviousPadlock = true;
 	let needsSync = false;
 	Object.keys(modStorage.deviousPadlock.itemGroups ?? {}).forEach((g) => {
 		const groupName = g as AssetGroupItemName;
