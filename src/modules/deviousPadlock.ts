@@ -684,6 +684,9 @@ export function loadDeviousPadlock(): void {
 
 
 	window.InspectDeviousPadlockBackground = "Sheet";
+	window.InventoryItemMiscDeviousPadlockLoad = async function () {
+		inspectDeviousPadlock();
+	};
 	window.InspectDeviousPadlockLoad = async () => {
 		if (!CurrentCharacter || !CurrentCharacter.FocusGroup) return;
 		setSubscreen(
