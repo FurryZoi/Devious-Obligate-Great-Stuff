@@ -92,17 +92,18 @@ const COOLDOWN_TIME = 1000 * 60 * 2;
 
 
 function createDeviousPadlock(): void {
-	AssetFemale3DCG.forEach((ele) => {
-		if (ele.Group === "ItemMisc") {
-			ele.Asset.push(deviousPadlock);
-		}
-	});
+	const miscGroupDef = AssetFemale3DCG.find(g => g.Group === "ItemMisc") as AssetGroupDefinition.Item;
+	if (!miscGroupDef) {
+		throw new Error('Unable to find ItemMisc definition?');
+		return;
+	}
+	miscGroupDef.Asset.push(deviousPadlock);
 
 	const assetGroup = AssetGroupGet("Female3DCG", "ItemMisc");
 	if (!assetGroup) {
 		throw new Error('Unable to find ItemMisc group?');
 	}
-	AssetAdd(assetGroup, deviousPadlock, AssetFemale3DCGExtended);
+	AssetAdd(assetGroup, deviousPadlock, AssetFemale3DCGExtended, miscGroupDef);
 	InventoryAdd(Player, deviousPadlock.Name, "ItemMisc");
 }
 
