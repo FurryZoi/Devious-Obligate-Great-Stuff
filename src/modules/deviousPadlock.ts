@@ -756,18 +756,12 @@ export function loadDeviousPadlock(): void {
 	});
 
 	Object.values(BasePadlock).forEach((baseLock) => {
-		hookFunction(`InventoryItemMisc${baseLock}Draw`, HookPriority.ADD_BEHAVIOR, (args, next) => {
+		if (baseLock === BasePadlock.LOVERS) return;
+		hookFunction(`InventoryItemMisc${baseLock}DrawHook`, HookPriority.ADD_BEHAVIOR, (args, next) => {
 			if (!CurrentCharacter || !CurrentCharacter.FocusGroup) return next(args);
 			const item = InventoryGet(CurrentCharacter, CurrentCharacter.FocusGroup.Name);
-			if (!item) return next(args);
-			if (
-				item.Property?.Name === deviousPadlock.Name &&
-				(
-					CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS
-				)
-			) {
+			if (item && item.Property?.Name === deviousPadlock.Name && (CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS)) {
 				inspectDeviousPadlock();
-				// DialogChangeMode("items");
 				return;
 			}
 			return next(args);
