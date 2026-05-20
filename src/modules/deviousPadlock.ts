@@ -72,7 +72,7 @@ export interface DeviousPadlockSettings {
 	unlockTime?: string
 	combination?: {
 		type: "PIN-Code" | "password"
-		hash: string
+		hash?: string
 	}
 }
 
@@ -799,14 +799,14 @@ export function loadDeviousPadlock(): void {
 
 	hookFunction("InventoryLock", HookPriority.ADD_BEHAVIOR, (args, next) => {
 		const [C, Item, Lock, MemberNumber] = args as [Character, Item | AssetGroupName, Item | AssetLockType, null | number | string];
-		// @ts-ignore
-		if ([Lock.Asset?.Name, Lock].includes(deviousPadlock.Name)) {
+		if (typeof Lock === "string" && Lock === deviousPadlock.Name || typeof Lock !== "string" && Lock.Asset?.Name == deviousPadlock.Name) {
 			args[2] = Object.values(BasePadlock).includes((typeof Lock === "string" ? Lock : Lock.Asset?.Name) as BasePadlock) ? Lock : BasePadlock.EXCLUSIVE;
-			if (typeof args[1] === "string") return next(args);
-			if (args[1].Property) {
-				args[1].Property.Name = deviousPadlock.Name;
+			if (typeof Item === "string") return next(args);
+			Item.Property ??= {};
+			if (Item.Property) {
+				Item.Property.Name = deviousPadlock.Name;
 			} else {
-				args[1].Property = {
+				Item.Property = {
 					Name: deviousPadlock.Name
 				};
 			}

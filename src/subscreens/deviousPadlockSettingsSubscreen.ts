@@ -160,7 +160,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                 this.padlockSettings = cloneDeep({
                     ...args.syncConfig,
                     combination: {
-                        ...args.syncConfig.combination,
+                        ...args.syncConfig.combination!,
                         hash: undefined
                     },
                     item: null,
@@ -671,12 +671,14 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                             isBold: true,
                             items: Object.values(KeyHolderMinimumRole)
                                 .slice(Object.values(KeyHolderMinimumRole).length / 2)
-                                .map((r) => [minimumRolesNames[r], r]),
+                                .map((r) => [minimumRolesNames[r as KeyHolderMinimumRole], r]),
                             onChange: (value) => this.padlockSettings.minimumRole = value,
                             isDisabled: (value) => {
                                 if (this.mode === "edit-sync-config") return false;
                                 return (
-                                    !this.canEdit() || !canSetKeyHolderMinimumRole(Player, this.target, value) || basePadlockMinimumRole(this.padlockSettings.baseLock, value) !== value
+                                    !this.canEdit()
+                                    || !canSetKeyHolderMinimumRole(Player, this.target, value)
+                                    || !!this.padlockSettings.baseLock && basePadlockMinimumRole(this.padlockSettings.baseLock, value) !== value
                                 );
                             }
                         });
@@ -690,8 +692,8 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                             value: this.padlockSettings.memberNumbers,
                             numbersOnly: true,
                             isDisabled: () => !this.canEdit() || this.padlockSettings.baseLock !== BasePadlock.EXCLUSIVE,
-                            onChange: (value: number[]) => {
-                                this.padlockSettings.memberNumbers = value;
+                            onChange: (value) => {
+                                this.padlockSettings.memberNumbers = value.map(v => typeof v === "string" ? CommonParseInt(v) : v).filter(v => v !== null);
                             }
                         });
 
@@ -1030,9 +1032,8 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         window.removeEventListener("click", this.onClickListener);
                         this.saveButtonElement.style.display = "";
                     }
-
                 }
-            ].filter(Boolean),
+            ].filter(t => !!t),
             currentTabName: "General"
         });
     }

@@ -12,7 +12,6 @@
     "allowJs": false,
     "removeComments": true,
     "sourceMap": true,
-    "alwaysStrict": false,
     "skipLibCheck": true,
 		"allowSyntheticDefaultImports": true,
 		"noEmit": true,
