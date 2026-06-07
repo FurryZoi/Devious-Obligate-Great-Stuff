@@ -1,3 +1,4 @@
+"use strict";
 (() => {
   var __create = Object.create;
   var __defProp = Object.defineProperty;
@@ -36,6 +37,7 @@
   // node_modules/.pnpm/reflect-metadata@0.2.2/node_modules/reflect-metadata/Reflect.js
   var require_Reflect = __commonJS({
     "node_modules/.pnpm/reflect-metadata@0.2.2/node_modules/reflect-metadata/Reflect.js"() {
+      "use strict";
       var Reflect2;
       (function(Reflect3) {
         (function(factory) {
@@ -1121,6 +1123,7 @@
   // node_modules/.pnpm/bondage-club-mod-sdk@1.2.0/node_modules/bondage-club-mod-sdk/dist/bcmodsdk.js
   var require_bcmodsdk = __commonJS({
     "node_modules/.pnpm/bondage-club-mod-sdk@1.2.0/node_modules/bondage-club-mod-sdk/dist/bcmodsdk.js"(exports2) {
+      "use strict";
       var bcModSdk = (function() {
         "use strict";
         const o = "1.2.0";
@@ -1281,9 +1284,9 @@ One of mods you are using is using an old version of SDK. It will work for now b
     }
   });
 
-  // node_modules/.pnpm/react@19.2.4/node_modules/react/cjs/react.development.js
+  // node_modules/.pnpm/react@19.2.6/node_modules/react/cjs/react.development.js
   var require_react_development = __commonJS({
-    "node_modules/.pnpm/react@19.2.4/node_modules/react/cjs/react.development.js"(exports2, module2) {
+    "node_modules/.pnpm/react@19.2.6/node_modules/react/cjs/react.development.js"(exports2, module2) {
       "use strict";
       (function() {
         function defineDeprecationWarning(methodName, info) {
@@ -2247,15 +2250,15 @@ One of mods you are using is using an old version of SDK. It will work for now b
         exports2.useTransition = function() {
           return resolveDispatcher().useTransition();
         };
-        exports2.version = "19.2.4";
+        exports2.version = "19.2.6";
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
       })();
     }
   });
 
-  // node_modules/.pnpm/react@19.2.4/node_modules/react/index.js
+  // node_modules/.pnpm/react@19.2.6/node_modules/react/index.js
   var require_react = __commonJS({
-    "node_modules/.pnpm/react@19.2.4/node_modules/react/index.js"(exports2, module2) {
+    "node_modules/.pnpm/react@19.2.6/node_modules/react/index.js"(exports2, module2) {
       "use strict";
       if (false) {
         module2.exports = null;
@@ -2536,9 +2539,9 @@ One of mods you are using is using an old version of SDK. It will work for now b
     }
   });
 
-  // node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom.development.js
+  // node_modules/.pnpm/react-dom@19.2.6_react@19.2.6/node_modules/react-dom/cjs/react-dom.development.js
   var require_react_dom_development = __commonJS({
-    "node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom.development.js"(exports2) {
+    "node_modules/.pnpm/react-dom@19.2.6_react@19.2.6/node_modules/react-dom/cjs/react-dom.development.js"(exports2) {
       "use strict";
       (function() {
         function noop() {
@@ -2774,15 +2777,15 @@ One of mods you are using is using an old version of SDK. It will work for now b
         exports2.useFormStatus = function() {
           return resolveDispatcher().useHostTransitionStatus();
         };
-        exports2.version = "19.2.4";
+        exports2.version = "19.2.6";
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
       })();
     }
   });
 
-  // node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/index.js
+  // node_modules/.pnpm/react-dom@19.2.6_react@19.2.6/node_modules/react-dom/index.js
   var require_react_dom = __commonJS({
-    "node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/index.js"(exports2, module2) {
+    "node_modules/.pnpm/react-dom@19.2.6_react@19.2.6/node_modules/react-dom/index.js"(exports2, module2) {
       "use strict";
       if (false) {
         checkDCE();
@@ -2793,9 +2796,9 @@ One of mods you are using is using an old version of SDK. It will work for now b
     }
   });
 
-  // node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js
+  // node_modules/.pnpm/react-dom@19.2.6_react@19.2.6/node_modules/react-dom/cjs/react-dom-client.development.js
   var require_react_dom_client_development = __commonJS({
-    "node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js"(exports2) {
+    "node_modules/.pnpm/react-dom@19.2.6_react@19.2.6/node_modules/react-dom/cjs/react-dom-client.development.js"(exports2) {
       "use strict";
       (function() {
         function findHook(fiber, id) {
@@ -22566,9 +22569,9 @@ One of mods you are using is using an old version of SDK. It will work for now b
         };
         (function() {
           var isomorphicReactPackageVersion = React2.version;
-          if ("19.2.4" !== isomorphicReactPackageVersion)
+          if ("19.2.6" !== isomorphicReactPackageVersion)
             throw Error(
-              'Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:\n  - react:      ' + (isomorphicReactPackageVersion + "\n  - react-dom:  19.2.4\nLearn more: https://react.dev/warnings/version-mismatch")
+              'Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:\n  - react:      ' + (isomorphicReactPackageVersion + "\n  - react-dom:  19.2.6\nLearn more: https://react.dev/warnings/version-mismatch")
             );
         })();
         "function" === typeof Map && null != Map.prototype && "function" === typeof Map.prototype.forEach && "function" === typeof Set && null != Set.prototype && "function" === typeof Set.prototype.clear && "function" === typeof Set.prototype.forEach || console.error(
@@ -22592,10 +22595,10 @@ One of mods you are using is using an old version of SDK. It will work for now b
         if (!(function() {
           var internals = {
             bundleType: 1,
-            version: "19.2.4",
+            version: "19.2.6",
             rendererPackageName: "react-dom",
             currentDispatcherRef: ReactSharedInternals,
-            reconcilerVersion: "19.2.4"
+            reconcilerVersion: "19.2.6"
           };
           internals.overrideHookState = overrideHookState;
           internals.overrideHookStateDeletePath = overrideHookStateDeletePath;
@@ -22686,15 +22689,15 @@ One of mods you are using is using an old version of SDK. It will work for now b
           listenToAllSupportedEvents(container);
           return new ReactDOMHydrationRoot(initialChildren);
         };
-        exports2.version = "19.2.4";
+        exports2.version = "19.2.6";
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
       })();
     }
   });
 
-  // node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/client.js
+  // node_modules/.pnpm/react-dom@19.2.6_react@19.2.6/node_modules/react-dom/client.js
   var require_client = __commonJS({
-    "node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/client.js"(exports2, module2) {
+    "node_modules/.pnpm/react-dom@19.2.6_react@19.2.6/node_modules/react-dom/client.js"(exports2, module2) {
       "use strict";
       if (false) {
         checkDCE();
@@ -22705,9 +22708,9 @@ One of mods you are using is using an old version of SDK. It will work for now b
     }
   });
 
-  // node_modules/.pnpm/react@19.2.4/node_modules/react/cjs/react-jsx-runtime.development.js
+  // node_modules/.pnpm/react@19.2.6/node_modules/react/cjs/react-jsx-runtime.development.js
   var require_react_jsx_runtime_development = __commonJS({
-    "node_modules/.pnpm/react@19.2.4/node_modules/react/cjs/react-jsx-runtime.development.js"(exports2) {
+    "node_modules/.pnpm/react@19.2.6/node_modules/react/cjs/react-jsx-runtime.development.js"(exports2) {
       "use strict";
       (function() {
         function getComponentNameFromType(type) {
@@ -22962,9 +22965,9 @@ One of mods you are using is using an old version of SDK. It will work for now b
     }
   });
 
-  // node_modules/.pnpm/react@19.2.4/node_modules/react/jsx-runtime.js
+  // node_modules/.pnpm/react@19.2.6/node_modules/react/jsx-runtime.js
   var require_jsx_runtime = __commonJS({
-    "node_modules/.pnpm/react@19.2.4/node_modules/react/jsx-runtime.js"(exports2, module2) {
+    "node_modules/.pnpm/react@19.2.6/node_modules/react/jsx-runtime.js"(exports2, module2) {
       "use strict";
       if (false) {
         module2.exports = null;
@@ -23429,7 +23432,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
   var import_react4 = __toESM(require_react());
   var import_client = __toESM(require_client());
 
-  // node_modules/.pnpm/zustand@5.0.12_react@19.2.4/node_modules/zustand/esm/vanilla.mjs
+  // node_modules/.pnpm/zustand@5.0.13_react@19.2.6/node_modules/zustand/esm/vanilla.mjs
   var createStoreImpl = (createState) => {
     let state;
     const listeners = /* @__PURE__ */ new Set();
@@ -23453,7 +23456,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
   };
   var createStore = ((createState) => createState ? createStoreImpl(createState) : createStoreImpl);
 
-  // node_modules/.pnpm/zustand@5.0.12_react@19.2.4/node_modules/zustand/esm/react.mjs
+  // node_modules/.pnpm/zustand@5.0.13_react@19.2.6/node_modules/zustand/esm/react.mjs
   var import_react = __toESM(require_react(), 1);
   var identity = (arg) => arg;
   function useStore(api, selector = identity) {
@@ -23473,10 +23476,10 @@ One of mods you are using is using an old version of SDK. It will work for now b
   };
   var create = ((createState) => createState ? createImpl(createState) : createImpl);
 
-  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.4/node_modules/lucide-react/dist/esm/createLucideIcon.js
+  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.6/node_modules/lucide-react/dist/esm/createLucideIcon.js
   var import_react3 = __toESM(require_react());
 
-  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.4/node_modules/lucide-react/dist/esm/shared/src/utils.js
+  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.6/node_modules/lucide-react/dist/esm/shared/src/utils.js
   var toKebabCase = (string) => string.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
   var toCamelCase = (string) => string.replace(
     /^([A-Z])|[\s-_]+(\w)/g,
@@ -23497,10 +23500,10 @@ One of mods you are using is using an old version of SDK. It will work for now b
     }
   };
 
-  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.4/node_modules/lucide-react/dist/esm/Icon.js
+  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.6/node_modules/lucide-react/dist/esm/Icon.js
   var import_react2 = __toESM(require_react());
 
-  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.4/node_modules/lucide-react/dist/esm/defaultAttributes.js
+  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.6/node_modules/lucide-react/dist/esm/defaultAttributes.js
   var defaultAttributes2 = {
     xmlns: "http://www.w3.org/2000/svg",
     width: 24,
@@ -23513,7 +23516,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     strokeLinejoin: "round"
   };
 
-  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.4/node_modules/lucide-react/dist/esm/Icon.js
+  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.6/node_modules/lucide-react/dist/esm/Icon.js
   var Icon = (0, import_react2.forwardRef)(
     ({
       color = "currentColor",
@@ -23544,7 +23547,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     )
   );
 
-  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.4/node_modules/lucide-react/dist/esm/createLucideIcon.js
+  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.6/node_modules/lucide-react/dist/esm/createLucideIcon.js
   var createLucideIcon = (iconName, iconNode) => {
     const Component = (0, import_react3.forwardRef)(
       ({ className, ...props }, ref) => (0, import_react3.createElement)(Icon, {
@@ -23562,7 +23565,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     return Component;
   };
 
-  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.4/node_modules/lucide-react/dist/esm/icons/circle-alert.js
+  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.6/node_modules/lucide-react/dist/esm/icons/circle-alert.js
   var __iconNode = [
     ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
     ["line", { x1: "12", x2: "12", y1: "8", y2: "12", key: "1pkeuh" }],
@@ -23570,14 +23573,14 @@ One of mods you are using is using an old version of SDK. It will work for now b
   ];
   var CircleAlert = createLucideIcon("circle-alert", __iconNode);
 
-  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.4/node_modules/lucide-react/dist/esm/icons/circle-check.js
+  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.6/node_modules/lucide-react/dist/esm/icons/circle-check.js
   var __iconNode2 = [
     ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
     ["path", { d: "m9 12 2 2 4-4", key: "dzmm74" }]
   ];
   var CircleCheck = createLucideIcon("circle-check", __iconNode2);
 
-  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.4/node_modules/lucide-react/dist/esm/icons/circle-x.js
+  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.6/node_modules/lucide-react/dist/esm/icons/circle-x.js
   var __iconNode3 = [
     ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
     ["path", { d: "m15 9-6 6", key: "1uzhvr" }],
@@ -23585,7 +23588,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
   ];
   var CircleX2 = createLucideIcon("circle-x", __iconNode3);
 
-  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.4/node_modules/lucide-react/dist/esm/icons/info.js
+  // node_modules/.pnpm/lucide-react@0.542.0_react@19.2.6/node_modules/lucide-react/dist/esm/icons/info.js
   var __iconNode4 = [
     ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
     ["path", { d: "M12 16v-4", key: "1dtifu" }],
@@ -28154,7 +28157,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
                 onChange: (value) => this.padlockSettings.minimumRole = value,
                 isDisabled: (value) => {
                   if (this.mode === "edit-sync-config") return false;
-                  return !this.canEdit() || !canSetKeyHolderMinimumRole(Player, this.target, value) || basePadlockMinimumRole(this.padlockSettings.baseLock, value) !== value;
+                  return !this.canEdit() || !canSetKeyHolderMinimumRole(Player, this.target, value) || !!this.padlockSettings.baseLock && basePadlockMinimumRole(this.padlockSettings.baseLock, value) !== value;
                 }
               });
               this.createInputList({
@@ -28167,7 +28170,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
                 numbersOnly: true,
                 isDisabled: () => !this.canEdit() || this.padlockSettings.baseLock !== "ExclusivePadlock" /* EXCLUSIVE */,
                 onChange: (value) => {
-                  this.padlockSettings.memberNumbers = value;
+                  this.padlockSettings.memberNumbers = value.map((v3) => typeof v3 === "string" ? CommonParseInt(v3) : v3).filter((v3) => v3 !== null);
                 }
               });
               this.createText({
@@ -28480,7 +28483,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
               this.saveButtonElement.style.display = "";
             }
           }
-        ].filter(Boolean),
+        ].filter((t) => !!t),
         currentTabName: "General"
       });
     }
@@ -28493,7 +28496,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     }
   };
 
-  // src/dto/updatePadlockMessageDto.ts
+  // src/dto/validate.ts
   function ValidateCustom(validator, validationOptions) {
     return (object, propertyName) => {
       registerDecorator({
@@ -28512,8 +28515,12 @@ One of mods you are using is using an old version of SDK. It will work for now b
       });
     };
   }
+
+  // src/dto/updatePadlockMessageDto.ts
   var CombinationToLockDto = class {
+    // @ts-expect-error
     type;
+    // @ts-expect-error
     value;
   };
   __decorateClass([
@@ -28532,6 +28539,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     note;
     preventCheatCommands;
     unlockTime;
+    // @ts-expect-error
     combinationToLock;
     combinationToUnlock;
   };
@@ -28560,7 +28568,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     IsOptional(),
     IsString(),
     ValidateCustom((obj) => {
-      const date = new Date(obj.unlockTime);
+      const date = new Date(obj.unlockTime ?? "");
       return !isNaN(date.getTime());
     }, { message: "unlockTime must be a valid ISO date string" })
   ], PadlockConfigDto.prototype, "unlockTime", 2);
@@ -28574,7 +28582,9 @@ One of mods you are using is using an old version of SDK. It will work for now b
     IsString()
   ], PadlockConfigDto.prototype, "combinationToUnlock", 2);
   var UpdatePadlockMessageDto = class {
+    // @ts-expect-error
     groupName;
+    // @ts-expect-error
     config;
   };
   __decorateClass([
@@ -28590,34 +28600,16 @@ One of mods you are using is using an old version of SDK. It will work for now b
   ], UpdatePadlockMessageDto.prototype, "config", 2);
 
   // src/dto/syncPadlockMessageDto.ts
-  function ValidateCustom2(validator, validationOptions) {
-    return (object, propertyName) => {
-      registerDecorator({
-        name: "validateCustom",
-        target: object.constructor,
-        propertyName,
-        options: validationOptions,
-        validator: {
-          validate(value, args) {
-            return validator(args.object);
-          },
-          defaultMessage(args) {
-            return "Params error";
-          }
-        }
-      });
-    };
-  }
   var SyncPadlockMessageDto = class {
-    settings;
-    groupNames;
+    settings = {};
+    groupNames = [];
   };
   __decorateClass([
     Type(() => PadlockConfigDto),
     ValidateNested()
   ], SyncPadlockMessageDto.prototype, "settings", 2);
   __decorateClass([
-    ValidateCustom2((obj) => {
+    ValidateCustom((obj) => {
       return obj.groupNames.every((name) => {
         const g2 = AssetGroupGet("Female3DCG", name);
         return !!(g2 && g2.IsItem);
@@ -28688,16 +28680,17 @@ One of mods you are using is using an old version of SDK. It will work for now b
   var MINIMUM_FIRST_TRIGGER_INTERVAL = 1e3 * 14;
   var COOLDOWN_TIME = 1e3 * 60 * 2;
   function createDeviousPadlock() {
-    AssetFemale3DCG.forEach((ele) => {
-      if (ele.Group === "ItemMisc") {
-        ele.Asset.push(deviousPadlock);
-      }
-    });
+    const miscGroupDef = AssetFemale3DCG.find((g2) => g2.Group === "ItemMisc");
+    if (!miscGroupDef) {
+      throw new Error("Unable to find ItemMisc definition?");
+      return;
+    }
+    miscGroupDef.Asset.push(deviousPadlock);
     const assetGroup = AssetGroupGet("Female3DCG", "ItemMisc");
     if (!assetGroup) {
       throw new Error("Unable to find ItemMisc group?");
     }
-    AssetAdd(assetGroup, deviousPadlock, AssetFemale3DCGExtended);
+    AssetAdd(assetGroup, deviousPadlock, AssetFemale3DCGExtended, miscGroupDef);
     InventoryAdd(Player, deviousPadlock.Name, "ItemMisc");
   }
   function getSavedItemData(item) {
@@ -29137,6 +29130,9 @@ One of mods you are using is using an old version of SDK. It will work for now b
     checkDeviousPadlocks(Player);
     setInterval(checkDeviousPadlocksTimers, 1e3);
     window.InspectDeviousPadlockBackground = "Sheet";
+    window.InventoryItemMiscDeviousPadlockLoad = async function() {
+      inspectDeviousPadlock();
+    };
     window.InspectDeviousPadlockLoad = async () => {
       if (!CurrentCharacter || !CurrentCharacter.FocusGroup) return;
       P(
@@ -29200,11 +29196,11 @@ One of mods you are using is using an old version of SDK. It will work for now b
       }
     });
     Object.values(BasePadlock).forEach((baseLock) => {
-      l3(`InventoryItemMisc${baseLock}Draw`, f2.ADD_BEHAVIOR, (args, next) => {
+      if (baseLock === "LoversPadlock" /* LOVERS */) return;
+      l3(`InventoryItemMisc${baseLock}DrawHook`, f2.ADD_BEHAVIOR, (args, next) => {
         if (!CurrentCharacter || !CurrentCharacter.FocusGroup) return next(args);
         const item = InventoryGet(CurrentCharacter, CurrentCharacter.FocusGroup.Name);
-        if (!item) return next(args);
-        if (item.Property?.Name === deviousPadlock.Name && (CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS)) {
+        if (item && item.Property?.Name === deviousPadlock.Name && (CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS)) {
           inspectDeviousPadlock();
           return;
         }
@@ -29232,13 +29228,14 @@ One of mods you are using is using an old version of SDK. It will work for now b
     });
     l3("InventoryLock", f2.ADD_BEHAVIOR, (args, next) => {
       const [C, Item, Lock, MemberNumber] = args;
-      if ([Lock.Asset?.Name, Lock].includes(deviousPadlock.Name)) {
+      if (typeof Lock === "string" && Lock === deviousPadlock.Name || typeof Lock !== "string" && Lock.Asset?.Name == deviousPadlock.Name) {
         args[2] = Object.values(BasePadlock).includes(typeof Lock === "string" ? Lock : Lock.Asset?.Name) ? Lock : "ExclusivePadlock" /* EXCLUSIVE */;
-        if (typeof args[1] === "string") return next(args);
-        if (args[1].Property) {
-          args[1].Property.Name = deviousPadlock.Name;
+        if (typeof Item === "string") return next(args);
+        Item.Property ??= {};
+        if (Item.Property) {
+          Item.Property.Name = deviousPadlock.Name;
         } else {
-          args[1].Property = {
+          Item.Property = {
             Name: deviousPadlock.Name
           };
         }
@@ -29371,7 +29368,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     });
   }
 
-  // node_modules/.pnpm/lucide@1.7.0/node_modules/lucide/dist/esm/defaultAttributes.js
+  // node_modules/.pnpm/lucide@1.16.0/node_modules/lucide/dist/esm/defaultAttributes.mjs
   var defaultAttributes3 = {
     xmlns: "http://www.w3.org/2000/svg",
     width: 24,
@@ -29384,7 +29381,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     "stroke-linejoin": "round"
   };
 
-  // node_modules/.pnpm/lucide@1.7.0/node_modules/lucide/dist/esm/createElement.js
+  // node_modules/.pnpm/lucide@1.16.0/node_modules/lucide/dist/esm/createElement.mjs
   var createSVGElement2 = ([tag, attrs, children]) => {
     const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
     Object.keys(attrs).forEach((name) => {
@@ -29407,7 +29404,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     return createSVGElement2([tag, attrs, iconNode]);
   };
 
-  // node_modules/.pnpm/lucide@1.7.0/node_modules/lucide/dist/esm/icons/bug.js
+  // node_modules/.pnpm/lucide@1.16.0/node_modules/lucide/dist/esm/icons/bug.mjs
   var Bug = [
     ["path", { d: "M12 20v-9" }],
     ["path", { d: "M14 7a4 4 0 0 1 4 4v3a6 6 0 0 1-12 0v-3a4 4 0 0 1 4-4z" }],
@@ -29422,14 +29419,14 @@ One of mods you are using is using an old version of SDK. It will work for now b
     ["path", { d: "M9 7.13V6a3 3 0 1 1 6 0v1.13" }]
   ];
 
-  // node_modules/.pnpm/lucide@1.7.0/node_modules/lucide/dist/esm/icons/code-xml.js
+  // node_modules/.pnpm/lucide@1.16.0/node_modules/lucide/dist/esm/icons/code-xml.mjs
   var CodeXml = [
     ["path", { d: "m18 16 4-4-4-4" }],
     ["path", { d: "m6 8-4 4 4 4" }],
     ["path", { d: "m14.5 4-5 16" }]
   ];
 
-  // node_modules/.pnpm/lucide@1.7.0/node_modules/lucide/dist/esm/icons/git-pull-request.js
+  // node_modules/.pnpm/lucide@1.16.0/node_modules/lucide/dist/esm/icons/git-pull-request.mjs
   var GitPullRequest = [
     ["circle", { cx: "18", cy: "18", r: "3" }],
     ["circle", { cx: "6", cy: "6", r: "3" }],
@@ -29437,14 +29434,14 @@ One of mods you are using is using an old version of SDK. It will work for now b
     ["line", { x1: "6", x2: "6", y1: "9", y2: "21" }]
   ];
 
-  // node_modules/.pnpm/lucide@1.7.0/node_modules/lucide/dist/esm/icons/lock-keyhole.js
+  // node_modules/.pnpm/lucide@1.16.0/node_modules/lucide/dist/esm/icons/lock-keyhole.mjs
   var LockKeyhole = [
     ["circle", { cx: "12", cy: "16", r: "1" }],
     ["rect", { x: "3", y: "10", width: "18", height: "12", rx: "2" }],
     ["path", { d: "M7 10V7a5 5 0 0 1 10 0v3" }]
   ];
 
-  // node_modules/.pnpm/lucide@1.7.0/node_modules/lucide/dist/esm/icons/radio.js
+  // node_modules/.pnpm/lucide@1.16.0/node_modules/lucide/dist/esm/icons/radio.mjs
   var Radio = [
     ["path", { d: "M16.247 7.761a6 6 0 0 1 0 8.478" }],
     ["path", { d: "M19.075 4.933a10 10 0 0 1 0 14.134" }],
@@ -29453,7 +29450,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     ["circle", { cx: "12", cy: "12", r: "2" }]
   ];
 
-  // node_modules/.pnpm/lucide@1.7.0/node_modules/lucide/dist/esm/icons/save.js
+  // node_modules/.pnpm/lucide@1.16.0/node_modules/lucide/dist/esm/icons/save.mjs
   var Save = [
     [
       "path",
@@ -29465,7 +29462,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     ["path", { d: "M7 3v4a1 1 0 0 0 1 1h7" }]
   ];
 
-  // node_modules/.pnpm/lucide@1.7.0/node_modules/lucide/dist/esm/icons/settings-2.js
+  // node_modules/.pnpm/lucide@1.16.0/node_modules/lucide/dist/esm/icons/settings-2.mjs
   var Settings2 = [
     ["path", { d: "M14 17H5" }],
     ["path", { d: "M19 7h-9" }],
@@ -29942,12 +29939,9 @@ One of mods you are using is using an old version of SDK. It will work for now b
           NextStage: `${p.name}_MagicSchoolLaboratoryTeacherRescue`,
           Option: "Can you help me with Devious Padlock?",
           Result: "(She giggles.) I see you are in trouble. I can remove this padlock using my magic at the rate of 1 padlock for 750 dollars. (She winks.)",
-          //@ts-expect-error
           Group: null,
           Prerequisite: `${p.name}_PlayerCanBeRescued`,
-          //@ts-expect-error
           Trait: null,
-          //@ts-expect-error
           Function: null
         },
         {
@@ -30183,18 +30177,18 @@ lodash-es/lodash.js:
    * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
    *)
 
-lucide/dist/esm/defaultAttributes.js:
-lucide/dist/esm/createElement.js:
-lucide/dist/esm/icons/bug.js:
-lucide/dist/esm/icons/code-xml.js:
-lucide/dist/esm/icons/git-pull-request.js:
-lucide/dist/esm/icons/lock-keyhole.js:
-lucide/dist/esm/icons/radio.js:
-lucide/dist/esm/icons/save.js:
-lucide/dist/esm/icons/settings-2.js:
-lucide/dist/esm/lucide.js:
+lucide/dist/esm/defaultAttributes.mjs:
+lucide/dist/esm/createElement.mjs:
+lucide/dist/esm/icons/bug.mjs:
+lucide/dist/esm/icons/code-xml.mjs:
+lucide/dist/esm/icons/git-pull-request.mjs:
+lucide/dist/esm/icons/lock-keyhole.mjs:
+lucide/dist/esm/icons/radio.mjs:
+lucide/dist/esm/icons/save.mjs:
+lucide/dist/esm/icons/settings-2.mjs:
+lucide/dist/esm/lucide.mjs:
   (**
-   * @license lucide v1.7.0 - ISC
+   * @license lucide v1.16.0 - ISC
    *
    * This source code is licensed under the ISC license.
    * See the LICENSE file in the root directory of this source tree.
