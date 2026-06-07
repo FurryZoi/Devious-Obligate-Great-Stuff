@@ -14,12 +14,9 @@ export function loadDialogs() {
                 NextStage: `${MOD_DATA.name}_MagicSchoolLaboratoryTeacherRescue`,
                 Option: "Can you help me with Devious Padlock?",
                 Result: "(She giggles.) I see you are in trouble. I can remove this padlock using my magic at the rate of 1 padlock for 750 dollars. (She winks.)",
-                //@ts-expect-error
                 Group: null,
                 Prerequisite: `${MOD_DATA.name}_PlayerCanBeRescued`,
-                //@ts-expect-error
                 Trait: null,
-                //@ts-expect-error
                 Function: null,
             },
             {

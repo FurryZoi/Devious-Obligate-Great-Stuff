@@ -72,7 +72,7 @@ export interface DeviousPadlockSettings {
 	unlockTime?: string
 	combination?: {
 		type: "PIN-Code" | "password"
-		hash: string
+		hash?: string
 	}
 }
 
@@ -92,17 +92,18 @@ const COOLDOWN_TIME = 1000 * 60 * 2;
 
 
 function createDeviousPadlock(): void {
-	AssetFemale3DCG.forEach((ele) => {
-		if (ele.Group === "ItemMisc") {
-			ele.Asset.push(deviousPadlock);
-		}
-	});
+	const miscGroupDef = AssetFemale3DCG.find(g => g.Group === "ItemMisc") as AssetGroupDefinition.Item;
+	if (!miscGroupDef) {
+		throw new Error('Unable to find ItemMisc definition?');
+		return;
+	}
+	miscGroupDef.Asset.push(deviousPadlock);
 
 	const assetGroup = AssetGroupGet("Female3DCG", "ItemMisc");
 	if (!assetGroup) {
 		throw new Error('Unable to find ItemMisc group?');
 	}
-	AssetAdd(assetGroup, deviousPadlock, AssetFemale3DCGExtended);
+	AssetAdd(assetGroup, deviousPadlock, AssetFemale3DCGExtended, miscGroupDef);
 	InventoryAdd(Player, deviousPadlock.Name, "ItemMisc");
 }
 
@@ -683,6 +684,9 @@ export function loadDeviousPadlock(): void {
 
 
 	window.InspectDeviousPadlockBackground = "Sheet";
+	window.InventoryItemMiscDeviousPadlockLoad = async function () {
+		inspectDeviousPadlock();
+	};
 	window.InspectDeviousPadlockLoad = async () => {
 		if (!CurrentCharacter || !CurrentCharacter.FocusGroup) return;
 		setSubscreen(
@@ -755,18 +759,12 @@ export function loadDeviousPadlock(): void {
 	});
 
 	Object.values(BasePadlock).forEach((baseLock) => {
-		hookFunction(`InventoryItemMisc${baseLock}Draw`, HookPriority.ADD_BEHAVIOR, (args, next) => {
+		if (baseLock === BasePadlock.LOVERS) return;
+		hookFunction(`InventoryItemMisc${baseLock}DrawHook`, HookPriority.ADD_BEHAVIOR, (args, next) => {
 			if (!CurrentCharacter || !CurrentCharacter.FocusGroup) return next(args);
 			const item = InventoryGet(CurrentCharacter, CurrentCharacter.FocusGroup.Name);
-			if (!item) return next(args);
-			if (
-				item.Property?.Name === deviousPadlock.Name &&
-				(
-					CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS
-				)
-			) {
+			if (item && item.Property?.Name === deviousPadlock.Name && (CurrentCharacter.IsPlayer() || CurrentCharacter.DOGS)) {
 				inspectDeviousPadlock();
-				// DialogChangeMode("items");
 				return;
 			}
 			return next(args);
@@ -799,14 +797,14 @@ export function loadDeviousPadlock(): void {
 
 	hookFunction("InventoryLock", HookPriority.ADD_BEHAVIOR, (args, next) => {
 		const [C, Item, Lock, MemberNumber] = args as [Character, Item | AssetGroupName, Item | AssetLockType, null | number | string];
-		// @ts-ignore
-		if ([Lock.Asset?.Name, Lock].includes(deviousPadlock.Name)) {
+		if (typeof Lock === "string" && Lock === deviousPadlock.Name || typeof Lock !== "string" && Lock.Asset?.Name == deviousPadlock.Name) {
 			args[2] = Object.values(BasePadlock).includes((typeof Lock === "string" ? Lock : Lock.Asset?.Name) as BasePadlock) ? Lock : BasePadlock.EXCLUSIVE;
-			if (typeof args[1] === "string") return next(args);
-			if (args[1].Property) {
-				args[1].Property.Name = deviousPadlock.Name;
+			if (typeof Item === "string") return next(args);
+			Item.Property ??= {};
+			if (Item.Property) {
+				Item.Property.Name = deviousPadlock.Name;
 			} else {
-				args[1].Property = {
+				Item.Property = {
 					Name: deviousPadlock.Name
 				};
 			}

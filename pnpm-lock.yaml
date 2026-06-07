@@ -9,14 +9,14 @@ importers:
   .:
     dependencies:
       bc-stubs:
-        specifier: 126.0.0-Beta.1
-        version: 126.0.0-Beta.1
+        specifier: 128.0.0
+        version: 128.0.0
       lodash-es:
         specifier: ^4.18.1
         version: 4.18.1
       lucide:
-        specifier: ^1.7.0
-        version: 1.7.0
+        specifier: ^1.16.0
+        version: 1.16.0
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -195,6 +195,9 @@ packages:
   '@socket.io/component-emitter@3.1.2':
     resolution: {integrity: sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA==}
 
+  '@total-typescript/ts-reset@0.6.1':
+    resolution: {integrity: sha512-cka47fVSo6lfQDIATYqb/vO1nvFfbPw7uWLayIXIhGETj0wcOOlrlkobOMDNQOFr9QOafegUPq13V2+6vtD7yg==}
+
   '@types/lodash-es@4.17.12':
     resolution: {integrity: sha512-0NgftHUcV4v34VhXm8QBSftKVXtbkBG3ViCjs6+eJ5a6y6Mi/jiFGPc1sC7QK+9BFhWrURE3EOggmWaSxL9OzQ==}
 
@@ -204,8 +207,8 @@ packages:
   '@types/validator@13.15.10':
     resolution: {integrity: sha512-T8L6i7wCuyoK8A/ZeLYt1+q0ty3Zb9+qbSSvrIVitzT3YjZqkTZ40IbRsPanlB4h1QB3JVL1SYCdR6ngtFYcuA==}
 
-  bc-stubs@126.0.0-Beta.1:
-    resolution: {integrity: sha512-UQRDRhGsoyeCcnnD9O7Bjfz0c1bRhr3rvdUPQZ/41bJjRTOuN1dmTT4WAGbOm8VCxFQAKXzcxEpmmeZioHpqNw==}
+  bc-stubs@128.0.0:
+    resolution: {integrity: sha512-12myItRFlzVnDB5xm2cVh0lmZJOE2xgKd4vXpxD3AEhUn3YmRYEanrYrzphc14R+Jha2OqxZlyfPAfR15kwE/A==}
 
   bondage-club-mod-sdk@1.2.0:
     resolution: {integrity: sha512-S+li+PgX7Qo5yccS/R/eAXC4Opq8lc5AdhTPjC2XhWxDGTieUQKj3QJ4ZLgL8x0ySnK7h+DvlkRZd8+OT5JErQ==}
@@ -246,8 +249,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  libphonenumber-js@1.12.41:
-    resolution: {integrity: sha512-lsmMmGXBxXIK/VMLEj0kL6MtUs1kBGj1nTCzi6zgQoG1DEwqwt2DQyHxcLykceIxAnfE3hya7NuIh6PpC6S3fA==}
+  libphonenumber-js@1.13.2:
+    resolution: {integrity: sha512-S3kmBrptp3yRTm83NUcHy9g1vbwiWMzI8WvY22+koBJ6zkRteLnedBL2VX0MIAGwx2yiyxX4J85pceZyQ6ffgg==}
 
   lodash-es@4.18.1:
     resolution: {integrity: sha512-J8xewKD/Gk22OZbhpOVSwcs60zhd95ESDwezOFuA3/099925PdHJ7OFHNTGtajL3AlZkykD32HykiMo+BIBI8A==}
@@ -260,19 +263,19 @@ packages:
   lucide@0.541.0:
     resolution: {integrity: sha512-L4lj6PQMu3phzKEMGj3yX+1FXVMUtzjXEo4iajXSHmA3a93IxbFRmJddq96E8MYEP6JbBjs+fo4hVygZqngSVg==}
 
-  lucide@1.7.0:
-    resolution: {integrity: sha512-aYNogbuIxea3a8offpKjdMGf2FsUk9GECFh0B4iJgXlJOX41+7/ncvLVluKki8477SoybEdyGGf+qGYLBDiEsA==}
+  lucide@1.16.0:
+    resolution: {integrity: sha512-20QvduCJTB7e7K9WVvoLBuKPsYZ8d6ptwe9PIdTFiZmjVTPdFWQreBNyNCM9QQtGnqHR0PLiEQdxyhYsL1LdoA==}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  react-dom@19.2.4:
-    resolution: {integrity: sha512-AXJdLo8kgMbimY95O2aKQqsz2iWi9jMgKJhRBAxECE4IFxfcazB2LmzloIoibJI3C12IlY20+KFaLv+71bUJeQ==}
+  react-dom@19.2.6:
+    resolution: {integrity: sha512-0prMI+hvBbPjsWnxDLxlCGyM8PN6UuWjEUCYmZhO67xIV9Xasa/r/vDnq+Xyq4Lo27g8QSbO5YzARu0D1Sps3g==}
     peerDependencies:
-      react: ^19.2.4
+      react: ^19.2.6
 
-  react@19.2.4:
-    resolution: {integrity: sha512-9nfp2hYpCwOjAN+8TZFGhtWEwgvWHXqESH8qT89AT/lWklpLON22Lc8pEtnpsZz7VmawabSU0gCjnj8aC0euHQ==}
+  react@19.2.6:
+    resolution: {integrity: sha512-sfWGGfavi0xr8Pg0sVsyHMAOziVYKgPLNrS7ig+ivMNb3wbCBw3KxtflsGBAwD3gYQlE/AEZsTLgToRrSCjb0Q==}
     engines: {node: '>=0.10.0'}
 
   reflect-metadata@0.2.2:
@@ -317,8 +320,8 @@ packages:
   zois-core@1.2.1:
     resolution: {integrity: sha512-Wuhm7P3ihHScgllqNCrrR9UkO3YyVKAflMd/k8rr91wLLH0HowkcKR/2vC8FEuaGxeFtqamrMJ/a5nLnSh6AKw==}
 
-  zustand@5.0.12:
-    resolution: {integrity: sha512-i77ae3aZq4dhMlRhJVCYgMLKuSiZAaUPAct2AksxQ+gOtimhGMdXljRT21P5BNpeT4kXlLIckvkPM029OljD7g==}
+  zustand@5.0.13:
+    resolution: {integrity: sha512-efI2tVaVQPqtOh114loML/Z80Y4NP3yc+Ff0fYiZJPauNeWZeIp/bRFD7I9bfmCOYBh/PHxlglQ9+wvlwnPikQ==}
     engines: {node: '>=12.20.0'}
     peerDependencies:
       '@types/react': '>=18.0.0'
@@ -417,6 +420,8 @@ snapshots:
 
   '@socket.io/component-emitter@3.1.2': {}
 
+  '@total-typescript/ts-reset@0.6.1': {}
+
   '@types/lodash-es@4.17.12':
     dependencies:
       '@types/lodash': 4.17.24
@@ -425,8 +430,9 @@ snapshots:
 
   '@types/validator@13.15.10': {}
 
-  bc-stubs@126.0.0-Beta.1:
+  bc-stubs@128.0.0:
     dependencies:
+      '@total-typescript/ts-reset': 0.6.1
       socket.io-client: 4.6.1
     transitivePeerDependencies:
       - bufferutil
@@ -440,7 +446,7 @@ snapshots:
   class-validator@0.14.4:
     dependencies:
       '@types/validator': 13.15.10
-      libphonenumber-js: 1.12.41
+      libphonenumber-js: 1.13.2
       validator: 13.15.35
 
   debug@4.3.7:
@@ -494,26 +500,26 @@ snapshots:
       '@esbuild/win32-ia32': 0.27.7
       '@esbuild/win32-x64': 0.27.7
 
-  libphonenumber-js@1.12.41: {}
+  libphonenumber-js@1.13.2: {}
 
   lodash-es@4.18.1: {}
 
-  lucide-react@0.542.0(react@19.2.4):
+  lucide-react@0.542.0(react@19.2.6):
     dependencies:
-      react: 19.2.4
+      react: 19.2.6
 
   lucide@0.541.0: {}
 
-  lucide@1.7.0: {}
+  lucide@1.16.0: {}
 
   ms@2.1.3: {}
 
-  react-dom@19.2.4(react@19.2.4):
+  react-dom@19.2.6(react@19.2.6):
     dependencies:
-      react: 19.2.4
+      react: 19.2.6
       scheduler: 0.27.0
 
-  react@19.2.4: {}
+  react@19.2.6: {}
 
   reflect-metadata@0.2.2: {}
 
@@ -551,16 +557,16 @@ snapshots:
       class-transformer: 0.5.1
       class-validator: 0.14.4
       lucide: 0.541.0
-      lucide-react: 0.542.0(react@19.2.4)
-      react: 19.2.4
-      react-dom: 19.2.4(react@19.2.4)
+      lucide-react: 0.542.0(react@19.2.6)
+      react: 19.2.6
+      react-dom: 19.2.6(react@19.2.6)
       reflect-metadata: 0.2.2
-      zustand: 5.0.12(react@19.2.4)
+      zustand: 5.0.13(react@19.2.6)
     transitivePeerDependencies:
       - '@types/react'
       - immer
       - use-sync-external-store
 
-  zustand@5.0.12(react@19.2.4):
+  zustand@5.0.13(react@19.2.6):
     optionalDependencies:
-      react: 19.2.4
+      react: 19.2.6

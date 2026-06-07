@@ -1,43 +1,27 @@
 import { BasePadlock, DeviousPadlockUpdateData, KeyHolderMinimumRole } from "@/modules/deviousPadlock";
-import { IsArray, IsBoolean, isEnum, IsIn, IsNumber, IsOptional, IsString, Matches, registerDecorator, Type, ValidateNested, ValidationArguments, ValidationOptions } from "zois-core/validation";
-
-function ValidateCustom(validator: (object: ValidationArguments["object"]) => boolean, validationOptions?: ValidationOptions) {
-    return (object: Object, propertyName: string) => {
-        registerDecorator({
-            name: 'validateCustom',
-            target: object.constructor,
-            propertyName: propertyName,
-            options: validationOptions,
-            validator: {
-                validate(value: any, args: ValidationArguments) {
-                    return validator(args.object);
-                },
-                defaultMessage(args: ValidationArguments) {
-                    return "Params error";
-                }
-            },
-        });
-    };
-}
+import { IsArray, IsBoolean, isEnum, IsIn, IsNumber, IsOptional, IsString, Matches, Type, ValidateNested, } from "zois-core/validation";
+import { ValidateCustom } from "./validate";
 
 class CombinationToLockDto {
     @IsIn(['PIN-Code', 'password'])
+    // @ts-expect-error
     type: "PIN-Code" | "password";
 
     @IsString()
     @Matches(/^[a-zA-Z0-9!@#$%^&*]+$/, {
         message: 'combination contains invalid characters'
     })
+    // @ts-expect-error
     value: string;
 }
 
 export class PadlockConfigDto implements DeviousPadlockUpdateData {
     @IsOptional()
-    @ValidateCustom((dto: PadlockConfigDto) => isEnum(dto.baseLock, BasePadlock))
+    @ValidateCustom((dto) => isEnum(dto.baseLock, BasePadlock))
     baseLock?: BasePadlock;
 
     @IsOptional()
-    @ValidateCustom((dto: PadlockConfigDto) => isEnum(dto.minimumRole, KeyHolderMinimumRole))
+    @ValidateCustom((dto) => isEnum(dto.minimumRole, KeyHolderMinimumRole))
     minimumRole?: KeyHolderMinimumRole;
 
     @IsOptional()
@@ -56,7 +40,7 @@ export class PadlockConfigDto implements DeviousPadlockUpdateData {
     @IsOptional()
     @IsString()
     @ValidateCustom((obj: PadlockConfigDto) => {
-        const date = new Date(obj.unlockTime);
+        const date = new Date(obj.unlockTime ?? "");
         return !isNaN(date.getTime());
     }, { message: "unlockTime must be a valid ISO date string" })
     unlockTime?: string;
@@ -64,7 +48,8 @@ export class PadlockConfigDto implements DeviousPadlockUpdateData {
     @IsOptional()
     @Type(() => CombinationToLockDto)
     @ValidateNested()
-    combinationToLock?: CombinationToLockDto
+    // @ts-expect-error
+    combinationToLock: CombinationToLockDto
 
     @IsOptional()
     @IsString()
@@ -73,13 +58,15 @@ export class PadlockConfigDto implements DeviousPadlockUpdateData {
 
 export class UpdatePadlockMessageDto {
     @IsString()
-    @ValidateCustom((obj: UpdatePadlockMessageDto) => {
+    @ValidateCustom((obj) => {
         const g = AssetGroupGet("Female3DCG", obj.groupName);
         return !!(g && g.IsItem);
     })
+    // @ts-expect-error
     groupName: AssetGroupItemName;
 
     @Type(() => PadlockConfigDto)
     @ValidateNested()
+    // @ts-expect-error
     config: PadlockConfigDto;
 }
