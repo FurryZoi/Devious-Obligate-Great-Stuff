@@ -418,7 +418,6 @@ export async function changePadlockSettings(
 	config: DeviousPadlockUpdateData
 ): Promise<void> {
 	if (!modStorage.deviousPadlock.itemGroups?.[groupName]) return;
-	console.log("Changing padlock settings with config", config);
 	if (config.unlockTime !== undefined) {
 		if (config.unlockTime === "") delete modStorage.deviousPadlock.itemGroups[groupName].unlockTime;
 		else modStorage.deviousPadlock.itemGroups[groupName].unlockTime = config.unlockTime;
@@ -812,7 +811,6 @@ export async function loadDeviousPadlock(): Promise<void> {
 
 	window.InspectDeviousPadlockBackground = "Sheet";
 	window.InspectDeviousPadlockLoad = async () => {
-		console.log("InspectDeviousPadlockLoad", CurrentCharacter)
 		if (!CurrentCharacter || !CurrentCharacter.FocusGroup) return;
 		setSubscreen(
 			new DeviousPadlockSettingsSubscreen({
@@ -1061,7 +1059,6 @@ export async function loadDeviousPadlock(): Promise<void> {
 
 	hookFunction("DialogExtendItem", HookPriority.ADD_BEHAVIOR, (args, next) => {
 		const [item, sourceItem] = args;
-		console.log(item, sourceItem);
 		if (sourceItem?.Property?.Name === deviousPadlock.Name) {
 			inspectDeviousPadlock();
 			return;
