@@ -20,6 +20,8 @@ export interface DeviousPadlockProfile {
     minimumRole?: KeyHolderMinimumRole
     memberNumbers?: number[]
     note?: string
+    preventCheatCommands?: boolean
+    // Legacy field kept for storage migration support.
     blockedCommands?: string[]
     unlockTime?: string
     combination?: {
@@ -54,6 +56,63 @@ export interface ModStorage {
 
 
 export let modStorage: ModStorage;
+
+const VALID_MINIMUM_ROLES = new Set<number>(
+    Object.values(KeyHolderMinimumRole).filter((value): value is number => typeof value === "number")
+);
+
+function normalizeBasePadlock(value: unknown): BasePadlock | undefined {
+    if (typeof value !== "string") return undefined;
+    if ((Object.values(BasePadlock) as string[]).includes(value)) {
+        return value as BasePadlock;
+    }
+    const normalizedValue = value.toLowerCase();
+    if (normalizedValue.includes("owner")) return BasePadlock.OWNER;
+    if (normalizedValue.includes("lover")) return BasePadlock.LOVERS;
+    if (normalizedValue.includes("exclusive")) return BasePadlock.EXCLUSIVE;
+    return undefined;
+}
+
+function normalizeMinimumRole(baseLock: BasePadlock, value: unknown): KeyHolderMinimumRole {
+    const numericValue = typeof value === "number"
+        ? value
+        : typeof value === "string"
+            ? Number(value)
+            : undefined;
+    const currentMinimumRole = numericValue !== undefined && Number.isInteger(numericValue) && VALID_MINIMUM_ROLES.has(numericValue)
+        ? numericValue as KeyHolderMinimumRole
+        : undefined;
+
+    if (baseLock === BasePadlock.LOVERS) {
+        if (currentMinimumRole === KeyHolderMinimumRole.OWNER) return currentMinimumRole;
+        return KeyHolderMinimumRole.LOVER;
+    }
+    if (baseLock === BasePadlock.OWNER) return KeyHolderMinimumRole.OWNER;
+    return currentMinimumRole ?? KeyHolderMinimumRole.EVERYONE_EXCEPT_WEARER;
+}
+
+function migrateLegacyPadlockConfig(config: Record<string, any>, withItemData = false): void {
+    const baseLock = normalizeBasePadlock(
+        config.baseLock ??
+        config.lockedBy ??
+        config.basePadlock ??
+        config.item?.property?.LockedBy
+    ) ?? BasePadlock.EXCLUSIVE;
+
+    config.baseLock = baseLock;
+    config.minimumRole = normalizeMinimumRole(baseLock, config.minimumRole);
+    if (baseLock !== BasePadlock.EXCLUSIVE) {
+        config.memberNumbers = [];
+    }
+
+    if (withItemData && config.item && typeof config.item === "object") {
+        config.item.property ??= {};
+        config.item.property.LockedBy = baseLock;
+        if (typeof config.owner === "number") {
+            config.item.property.LockMemberNumber = config.owner;
+        }
+    }
+}
 
 export function initStorage(): void {
     const defaults = {
@@ -121,12 +180,44 @@ function migrateModStorage(): void {
                 d.item.property = d.item.Property;
                 delete d.item.Property;
             }
-            if (d.accessPermission) {
-                d.minimumRole = d.item.accessPermission;
+            if (d.accessPermission !== undefined) {
+                d.minimumRole = d.accessPermission;
                 delete d.accessPermission;
             }
+            if (Array.isArray(d.blockedCommands)) {
+                if (typeof d.preventCheatCommands !== "boolean") {
+                    d.preventCheatCommands = d.blockedCommands.length > 0;
+                }
+                delete d.blockedCommands;
+            }
+            migrateLegacyPadlockConfig(d, true);
             delete d.item.Difficulty;
             delete d.item.Group;
+        });
+    }
+    if (Array.isArray(modStorage.deviousPadlock.profiles)) {
+        modStorage.deviousPadlock.profiles.forEach((profile) => {
+            const legacyBlockedCommands = (profile as Record<string, unknown>).blockedCommands;
+            if (Array.isArray(legacyBlockedCommands)) {
+                if (typeof profile.preventCheatCommands !== "boolean") {
+                    profile.preventCheatCommands = legacyBlockedCommands.length > 0;
+                }
+                delete (profile as Record<string, unknown>).blockedCommands;
+            }
+            migrateLegacyPadlockConfig(profile as Record<string, any>);
+        });
+    }
+    if (Array.isArray(modStorage.deviousPadlock.synced)) {
+        modStorage.deviousPadlock.synced.forEach((config) => {
+            const legacyBlockedCommands = (config as Record<string, unknown>).blockedCommands;
+            if (Array.isArray(legacyBlockedCommands)) {
+                if (typeof config.preventCheatCommands !== "boolean") {
+                    config.preventCheatCommands = legacyBlockedCommands.length > 0;
+                }
+                delete (config as Record<string, unknown>).blockedCommands;
+            }
+            config.groupNames = [...new Set(config.groupNames ?? [])];
+            migrateLegacyPadlockConfig(config as Record<string, any>);
         });
     }
     //@ts-ignore

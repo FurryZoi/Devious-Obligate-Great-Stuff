@@ -11,4 +11,5 @@ interface Window {
     InspectDeviousPadlockLoad: ScreenLoadHandler;
     InspectDeviousPadlockRun: ScreenRunHandler;
     InspectDeviousPadlockClick: MouseEventListener;
+    InventoryItemMiscDeviousPadlockLoad: ScreenLoadHandler
 }
