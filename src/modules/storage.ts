@@ -185,9 +185,6 @@ function migrateModStorage(): void {
                 delete d.accessPermission;
             }
             if (Array.isArray(d.blockedCommands)) {
-                if (typeof d.preventCheatCommands !== "boolean") {
-                    d.preventCheatCommands = d.blockedCommands.length > 0;
-                }
                 delete d.blockedCommands;
             }
             migrateLegacyPadlockConfig(d, true);
@@ -197,12 +194,9 @@ function migrateModStorage(): void {
     }
     if (Array.isArray(modStorage.deviousPadlock.profiles)) {
         modStorage.deviousPadlock.profiles.forEach((profile) => {
-            const legacyBlockedCommands = (profile as Record<string, unknown>).blockedCommands;
+            const legacyBlockedCommands = (profile as unknown as Record<string, unknown>).blockedCommands;
             if (Array.isArray(legacyBlockedCommands)) {
-                if (typeof profile.preventCheatCommands !== "boolean") {
-                    profile.preventCheatCommands = legacyBlockedCommands.length > 0;
-                }
-                delete (profile as Record<string, unknown>).blockedCommands;
+                delete (profile as unknown as Record<string, unknown>).blockedCommands;
             }
             migrateLegacyPadlockConfig(profile as Record<string, any>);
         });
@@ -211,9 +205,6 @@ function migrateModStorage(): void {
         modStorage.deviousPadlock.synced.forEach((config) => {
             const legacyBlockedCommands = (config as Record<string, unknown>).blockedCommands;
             if (Array.isArray(legacyBlockedCommands)) {
-                if (typeof config.preventCheatCommands !== "boolean") {
-                    config.preventCheatCommands = legacyBlockedCommands.length > 0;
-                }
                 delete (config as Record<string, unknown>).blockedCommands;
             }
             config.groupNames = [...new Set(config.groupNames ?? [])];
