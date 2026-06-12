@@ -114,6 +114,11 @@ function getAssetGroupDefinition(groupName: AssetGroupName): AssetGroupDefinitio
 	return groupDefinition as AssetGroupDefinition | undefined;
 }
 
+function getItemColor(itemColor: Item["Color"] | null | undefined, craftingItemColor: CraftingItem["Color"] | null | undefined) {
+	if (itemColor === null || itemColor === undefined || itemColor === "Default") return craftingItemColor ?? "Default";
+	return itemColor;
+}
+
 function registerPadlockAssetWithCompatibility(group: AssetGroup, groupDefinition?: AssetGroupDefinition): void {
 	const assetAddCompat = AssetAdd as unknown as (...args: unknown[]) => void;
 	const attempts: Array<() => void> = [
@@ -516,7 +521,7 @@ function checkDeviousPadlocks(target: Character): void {
 
 			if (
 				currentItem?.Asset?.Name !== savedItem.name ||
-				!colorsEqual(currentItem?.Color, savedItem.color) ||
+				!colorsEqual(getItemColor(currentItem.Color, currentItem.Craft?.Color), getItemColor(savedItem.color, savedItem.craft?.Color)) ||
 				JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) ||
 				JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property)) ||
 				padlockChanged
@@ -538,7 +543,7 @@ function checkDeviousPadlocks(target: Character): void {
 
 					const difficulty = savedAsset.Difficulty;
 					let newItem = InventoryWear(Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft);
-					if (!newItem) return;
+					if (!newItem) continue;
 					newItem.Property = {
 						...getValidProperties(savedItem.property),
 						...getIgnoredProperties(currentItem?.Asset?.Name === savedItem.name ? currentItem.Property : savedItem.property)
