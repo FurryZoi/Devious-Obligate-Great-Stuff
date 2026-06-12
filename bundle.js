@@ -28609,6 +28609,10 @@ One of mods you are using is using an old version of SDK. It will work for now b
     });
     return groupDefinition;
   }
+  function getItemColor(itemColor, craftingItemColor) {
+    if (itemColor === null || itemColor === void 0 || itemColor === "Default") return craftingItemColor ?? "Default";
+    return itemColor;
+  }
   function registerPadlockAssetWithCompatibility(group, groupDefinition) {
     const assetAddCompat = AssetAdd;
     const attempts = [
@@ -28899,7 +28903,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
           });
           return propertiesCopy;
         };
-        if (currentItem?.Asset?.Name !== savedItem.name || !T(currentItem?.Color, savedItem.color) || JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) || JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property)) || padlockChanged) {
+        if (currentItem?.Asset?.Name !== savedItem.name || !T(getItemColor(currentItem.Color, currentItem.Craft?.Color), getItemColor(savedItem.color, savedItem.craft?.Color)) || JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) || JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property)) || padlockChanged) {
           if (hasKeyToPadlock(groupName, target, Player)) {
             if (padlockChanged) {
               delete modStorage.deviousPadlock.itemGroups[groupName];
@@ -28916,7 +28920,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
             }
             const difficulty = savedAsset.Difficulty;
             let newItem = InventoryWear(Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft);
-            if (!newItem) return;
+            if (!newItem) continue;
             newItem.Property = {
               ...getValidProperties(savedItem.property),
               ...getIgnoredProperties(currentItem?.Asset?.Name === savedItem.name ? currentItem.Property : savedItem.property)
