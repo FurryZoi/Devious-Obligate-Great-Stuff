@@ -87,7 +87,7 @@ let deviousPadlockTriggerCooldown: {
 };
 
 const MAX_TRIGGER_COUNT = 12;
-const MINIMUM_FIRST_TRIGGER_INTERVAL = 1000 * 14;
+const MINIMUM_FIRST_TRIGGER_INTERVAL = 1000 * 20;
 const COOLDOWN_TIME = 1000 * 60 * 2;
 
 let hasLoadedDeviousPadlock = false;
@@ -548,6 +548,8 @@ function checkDeviousPadlocks(target: Character): void {
 						...getValidProperties(savedItem.property),
 						...getIgnoredProperties(currentItem?.Asset?.Name === savedItem.name ? currentItem.Property : savedItem.property)
 					};
+					newItem.Property.Effect ??= [];
+					newItem.Property.Effect.push("Lock");
 					if (newItem.Property.Name !== deviousPadlock.Name) newItem.Property.Name = deviousPadlock.Name;
 					if (newItem.Property.LockedBy !== basePadlock) newItem.Property.LockedBy = basePadlock;
 					if (newItem.Property.LockMemberNumber !== owner) newItem.Property.LockMemberNumber = owner;
