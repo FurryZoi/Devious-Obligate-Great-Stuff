@@ -28586,7 +28586,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
     state: false
   };
   var MAX_TRIGGER_COUNT = 12;
-  var MINIMUM_FIRST_TRIGGER_INTERVAL = 1e3 * 14;
+  var MINIMUM_FIRST_TRIGGER_INTERVAL = 1e3 * 20;
   var COOLDOWN_TIME = 1e3 * 60 * 2;
   var hasLoadedDeviousPadlock = false;
   function padlockAssetIsReady() {
@@ -28925,6 +28925,8 @@ One of mods you are using is using an old version of SDK. It will work for now b
               ...getValidProperties(savedItem.property),
               ...getIgnoredProperties(currentItem?.Asset?.Name === savedItem.name ? currentItem.Property : savedItem.property)
             };
+            newItem.Property.Effect ??= [];
+            newItem.Property.Effect.push("Lock");
             if (newItem.Property.Name !== deviousPadlock.Name) newItem.Property.Name = deviousPadlock.Name;
             if (newItem.Property.LockedBy !== basePadlock) newItem.Property.LockedBy = basePadlock;
             if (newItem.Property.LockMemberNumber !== owner) newItem.Property.LockMemberNumber = owner;
