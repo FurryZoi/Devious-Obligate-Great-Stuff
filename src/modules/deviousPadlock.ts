@@ -1,6 +1,6 @@
 import { ModStorage, modStorage, SavedItem, DeviousPadlockProfile, syncStorage } from "./storage";
 import { colorsEqual, getNickname, getPlayer, MOD_DATA, waitFor } from "zois-core";
-import { callOriginal, hookFunction, HookPriority } from "zois-core/modsApi";
+import { callOriginal, hookFunction, HookPriority } from "zois-core/mod-sdk";
 import { messagesManager } from "zois-core/messaging";
 import { getCurrentSubscreen, setSubscreen } from "zois-core/ui";
 import deviousPadlockImage from "@/images/devious-padlock.png";
@@ -11,6 +11,7 @@ import { smartGetItemName } from "zois-core/wardrobe";
 import { SyncPadlockMessageDto } from "@/dto/syncPadlockMessageDto";
 import { UpdatePadlockMessageDto } from "@/dto/updatePadlockMessageDto";
 import { KNOWN_CHEAT_COMMANDS } from "@/constants";
+import { logger } from "zois-core/logging";
 
 export const deviousPadlock: AssetDefinition.Item = {
 	Effect: [],
@@ -451,7 +452,7 @@ export async function changePadlockSettings(
 			item.Property.LockMemberNumber = modStorage.deviousPadlock.itemGroups[groupName].owner;
 			const changed = ValidationSanitizeLock(Player, item);
 			if (changed) {
-				console.warn("DOGS", "Sanitized lock properties when changing BaseLock");
+				logger.warn("Sanitized lock properties when changing BaseLock");
 			}
 			modStorage.deviousPadlock.itemGroups[groupName].item = getSavedItemData(item);
 			if (previousLockedBy !== item.Property.LockedBy || previousLockMemberNumber !== item.Property.LockMemberNumber) {
@@ -537,7 +538,7 @@ function checkDeviousPadlocks(target: Character): void {
 				} else if (!deviousPadlockTriggerCooldown.state) {
 					const savedAsset = AssetGet(Player.AssetFamily, groupName, savedItem.name);
 					if (!savedAsset) {
-						console.warn("DOGS", "Invalid asset: " + savedItem.name);
+						logger.warn("Invalid asset: " + savedItem.name);
 						continue;
 					}
 
@@ -666,7 +667,7 @@ function applyEffectiveBaseLockToPadlock(groupName: AssetGroupItemName): boolean
 	if (changed) {
 		const sanitized = ValidationSanitizeLock(Player, item);
 		if (sanitized) {
-			console.warn("DOGS", "Sanitized lock properties when syncing BaseLock");
+			logger.warn("Sanitized lock properties when syncing BaseLock");
 		}
 		modStorage.deviousPadlock.itemGroups![groupName]!.item = getSavedItemData(item);
 	}
@@ -756,7 +757,7 @@ export async function loadDeviousPadlock(): Promise<void> {
 	try {
 		await waitFor(padlockAssetIsReady);
 	} catch {
-		console.error("DOGS", "DeviousPadlock boot timed out: ItemMisc asset group is not ready");
+		logger.error("DeviousPadlock boot timed out: ItemMisc asset group is not ready");
 		return;
 	}
 
@@ -828,10 +829,13 @@ export async function loadDeviousPadlock(): Promise<void> {
 		);
 	};
 	window.InspectDeviousPadlockRun = () => {
-		getCurrentSubscreen().run?.();
+		getCurrentSubscreen()?.run?.();
 	};
 	window.InspectDeviousPadlockClick = () => {
-		getCurrentSubscreen().click?.();
+		getCurrentSubscreen()?.click?.();
+	};
+	window.InspectDeviousPadlockResize = () => {
+		getCurrentSubscreen()?.resize?.();
 	};
 
 	ServerPlayerChatRoom.register({
@@ -842,7 +846,7 @@ export async function loadDeviousPadlock(): Promise<void> {
 	messagesManager.onPacket("changePadlockSettings", UpdatePadlockMessageDto, async (data: UpdatePadlockMessageDto, sender) => {
 		const result = await validatePadlockSettingsUpdate(sender, data.config, data.groupName);
 		if (!result.valid) {
-			console.warn("DOGS", "Ignored invalid padlock update packet:", data);
+			logger.warn("Ignored invalid padlock update packet:", data);
 			return;
 		}
 		changePadlockSettings(data.groupName, result.data);

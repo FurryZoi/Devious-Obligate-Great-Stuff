@@ -1,4 +1,4 @@
-import { toastsManager } from "zois-core/popups";
+import { toastsManager } from "zois-core/toasts";
 import { messagesManager } from "zois-core/messaging";
 import { setRemoteControlIsInteracting } from "./remoteControl";
 import { chatSendChangelog } from "@/index";
@@ -37,7 +37,7 @@ const commands: Command[] = [
             const targetNumber = parseInt(args[0]);
             if (!targetNumber) {
                 return messagesManager.sendLocal(
-                    `Example: /dogs remote <character id>`
+                    `Example: /dogs remote <member number>`
                 );
             }
 
@@ -46,7 +46,7 @@ const commands: Command[] = [
                 message: `Member number: ${targetNumber}`
             });
 
-            const { data, isError } = await messagesManager.sendRequest<{
+            const response = await messagesManager.sendRequest<{
                 rejectReason?: string
                 bundle?: ServerAccountDataSynced
             }>({
@@ -57,7 +57,7 @@ const commands: Command[] = [
 
             toastsManager.removeSpinner(toastId);
 
-            if (isError) {
+            if (response.isError) {
                 return toastsManager.error({
                     title: "Connection was not established",
                     message: "Something wrong happened... Maybe target player offline or not using DOGS?",
@@ -65,18 +65,18 @@ const commands: Command[] = [
                 });
             }
 
-            if (data?.rejectReason) {
+            if (response.data?.rejectReason) {
                 return toastsManager.error({
                     title: "Connection rejected",
-                    message: data.rejectReason,
+                    message: response.data.rejectReason,
                     duration: 6000
                 });
             }
 
-            if (!data?.bundle) return;
+            if (!response.data?.bundle) return;
             if (!ServerPlayerIsInChatRoom()) return;
             if (CurrentScreen !== "ChatRoom") CommonSetScreen("Online", "ChatRoom");
-            const C = CharacterLoadOnline(data.bundle, targetNumber);
+            const C = CharacterLoadOnline(response.data.bundle, targetNumber);
             setRemoteControlIsInteracting(true);
             ChatRoomFocusCharacter(C);
             if (!C.AllowItem) C.AllowItem = true;

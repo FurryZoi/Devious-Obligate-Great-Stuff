@@ -1,10 +1,11 @@
 import { getModVersion } from "@/index";
 import { getPlayer, MOD_DATA } from "zois-core";
 import { messagesManager } from "zois-core/messaging";
-import { hookFunction, HookPriority } from "zois-core/modsApi";
+import { hookFunction, HookPriority } from "zois-core/mod-sdk";
 import { RemoteConnectMinimumRole } from "./remoteControl";
 import { PutPadlockMinimumRole, KeyHolderMinimumRole, BasePadlock, DeviousPadlockSettings } from "./deviousPadlock";
 import { cloneDeep } from "lodash-es";
+import { logger } from "zois-core/logging";
 
 
 export type SavedItem = {
@@ -128,7 +129,7 @@ export function initStorage(): void {
             if (data) modStorage = JSON.parse(data);
         }
     } catch (error) {
-        console.error('DOGS failed to initialize storage:', error);
+        logger.error('Failed to initialize storage:', error);
     } finally {
         modStorage ??= defaults
     }

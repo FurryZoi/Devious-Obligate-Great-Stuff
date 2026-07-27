@@ -1,7 +1,7 @@
 import { BaseSubscreen } from "zois-core/ui";
 import { modStorage, SavedItem } from "@/modules/storage";
 import { PutPadlockMinimumRole } from "@/modules/deviousPadlock";
-import { toastsManager } from "zois-core/popups";
+import { toastsManager } from "zois-core/toasts";
 import { createElement, LockKeyhole } from "lucide";
 
 
@@ -54,7 +54,6 @@ export class DeviousPadlockSubscreen extends BaseSubscreen {
             items: Object.values(PutPadlockMinimumRole).slice(Object.values(PutPadlockMinimumRole).length / 2).map((r) => {
                 return [putPadlockMinimumRolesNames[r as PutPadlockMinimumRole], r];
             }),
-            isBold: true,
             onChange(value) {
                 modStorage.deviousPadlock.putMinimumRole = value;
             },

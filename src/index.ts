@@ -4,9 +4,9 @@ import { loadRemoteControl } from "@/modules/remoteControl";
 import { loadSettingsMenu } from "@/modules/settingsMenu";
 import { loadCommands } from "@/modules/commands";
 import { loadDeviousPadlock } from "@/modules/deviousPadlock";
-import { registerCore, isVersionNewer, waitFor, waitForStart, injectStyles } from "zois-core";
+import { isVersionNewer, waitFor, bootstrap, injectStyles } from "zois-core";
 import css from "./styles.css";
-import { toastsManager } from "zois-core/popups";
+import { toastsManager } from "zois-core/toasts";
 import { messagesManager } from "zois-core/messaging";
 import { version } from "../package.json";
 import { DeviousPadlockSubscreen } from "./subscreens/deviousPadlockSubscreen";
@@ -16,6 +16,7 @@ import { RemoteControlSubscreen } from "./subscreens/remoteControlSubscreen";
 import { ProfilesSubscreen } from "./subscreens/profilesSubscreen";
 import { GITHUB_REPO_URL } from "./constants";
 import { loadDialogs } from "./modules/dialogs";
+import { logger } from "zois-core/logging";
 
 
 export function getModVersion(): string {
@@ -29,25 +30,27 @@ export function chatSendChangelog(): void {
 
 let hasInitialized = false;
 
+bootstrap({
+    name: "DOGS",
+    fullName: "Devious Obligate Great Stuff",
+    key: "DOGS",
+    version: getModVersion(),
+    repository: GITHUB_REPO_URL,
+    fontFamily: CommonGetFontName(),
+    subscreens: {
+        DeviousPadlockSubscreen,
+        ProfilesSubscreen,
+        MainSubscreen,
+        MiscSubscreen,
+        RemoteControlSubscreen
+    },
+    onReady: initializeDOGS
+});
+
 function initializeDOGS(): void {
     if (hasInitialized) return;
     hasInitialized = true;
 
-    registerCore({
-        name: "DOGS",
-        fullName: "Devious Obligate Great Stuff",
-        key: "DOGS",
-        version: getModVersion(),
-        repository: GITHUB_REPO_URL,
-        fontFamily: CommonGetFontName(),
-        deepLinkSubscreens: [
-            new DeviousPadlockSubscreen(),
-            new ProfilesSubscreen(),
-            new MainSubscreen(),
-            new MiscSubscreen(),
-            new RemoteControlSubscreen()
-        ]
-    });
 
     injectStyles(css);
 
@@ -57,7 +60,7 @@ function initializeDOGS(): void {
     loadDialogs();
     loadRemoteControl();
     void loadDeviousPadlock();
-    console.log(`DOGS Ready! v${getModVersion()}`);
+    logger.log(`Ready! v${getModVersion()}`);
     toastsManager.success({
         title: `DOGS loaded`,
         message: `v${getModVersion()}`,
@@ -83,15 +86,6 @@ function initializeDOGS(): void {
         }
     }
 }
-
-void waitFor(() => typeof window.Player?.MemberNumber === "number")
-    .then(() => {
-        initializeDOGS();
-    })
-    .catch(() => {
-        console.warn("DOGS fast-start wait timed out, falling back to waitForStart");
-        waitForStart(initializeDOGS);
-    });
 
 
 

@@ -2,9 +2,9 @@ import { BaseSubscreen } from "zois-core/ui";
 import { DeviousPadlockSubscreen } from "./deviousPadlockSubscreen";
 import { RemoteControlSubscreen } from "./remoteControlSubscreen";
 import { modStorage, syncStorage } from "@/modules/storage";
-import { CenterModule, StyleModule, TypeModule } from "zois-core/ui-modules";
+import { CenterModule, StyleModule, TypeModule } from "zois-core/shard-modules";
 import { MainSubscreen } from "./mainSubscreen";
-import { dialogsManager } from "zois-core/popups";
+import { dialogsManager } from "zois-core/dialogs";
 import { DeviousPadlockSettingsSubscreen } from "./deviousPadlockSettingsSubscreen";
 import { createElement, Save } from "lucide";
 
@@ -31,10 +31,12 @@ export class ProfilesSubscreen extends BaseSubscreen {
             this.createText({
                 text: "No profiles yet.",
                 width: 900,
+                x: (2000 - 900) / 2,
+                y: 460,
                 fontSize: 5,
                 modules: {
                     base: [
-                        new CenterModule(),
+                        // new CenterModule(),
                         new StyleModule({
                             textAlign: "center"
                         })
@@ -44,7 +46,7 @@ export class ProfilesSubscreen extends BaseSubscreen {
             return;
         }
 
-        const container = this.createScrollView({
+        const container = this.createContainer({
             x: 200,
             y: 220,
             width: 600,
@@ -63,7 +65,7 @@ export class ProfilesSubscreen extends BaseSubscreen {
 
         modStorage.deviousPadlock?.profiles?.forEach((config) => {
             const row = this.createContainer({
-                place: false,
+                parent: container,
                 modules: {
                     base: [
                         new StyleModule({
@@ -74,41 +76,37 @@ export class ProfilesSubscreen extends BaseSubscreen {
                     ]
                 }
             });
-            row.append(
-                this.createButton({
-                    text: config.name,
-                    place: false,
-                    width: 500,
-                    height: 80,
-                    padding: 1,
-                    onClick: () => {
-                        this.setSubscreen(
-                            new DeviousPadlockSettingsSubscreen({
-                                mode: "edit-sync-config",
-                                syncConfig: config
-                            })
-                        );
+            this.createButton({
+                text: config.name,
+                parent: row,
+                width: 500,
+                height: 80,
+                padding: 1,
+                onClick: () => {
+                    this.setSubscreen(
+                        new DeviousPadlockSettingsSubscreen({
+                            mode: "edit-sync-config",
+                            syncConfig: config
+                        })
+                    );
+                }
+            });
+            this.createButton({
+                icon: "Icons/Trash.png",
+                parent: row,
+                width: 80,
+                height: 80,
+                onClick: async () => {
+                    const result = await dialogsManager.confirm({
+                        message: "Are you sure you want to delete this config?",
+                    });
+                    if (result) {
+                        modStorage.deviousPadlock.profiles = modStorage.deviousPadlock.profiles?.filter((c) => c.name !== config.name);
+                        row.remove();
+                        if (modStorage.deviousPadlock.profiles?.length === 0) this.exit();
                     }
-                }),
-                this.createButton({
-                    icon: "Icons/Trash.png",
-                    place: false,
-                    width: 80,
-                    height: 80,
-                    onClick: async () => {
-                        const result = await dialogsManager.confirm({
-                            message: "Are you sure you want to delete this config?",
-                        });
-                        if (result) {
-                            modStorage.deviousPadlock.profiles = modStorage.deviousPadlock.profiles?.filter((c) => c.name !== config.name);
-                            row.remove();
-                            if (modStorage.deviousPadlock.profiles?.length === 0) this.exit();
-                        }
-                    }
-                })
-            );
-            container.append(row);
-
+                }
+            });
         });
     }
 

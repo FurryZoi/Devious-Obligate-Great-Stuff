@@ -1,8 +1,8 @@
 import { modStorage } from "./storage";
 import { getNickname, version } from "zois-core";
-import { hookFunction, HookPriority } from "zois-core/modsApi";
+import { hookFunction, HookPriority } from "zois-core/mod-sdk";
 import { messagesManager } from "zois-core/messaging";
-import { toastsManager } from "zois-core/popups";
+import { toastsManager } from "zois-core/toasts";
 
 
 export let remoteControlIsInteracting: boolean = false;
@@ -138,7 +138,7 @@ export function loadRemoteControl(): void {
 				title: "Updating appearance...",
 				message: `Member number: ${C.MemberNumber}`
 			});
-			const { data, isError } = await messagesManager.sendRequest<{
+			const response = await messagesManager.sendRequest<{
 				wasChanged: boolean
 			}>({
 				type: "beep",
@@ -151,7 +151,15 @@ export function loadRemoteControl(): void {
 			toastsManager.removeSpinner(toastId);
 			setRemoteControlIsInteracting(false);
 			DialogLeave();
-			if (data?.wasChanged) {
+
+			if (response.isError) {
+				return toastsManager.error({
+					message: "Your changes weren't applied",
+					duration: 5000
+				});
+			}
+			
+			if (response.data?.wasChanged) {
 				toastsManager.success({
 					message: "Your changes were applied",
 					duration: 5000

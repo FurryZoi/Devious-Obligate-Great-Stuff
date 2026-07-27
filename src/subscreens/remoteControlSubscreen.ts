@@ -63,7 +63,6 @@ export class RemoteControlSubscreen extends BaseSubscreen {
                 .map((r) => {
                     return [remoteConnectMinimumRolesNames[r as RemoteConnectMinimumRole], r];
                 }),
-            isBold: true,
             onChange(value) {
                 modStorage.remoteControl.connectMinimumRole = value
             },

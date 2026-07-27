@@ -17,15 +17,15 @@ export class MiscSubscreen extends BaseSubscreen {
     }
 
     load(): void {
-        super.load?.();
-        this.createCheckbox({
-            text: "Automatically show changelog",
-            x: 100,
-            y: 300,
-            isChecked: modStorage.misc.autoShowChangelog ?? true,
-            onChange() {
-                modStorage.misc.autoShowChangelog = !(modStorage.misc.autoShowChangelog ?? true)
-            },
-        });
+        super.load();
+        // this.createCheckbox({
+        //     text: "Automatically show changelog",
+        //     x: 100,
+        //     y: 300,
+        //     isChecked: modStorage.misc.autoShowChangelog ?? true,
+        //     onChange() {
+        //         modStorage.misc.autoShowChangelog = !(modStorage.misc.autoShowChangelog ?? true)
+        //     },
+        // });
     }
 }

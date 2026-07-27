@@ -2,13 +2,15 @@ import { BaseSubscreen, setSubscreen } from "zois-core/ui";
 import icon from "@/images/settings-devious-padlock.png";
 import { ModStorage, modStorage, DeviousPadlockProfile, syncStorage, SavedItem } from "@/modules/storage";
 import { BasePadlock, basePadlockMinimumRole, canSetKeyHolderMinimumRole, canUseBasePadlock, changePadlockSettings, deviousPadlock, DeviousPadlockSettings, DeviousPadlockUpdateData, getPadlockSettings, hashCombination, hasKeyToPadlock, isItemGroupSynced, isItemGroupSyncedWithConfig, KeyHolderMinimumRole, syncPadlockConfigurationWithItemGroups, unsyncItemGroups, validatePadlockSettingsUpdate } from "@/modules/deviousPadlock";
-import { dialogsManager, toastsManager } from "zois-core/popups";
+import { toastsManager } from "zois-core/toasts";
+import { dialogsManager } from "zois-core/dialogs";
 import { messagesManager } from "zois-core/messaging";
 import { getNickname } from "zois-core";
 import { importAppearance, serverAppearanceBundleToAppearance, smartGetItemName } from "zois-core/wardrobe";
-import { StyleModule } from "zois-core/ui-modules";
+import { StyleModule } from "zois-core/shard-modules";
 import { cloneDeep, has, rest, set } from "lodash-es";
 import { SyncPadlockMessageDto } from "@/dto/syncPadlockMessageDto";
+import { logger } from "zois-core/logging";
 
 interface InspectPadlock {
     mode: "inspect-padlock"
@@ -51,6 +53,10 @@ const minimumRolesNames = {
 }
 
 export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
+    get name() {
+        return ""
+    }
+
     private padlockSettings!: Omit<DeviousPadlockSettings, "item"> & { item: SavedItem | null };
     private readonly sourcePadlockSettings!: Omit<DeviousPadlockSettings, "item"> & { item: SavedItem | null };
     private combinationToUnlock: {
@@ -176,7 +182,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                 break;
             }
             default: {
-                console.error(`Unknown subscreen mode`);
+                logger.error(`Unknown subscreen mode`);
             }
         }
 
@@ -193,7 +199,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
     }
 
     load(): void {
-        super.load?.();
+        super.load();
         this.syncTabCanvasCharacter = CharacterCreate(Player.AssetFamily, CharacterType.NPC, "LC_CanvasCharacter");
         ServerAppearanceLoadFromBundle(
             this.syncTabCanvasCharacter,
@@ -208,7 +214,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
             y: 50,
             width: 400,
             padding: 4,
-            style: "inverted",
+            variant: "filled",
             text: "Save",
             isDisabled: () => !this.canEdit(),
             onClick: async () => {
@@ -611,7 +617,6 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                             height: 80,
                             currentIndex: Object.values(BasePadlock)
                                 .indexOf(this.padlockSettings.baseLock!),
-                            isBold: true,
                             items: Object.values(BasePadlock)
                                 .map((r) => [basePadlockNames[r], r]),
                             onChange: (value) => {
@@ -668,7 +673,6 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                             currentIndex: Object.values(KeyHolderMinimumRole)
                                 .slice(Object.values(KeyHolderMinimumRole).length / 2)
                                 .indexOf(this.padlockSettings.minimumRole!),
-                            isBold: true,
                             items: Object.values(KeyHolderMinimumRole)
                                 .slice(Object.values(KeyHolderMinimumRole).length / 2)
                                 .map((r) => [minimumRolesNames[r as KeyHolderMinimumRole], r]),

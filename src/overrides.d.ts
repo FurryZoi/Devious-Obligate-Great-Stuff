@@ -10,6 +10,7 @@ interface Window {
     InspectDeviousPadlockBackground: string;
     InspectDeviousPadlockLoad: ScreenLoadHandler;
     InspectDeviousPadlockRun: ScreenRunHandler;
+    InspectDeviousPadlockResize: ScreenResizeHandler;
     InspectDeviousPadlockClick: MouseEventListener;
     InventoryItemMiscDeviousPadlockLoad: ScreenLoadHandler
 }

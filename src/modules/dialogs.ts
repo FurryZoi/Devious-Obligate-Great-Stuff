@@ -1,5 +1,5 @@
 import { MOD_DATA } from "zois-core";
-import { hookFunction, HookPriority } from "zois-core/modsApi";
+import { hookFunction, HookPriority } from "zois-core/mod-sdk";
 import { modStorage, syncStorage } from "./storage";
 import { deviousPadlock, getPadlocksAmount } from "./deviousPadlock";
 
@@ -69,7 +69,7 @@ export function loadDialogs() {
                         InventoryUnlock(Player, item);
                     }
                 }
-                DialogChangeMoney(`-${price}`);
+                DialogChangeMoney(price * -1);
                 ServerPlayerSync();
                 ServerPlayerAppearanceSync();
                 syncStorage();

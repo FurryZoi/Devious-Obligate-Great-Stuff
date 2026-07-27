@@ -4,7 +4,7 @@ import { RemoteControlSubscreen } from "./remoteControlSubscreen";
 import { syncStorage } from "@/modules/storage";
 import { MiscSubscreen } from "./miscSubscreen";
 import { MOD_DATA, version } from "zois-core";
-import { TypeModule } from "zois-core/ui-modules";
+import { StyleModule, TypeModule } from "zois-core/shard-modules";
 import { ProfilesSubscreen } from "./profilesSubscreen";
 import { Bug, Code, Code2, createElement, GitPullRequest } from "lucide";
 import { GITHUB_REPO_URL } from "@/constants";
@@ -12,10 +12,6 @@ import { GITHUB_REPO_URL } from "@/constants";
 export class MainSubscreen extends BaseSubscreen {
     get name(): string {
         return "Devious Obligate Good Stuff";
-    }
-
-    get previousSubscreen(): BaseSubscreen | null {
-        return null;
     }
 
     load(): void {
@@ -47,6 +43,7 @@ export class MainSubscreen extends BaseSubscreen {
             icon: createElement(GitPullRequest),
             x: 80,
             y: 65,
+            width: 220,
             modules: {
                 value: [
                     new TypeModule({ duration: 850 })
@@ -65,8 +62,13 @@ export class MainSubscreen extends BaseSubscreen {
                 text: "Report a bug or suggest a feature",
                 position: "left"
             },
-            onClick: () => {
-                window.open(GITHUB_REPO_URL + "/issues", "_blank");
+            href: GITHUB_REPO_URL + "/issues",
+            modules: {
+                base: [
+                    new StyleModule({
+                        zIndex: "10"
+                    })
+                ]
             }
         });
 
@@ -81,15 +83,14 @@ export class MainSubscreen extends BaseSubscreen {
                 text: "View source code on GitHub",
                 position: "left"
             },
-            onClick: () => {
-                window.open(GITHUB_REPO_URL, "_blank");
-            }
+            href: GITHUB_REPO_URL
         });
     }
 
     exit(): void {
-        super.exit?.();
+        super.exit();
         syncStorage();
+        this.setSubscreen(null);
         PreferenceSubscreenExtensionsClear();
     }
 }
