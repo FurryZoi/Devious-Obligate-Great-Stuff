@@ -4,14 +4,13 @@ import { loadRemoteControl } from "@/modules/remoteControl";
 import { loadSettingsMenu } from "@/modules/settingsMenu";
 import { loadCommands } from "@/modules/commands";
 import { loadDeviousPadlock } from "@/modules/deviousPadlock";
-import { isVersionNewer, waitFor, bootstrap, injectStyles } from "zois-core";
+import { isVersionNewer, bootstrap, injectStyles } from "zois-core";
 import css from "./styles.css";
 import { toastsManager } from "zois-core/toasts";
 import { messagesManager } from "zois-core/messaging";
 import { version } from "../package.json";
 import { DeviousPadlockSubscreen } from "./subscreens/deviousPadlockSubscreen";
 import { MainSubscreen } from "./subscreens/mainSubscreen";
-import { MiscSubscreen } from "./subscreens/miscSubscreen";
 import { RemoteControlSubscreen } from "./subscreens/remoteControlSubscreen";
 import { ProfilesSubscreen } from "./subscreens/profilesSubscreen";
 import { GITHUB_REPO_URL } from "./constants";
@@ -41,7 +40,6 @@ bootstrap({
         DeviousPadlockSubscreen,
         ProfilesSubscreen,
         MainSubscreen,
-        MiscSubscreen,
         RemoteControlSubscreen
     },
     onReady: initializeDOGS
@@ -68,21 +66,16 @@ function initializeDOGS(): void {
     });
 
     if (isVersionNewer(getModVersion(), modStorage.version)) {
-        if (modStorage.misc.autoShowChangelog ?? true) {
-            if (ServerPlayerIsInChatRoom()) {
+        if (ServerPlayerIsInChatRoom()) {
+            modStorage.version = getModVersion();
+            syncStorage();
+            chatSendChangelog();
+        } else {
+            ServerSocket.once("ChatRoomSync", () => {
                 modStorage.version = getModVersion();
                 syncStorage();
                 chatSendChangelog();
-            } else {
-                ServerSocket.once("ChatRoomSync", () => {
-                    modStorage.version = getModVersion();
-                    syncStorage();
-                    chatSendChangelog();
-                });
-            }
-        } else {
-            modStorage.version = getModVersion();
-            syncStorage();
+            });
         }
     }
 }

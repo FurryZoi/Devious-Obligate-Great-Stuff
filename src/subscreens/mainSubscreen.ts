@@ -2,7 +2,6 @@ import { BaseSubscreen } from "zois-core/ui";
 import { DeviousPadlockSubscreen } from "./deviousPadlockSubscreen";
 import { RemoteControlSubscreen } from "./remoteControlSubscreen";
 import { syncStorage } from "@/modules/storage";
-import { MiscSubscreen } from "./miscSubscreen";
 import { MOD_DATA, version } from "zois-core";
 import { StyleModule, TypeModule } from "zois-core/shard-modules";
 import { ProfilesSubscreen } from "./profilesSubscreen";
@@ -19,8 +18,7 @@ export class MainSubscreen extends BaseSubscreen {
         [
             new DeviousPadlockSubscreen(),
             new ProfilesSubscreen(),
-            new RemoteControlSubscreen(),
-            new MiscSubscreen()
+            new RemoteControlSubscreen()
         ].forEach((s, i) => {
             const btn = this.createButton({
                 text: s.buttonText,

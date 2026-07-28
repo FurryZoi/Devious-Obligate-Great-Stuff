@@ -1,5 +1,5 @@
 import { modStorage } from "./storage";
-import { getNickname, version } from "zois-core";
+import { getNickname } from "zois-core";
 import { hookFunction, HookPriority } from "zois-core/mod-sdk";
 import { messagesManager } from "zois-core/messaging";
 import { toastsManager } from "zois-core/toasts";
@@ -158,7 +158,7 @@ export function loadRemoteControl(): void {
 					duration: 5000
 				});
 			}
-			
+
 			if (response.data?.wasChanged) {
 				toastsManager.success({
 					message: "Your changes were applied",
@@ -174,5 +174,13 @@ export function loadRemoteControl(): void {
 		}
 		return next(args);
 	});
-}
 
+	hookFunction("DialogDraw", HookPriority.OBSERVE, (args, next) => {
+		if (!CurrentCharacter?.Canvas?.getContext('2d') || !CurrentCharacter?.CanvasBlink?.getContext('2d')) return next(args);
+		if (!remoteControlIsInteracting) return next(args);
+		next(args);
+		CurrentCharacter.Canvas.getContext('2d')!.globalAlpha = 1.0;
+		CurrentCharacter.CanvasBlink.getContext('2d')!.globalAlpha = 1.0;
+		CharacterAppearanceBuildCanvas(CurrentCharacter);
+	});
+}

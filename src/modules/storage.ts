@@ -49,8 +49,7 @@ export interface ModStorage {
         itemGroups?: Partial<Record<AssetGroupItemName, DeviousPadlockSettings>>
     },
     misc: {
-        autoShowChangelog?: boolean
-        deleteLocalMessages?: boolean
+
     }
     version: string
 }
