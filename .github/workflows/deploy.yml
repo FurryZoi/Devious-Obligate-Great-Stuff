@@ -1,11 +1,9 @@
-name: Release DOGS
+name: Deploy DOGS
 permissions:
   contents: write
   pages: write
   id-token: write
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
