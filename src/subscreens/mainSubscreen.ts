@@ -5,9 +5,10 @@ import { syncStorage } from "@/modules/storage";
 import { MOD_DATA, version } from "zois-core";
 import { StyleModule, TypeModule } from "zois-core/shard-modules";
 import { ProfilesSubscreen } from "./profilesSubscreen";
-import { Bug, Code, Code2, createElement, GitPullRequest } from "lucide";
+import { Bug, Code, Code2, createElement, GitPullRequest, PenSquare } from "lucide";
 import { GITHUB_REPO_URL } from "@/constants";
 import { getText } from "zois-core/localization";
+import { showChangelogModal } from "zois-core/changelogs";
 
 export class MainSubscreen extends BaseSubscreen {
     get name(): string {
@@ -90,7 +91,29 @@ export class MainSubscreen extends BaseSubscreen {
                 text: getText("tooltips.view_source_code_on_github"),
                 position: "left"
             },
-            href: GITHUB_REPO_URL
+            href: GITHUB_REPO_URL,
+            modules: {
+                base: [
+                    new StyleModule({
+                        zIndex: "10"
+                    })
+                ]
+            }
+        });
+
+        this.createButton({
+            x: 80,
+            y: 400,
+            width: 90,
+            height: 90,
+            anchor: "bottom-right",
+            icon: createElement(PenSquare),
+            variant: "filled",
+            tooltip: {
+                text: getText("tooltips.view_changelog"),
+                position: "left"
+            },
+            onClick: showChangelogModal
         });
     }
 

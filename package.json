@@ -1,10 +1,11 @@
 {
   "name": "DOGS",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "main": "src/index.ts",
   "scripts": {
     "dev": "esbuild src/index.ts --bundle --minify --legal-comments=none --sourcemap --watch --outfile=dist/bundle.js --loader:.ts=ts --loader:.css=text --loader:.png=dataurl --loader:.svg=dataurl",
-    "build": "node ./build.mjs"
+    "build": "node ./build.mjs",
+    "generate-changelog": "zois-core generate-changelog --owner=FurryZoi --repo=Devious-Obligate-Great-Stuff"
   },
   "keywords": [],
   "author": "",

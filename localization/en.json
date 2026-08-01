@@ -16,7 +16,8 @@
     "tooltips": {
         "report_bug_or_suggest_feature": "Report a bug or suggest a feature",
         "view_source_code_on_github": "View source code on GitHub",
-        "export_profile": "Export padlock's config"
+        "export_profile": "Export padlock's config",
+        "view_changelog": "View changelog"
     },
     "common": {
         "devious_padlock": "Devious Padlock",

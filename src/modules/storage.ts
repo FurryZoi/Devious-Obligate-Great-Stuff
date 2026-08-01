@@ -1,10 +1,8 @@
-import { getModVersion } from "@/index";
-import { getPlayer, MOD_DATA } from "zois-core";
+import { MOD_DATA } from "zois-core";
 import { messagesManager } from "zois-core/messaging";
 import { hookFunction, HookPriority } from "zois-core/mod-sdk";
 import { RemoteConnectMinimumRole } from "./remoteControl";
 import { PutPadlockMinimumRole, KeyHolderMinimumRole, BasePadlock, DeviousPadlockSettings } from "./deviousPadlock";
-import { cloneDeep } from "lodash-es";
 import { logger } from "zois-core/logging";
 
 
@@ -119,7 +117,7 @@ export function initStorage(): void {
         remoteControl: {},
         deviousPadlock: {},
         misc: {},
-        version: getModVersion(),
+        version: MOD_DATA.version,
     };
 
     try {

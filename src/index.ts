@@ -4,7 +4,7 @@ import { loadRemoteControl } from "@/modules/remoteControl";
 import { loadSettingsMenu } from "@/modules/settingsMenu";
 import { loadCommands } from "@/modules/commands";
 import { loadDeviousPadlock } from "@/modules/deviousPadlock";
-import { isVersionNewer, bootstrap, injectStyles } from "zois-core";
+import { isVersionNewer, bootstrap, injectStyles, ModData, waitFor, MOD_DATA } from "zois-core";
 import css from "./styles.css";
 import { toastsManager } from "zois-core/toasts";
 import { messagesManager } from "zois-core/messaging";
@@ -17,14 +17,12 @@ import { GITHUB_REPO_URL } from "./constants";
 import { loadDialogs } from "./modules/dialogs";
 import { logger } from "zois-core/logging";
 import { getText } from "zois-core/localization";
+import changelog from "../changelog.json";
+import { showChangelogModal } from "zois-core/changelogs";
 
-
-export function getModVersion(): string {
-    return version;
-}
 
 export function chatSendChangelog(): void {
-    const text = `<div class="dogsChangelog"><b>DOGS</b> v${getModVersion()}<br><br>Changes: <ul><li>[Change] Replaced "blocked commands" textarea with "prevent cheat commands" checkbox</li><li>[Fix] Fixed a bug with base lock change was not applied due to incorrect validation</li></ul></div>`;
+    const text = `<div class="dogsChangelog"><b>DOGS</b> v${MOD_DATA.version}<br><br>Changes: <ul><li>[Change] Replaced "blocked commands" textarea with "prevent cheat commands" checkbox</li><li>[Fix] Fixed a bug with base lock change was not applied due to incorrect validation</li></ul></div>`;
     messagesManager.sendLocal(text);
 }
 
@@ -34,7 +32,7 @@ bootstrap({
     name: "DOGS",
     fullName: "Devious Obligate Great Stuff",
     key: "DOGS",
-    version: getModVersion(),
+    version,
     repository: GITHUB_REPO_URL,
     fontFamily: CommonGetFontName(),
     subscreens: {
@@ -50,13 +48,15 @@ bootstrap({
         },
         translationsFolderPath: ENV_VARS.IS_DEV === "true" ? `http://localhost:8000/localization` : "https://furryzoi.github.io/Devious-Obligate-Great-Stuff/localization"
     },
+    changelog: {
+        data: changelog as NonNullable<ModData["changelog"]>["data"]
+    },
     onReady: initializeDOGS
 });
 
 function initializeDOGS(): void {
     if (hasInitialized) return;
     hasInitialized = true;
-
 
     injectStyles(css);
 
@@ -66,25 +66,22 @@ function initializeDOGS(): void {
     loadDialogs();
     loadRemoteControl();
     void loadDeviousPadlock();
-    logger.log(`Ready! v${getModVersion()}`);
+    logger.log(`Ready! v${version}`);
     toastsManager.success({
         title: getText(`toasts.mod_loaded`, { name: "DOGS" }),
-        message: `v${getModVersion()}`,
+        message: `v${version}`,
         duration: 4000
     });
 
-    if (isVersionNewer(getModVersion(), modStorage.version)) {
-        if (ServerPlayerIsInChatRoom()) {
-            modStorage.version = getModVersion();
+    if (isVersionNewer(MOD_DATA.version, modStorage.version)) {
+        waitFor(() => !!document.getElementById("InputChat")).then(() => {
+            modStorage.version = version;
             syncStorage();
-            chatSendChangelog();
-        } else {
-            ServerSocket.once("ChatRoomSync", () => {
-                modStorage.version = getModVersion();
-                syncStorage();
-                chatSendChangelog();
-            });
-        }
+            const text = document.createElement("p");
+            text.textContent = "DOGS was updated, click here to read changelog"
+            text.onclick = showChangelogModal;
+            messagesManager.sendLocal(text);
+        });
     }
 }
 
