@@ -1,8 +1,12 @@
 import { build } from "esbuild";
 import dotenv from "dotenv";
-import { readFileSync } from "fs";
+import fs from "fs";
+import copy from "esbuild-plugin-copy";
 
-const envFile = readFileSync(".env", "utf-8");
+if (fs.existsSync("dist")) fs.rmSync("dist", { recursive: true, force: true });
+else fs.mkdirSync("dist");
+
+const envFile = fs.readFileSync(".env", "utf-8");
 const envConfig = dotenv.parse(envFile);
 
 const define = {};
@@ -27,4 +31,13 @@ build({
     platform: "browser",
     tsconfig: "./tsconfig.json",
     define,
+    plugins: [
+        copy({
+            resolveFrom: "cwd",
+            assets: {
+                from: ["./localization/*"],
+                to: ["./dist/localization"]
+            }
+        })
+    ]
 }).catch(() => process.exit(1));
