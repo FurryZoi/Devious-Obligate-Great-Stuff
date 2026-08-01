@@ -14,3 +14,9 @@ interface Window {
     InspectDeviousPadlockClick: MouseEventListener;
     InventoryItemMiscDeviousPadlockLoad: ScreenLoadHandler
 }
+
+declare const ENV_VARS: EnvVars;
+
+interface EnvVars {
+    [key: string]: string | undefined;
+}

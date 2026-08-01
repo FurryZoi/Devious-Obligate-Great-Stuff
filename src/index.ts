@@ -29,7 +29,6 @@ export function chatSendChangelog(): void {
 }
 
 let hasInitialized = false;
-const IS_DEV = true;
 
 bootstrap({
     name: "DOGS",
@@ -49,7 +48,7 @@ bootstrap({
             default: "en",
             supported: ["en", "ru"]
         },
-        translationsFolderPath: IS_DEV ? `http://localhost:8000/localization` : "https://furryzoi.github.io/Devious-Obligate-Great-Stuff/localization"
+        translationsFolderPath: ENV_VARS.IS_DEV === "true" ? `http://localhost:8000/localization` : "https://furryzoi.github.io/Devious-Obligate-Great-Stuff/localization"
     },
     onReady: initializeDOGS
 });
