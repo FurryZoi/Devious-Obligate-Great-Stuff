@@ -6,15 +6,17 @@ import copy from "esbuild-plugin-copy";
 if (fs.existsSync("dist")) fs.rmSync("dist", { recursive: true, force: true });
 else fs.mkdirSync("dist");
 
-const envFile = fs.readFileSync(".env", "utf-8");
-const envConfig = dotenv.parse(envFile);
+const define = {
+    ENV_VARS: "{}"
+};
 
-const define = {};
-for (const key in envConfig) {
-    define[`ENV_VARS.${key}`] = JSON.stringify(envConfig[key]);
+if (fs.existsSync(".env")) {
+    const envFile = fs.readFileSync(".env", "utf-8");
+    const envConfig = dotenv.parse(envFile);
+
+    define["ENV_VARS"] = JSON.stringify(envConfig);
 }
 
-define["ENV_VARS"] = JSON.stringify(envConfig);
 
 build({
     entryPoints: ["./src/index.ts"],
