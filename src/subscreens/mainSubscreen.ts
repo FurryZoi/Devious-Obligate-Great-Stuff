@@ -7,6 +7,7 @@ import { StyleModule, TypeModule } from "zois-core/shard-modules";
 import { ProfilesSubscreen } from "./profilesSubscreen";
 import { Bug, Code, Code2, createElement, GitPullRequest } from "lucide";
 import { GITHUB_REPO_URL } from "@/constants";
+import { getText } from "zois-core/localization";
 
 export class MainSubscreen extends BaseSubscreen {
     get name(): string {
@@ -26,7 +27,15 @@ export class MainSubscreen extends BaseSubscreen {
                 y: 240 + i * 110,
                 width: 700,
                 padding: 2,
+                height: 90,
                 icon: s.buttonIcon,
+                modules: {
+                    text: [
+                        new StyleModule({
+                            maxWidth: "75%"
+                        })
+                    ]
+                }
             });
             btn.style.fontWeight = "bold";
             btn.addEventListener("click", () => {
@@ -35,7 +44,7 @@ export class MainSubscreen extends BaseSubscreen {
         });
 
         this.createCard({
-            name: `Version`,
+            name: getText("common.version"),
             value: MOD_DATA.version,
             anchor: "bottom-right",
             icon: createElement(GitPullRequest),
@@ -57,7 +66,7 @@ export class MainSubscreen extends BaseSubscreen {
             anchor: "bottom-right",
             icon: createElement(Bug),
             tooltip: {
-                text: "Report a bug or suggest a feature",
+                text: getText("tooltips.report_bug_or_suggest_feature"),
                 position: "left"
             },
             href: GITHUB_REPO_URL + "/issues",
@@ -78,7 +87,7 @@ export class MainSubscreen extends BaseSubscreen {
             anchor: "bottom-right",
             icon: createElement(Code2),
             tooltip: {
-                text: "View source code on GitHub",
+                text: getText("tooltips.view_source_code_on_github"),
                 position: "left"
             },
             href: GITHUB_REPO_URL

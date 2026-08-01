@@ -16,6 +16,7 @@ import { ProfilesSubscreen } from "./subscreens/profilesSubscreen";
 import { GITHUB_REPO_URL } from "./constants";
 import { loadDialogs } from "./modules/dialogs";
 import { logger } from "zois-core/logging";
+import { getText } from "zois-core/localization";
 
 
 export function getModVersion(): string {
@@ -28,6 +29,7 @@ export function chatSendChangelog(): void {
 }
 
 let hasInitialized = false;
+const IS_DEV = true;
 
 bootstrap({
     name: "DOGS",
@@ -41,6 +43,13 @@ bootstrap({
         ProfilesSubscreen,
         MainSubscreen,
         RemoteControlSubscreen
+    },
+    localization: {
+        locales: {
+            default: "en",
+            supported: ["en", "ru"]
+        },
+        translationsFolderPath: IS_DEV ? `http://localhost:8000/localization` : "https://furryzoi.github.io/Devious-Obligate-Great-Stuff/localization"
     },
     onReady: initializeDOGS
 });
@@ -60,7 +69,7 @@ function initializeDOGS(): void {
     void loadDeviousPadlock();
     logger.log(`Ready! v${getModVersion()}`);
     toastsManager.success({
-        title: `DOGS loaded`,
+        title: getText(`toasts.mod_loaded`, { name: "DOGS" }),
         message: `v${getModVersion()}`,
         duration: 4000
     });

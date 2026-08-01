@@ -12,6 +12,7 @@ import { SyncPadlockMessageDto } from "@/dto/syncPadlockMessageDto";
 import { UpdatePadlockMessageDto } from "@/dto/updatePadlockMessageDto";
 import { KNOWN_CHEAT_COMMANDS } from "@/constants";
 import { logger } from "zois-core/logging";
+import { getText } from "zois-core/localization";
 
 export const deviousPadlock: AssetDefinition.Item = {
 	Effect: [],
@@ -22,7 +23,7 @@ export const deviousPadlock: AssetDefinition.Item = {
 	Value: 70,
 	Wear: false,
 	RemoveTime: 1000,
-	DynamicDescription(C) { return "Devious Padlock" },
+	DynamicDescription(C) { return getText("common.devious_padlock") },
 };
 
 export enum BasePadlock {

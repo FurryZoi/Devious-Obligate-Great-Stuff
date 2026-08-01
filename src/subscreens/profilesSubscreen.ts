@@ -7,14 +7,15 @@ import { MainSubscreen } from "./mainSubscreen";
 import { dialogsManager } from "zois-core/dialogs";
 import { DeviousPadlockSettingsSubscreen } from "./deviousPadlockSettingsSubscreen";
 import { createElement, Save } from "lucide";
+import { getText } from "zois-core/localization";
 
 export class ProfilesSubscreen extends BaseSubscreen {
     get name(): string {
-        return "Profiles";
+        return getText("settings.profiles.name");
     }
 
     get buttonText(): string {
-        return "Profiles";
+        return getText("settings.profiles.name");
     }
 
     get buttonIcon(): SVGElement {
@@ -29,14 +30,12 @@ export class ProfilesSubscreen extends BaseSubscreen {
             modStorage.deviousPadlock.profiles.length === 0
         ) {
             this.createText({
-                text: "No profiles yet.",
+                text: getText("settings.profiles.profiles_empty"),
                 width: 900,
-                x: (2000 - 900) / 2,
-                y: 460,
                 fontSize: 5,
                 modules: {
                     base: [
-                        // new CenterModule(),
+                        new CenterModule(),
                         new StyleModule({
                             textAlign: "center"
                         })
@@ -98,7 +97,7 @@ export class ProfilesSubscreen extends BaseSubscreen {
                 height: 80,
                 onClick: async () => {
                     const result = await dialogsManager.confirm({
-                        message: "Are you sure you want to delete this config?",
+                        message: getText("dialogs.confirm_config_deleting"),
                     });
                     if (result) {
                         modStorage.deviousPadlock.profiles = modStorage.deviousPadlock.profiles?.filter((c) => c.name !== config.name);

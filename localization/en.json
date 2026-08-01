@@ -1,0 +1,102 @@
+{
+    "toasts": {
+        "mod_loaded": "$name loaded",
+        "correct_combination": "Correct combination",
+        "profile_saved": "Profile saved",
+        "combination_reset": "Combination has been reset",
+        "timer_reset": "Timer has been reset",
+        "profile_applied": "Profile applied to selected locks"
+    },
+    "dialogs": {
+        "confirm_config_deleting": "Are you sure you want to delete this config?",
+        "name_of_profile": "Name of profile",
+        "confirm_profile_overwriting": "Profile with this name already exists. Do you want to overwrite it?",
+        "confirm_padlock_removing": "Are you sure you want to remove padlock?"
+    },
+    "tooltips": {
+        "report_bug_or_suggest_feature": "Report a bug or suggest a feature",
+        "view_source_code_on_github": "View source code on GitHub",
+        "export_profile": "Export padlock's config"
+    },
+    "common": {
+        "devious_padlock": "Devious Padlock",
+        "version": "Version",
+        "minimum_roles": {
+            "public": "Public",
+            "friend": "Friend",
+            "whitelist": "Whitelist",
+            "family": "Family",
+            "lover": "Lover",
+            "owner": "Owner"
+        },
+        "save": "Save",
+        "reset": "Reset"
+    },
+    "settings": {
+        "enabled": "Enabled",
+        "devious_padlock": {
+            "minimum_role_to_put_padlock": "Minimum role to put padlock",
+            "description": "The padlock is made in such a way that the wearer cannot remove it on their own. In the padlock settings you can add notes and configure access rights. By default these padlocks are disabled and cannot be used on you, but you can always change it :3",
+            "escape_tip": "Tip: The witch from the Magic School can help you to remove padlocks if you do not have a high difficulty mode"
+        },
+        "profiles": {
+            "name": "Profiles",
+            "profiles_empty": "No profiles yet."
+        },
+        "remote_control": {
+            "name": "Remote Control",
+            "notify_others": "Notify others",
+            "minimum_role_to_connect_remotely": "Minimum role to connect remotely",
+            "description": "Remote control lets allowed users to remotely change your appearance, now you don't need to be in the same room to change items of your friends. If remote control is disabled then no one can use it on you. Type \"/dogs remote <member number>\" to connect remotely."
+        },
+        "devious_padlock_editor": {
+            "base_padlocks": {
+                "exclusive_padlock": "Exclusive Padlock",
+                "lovers_padlock": "Lovers Padlock",
+                "owner_padlock": "Owner Padlock"
+            },
+            "tabs": {
+                "general": "General",
+                "locking": "Locking",
+                "key_holders": "Key Holders",
+                "note": "Note",
+                "advanced": "Advanced",
+                "syncing": "Syncing"
+            },
+            "protected_from_cheats": "Protected from cheats",
+            "member_number_on_padlock": "Member number on padlock:",
+            "padlock_can_be_unlocked": "Padlock can be unlocked:",
+            "enter_combination": "Enter combination:",
+            "password_placeholder": "Password",
+            "pin_placeholder": "PIN-Code",
+            "remove_padlock": "Remove Padlock",
+            "timer_expires_at": "<b>Timer expires at:</b>",
+            "combination": "<b>Combination</b>",
+            "type_label": "Type:",
+            "combination_placeholder": "Combination",
+            "unlock_time": "<b>Unlock Time</b>",
+            "time_placeholder": "Time",
+            "base_lock": "<b>Base Lock</b>",
+            "additional_unlock_methods": "In addition to the key, the padlock can be unlocked in other ways",
+            "base_lock_description": "The padlock's owner (original applicator) may set the base padlock used in BC. This can reduce the triggers resulting from other users' tampering. Non-Exclusive base locks disables 'Member Numbers' keyholders & forces 'Minimum Role' to at least match the base BC lock.",
+            "minimum_role": "Minimum role",
+            "member_numbers": "Member numbers",
+            "minimum_role_description": "The minimum role which will always have the key to the padlock. Must meet base lock minimum.",
+            "member_numbers_description": "Member numbers which will always have the key to the padlock. Disabled if base lock is not 'Exclusive'",
+            "note_placeholder": "You can leave a note that other DOGS users can see",
+            "prevent_cheat_commands": "Prevent cheat commands executing",
+            "zones_you_can_sync": "Zones you can sync with choosen profile",
+            "zones_you_cant_sync": "Zones you can't sync with choosen profile due limits",
+            "zones_to_sync": "Zones to sync with choosen profile",
+            "zones_already_synced": "Zones already synced with choosen profile",
+            "profile_heading": "<b>Profile</b>",
+            "current_config": "Current Config",
+            "current_config_description": "[This Padlock Settings]",
+            "sync_padlocks": "Sync Padlocks",
+            "sync_description": "Sync specified padlocks with specified profile",
+            "unlock_by_key_note": "<b>1.</b> By those who have the key to this padlock (Owner of padlock, those who fit the minimum role and those whose member numbers are on padlock)",
+            "unlock_by_timer_note": "<b>2.</b> When the timer expires (if it is set on padlock)",
+            "unlock_by_code_note": "<b>3.</b> When the correct code is entered (if padlock accepts codes)"
+        }
+    }
+}

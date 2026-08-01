@@ -6,11 +6,12 @@ import { toastsManager } from "zois-core/toasts";
 import { dialogsManager } from "zois-core/dialogs";
 import { messagesManager } from "zois-core/messaging";
 import { getNickname } from "zois-core";
-import { importAppearance, serverAppearanceBundleToAppearance, smartGetItemName } from "zois-core/wardrobe";
+import { smartGetItemName } from "zois-core/wardrobe";
 import { StyleModule } from "zois-core/shard-modules";
-import { cloneDeep, has, rest, set } from "lodash-es";
+import { cloneDeep } from "lodash-es";
 import { SyncPadlockMessageDto } from "@/dto/syncPadlockMessageDto";
 import { logger } from "zois-core/logging";
+import { getText } from "zois-core/localization";
 
 interface InspectPadlock {
     mode: "inspect-padlock"
@@ -38,23 +39,23 @@ enum ZoneFillColor {
 }
 
 const basePadlockNames = {
-    [BasePadlock.EXCLUSIVE]: "Exclusive Padlock",
-    [BasePadlock.LOVERS]: "Lovers Padlock",
-    [BasePadlock.OWNER]: "Owner Padlock"
+    [BasePadlock.EXCLUSIVE]: () => getText("settings.devious_padlock_editor.base_padlocks.exclusive_padlock"),
+    [BasePadlock.LOVERS]: () => getText("settings.devious_padlock_editor.base_padlocks.lovers_padlock"),
+    [BasePadlock.OWNER]: () => getText("settings.devious_padlock_editor.base_padlocks.owner_padlock")
 };
 
 const minimumRolesNames = {
-    [KeyHolderMinimumRole.EVERYONE_EXCEPT_WEARER]: "Everyone except wearer",
-    [KeyHolderMinimumRole.FRIEND]: "Friend",
-    [KeyHolderMinimumRole.WHITELIST]: "Whitelist",
-    [KeyHolderMinimumRole.FAMILY]: "Family",
-    [KeyHolderMinimumRole.LOVER]: "Lover",
-    [KeyHolderMinimumRole.OWNER]: "Owner"
+    [KeyHolderMinimumRole.EVERYONE_EXCEPT_WEARER]: () => getText("common.minimum_roles.public"),
+    [KeyHolderMinimumRole.FRIEND]: () => getText("common.minimum_roles.friend"),
+    [KeyHolderMinimumRole.WHITELIST]: () => getText("common.minimum_roles.whitelist"),
+    [KeyHolderMinimumRole.FAMILY]: () => getText("common.minimum_roles.family"),
+    [KeyHolderMinimumRole.LOVER]: () => getText("common.minimum_roles.lover"),
+    [KeyHolderMinimumRole.OWNER]: () => getText("common.minimum_roles.owner")
 }
 
 export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
     get name() {
-        return ""
+        return "";
     }
 
     private padlockSettings!: Omit<DeviousPadlockSettings, "item"> & { item: SavedItem | null };
@@ -124,7 +125,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
             if (Array.isArray(combinationElement)) combinationElement.forEach((e) => e.style.setProperty("border-color", "green", "important"));
             else combinationElement.style.setProperty("border-color", "green", "important");
             toastsManager.success({
-                message: "Correct combination",
+                message: getText("toasts.correct_combination"),
                 duration: 3000
             });
         } else {
@@ -139,8 +140,8 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
             }
         }
 
-        document.querySelectorAll("button").forEach((b) => b.textContent === "Save" && b.classList.toggle("zcDisabled", !this.canEdit()));
-        document.querySelectorAll("button").forEach((b) => b.textContent === "Remove Padlock" && b.classList.toggle("zcDisabled", !this.combinationToUnlock.isCorrect));
+        document.querySelectorAll("button").forEach((b) => b.textContent === getText("common.save") && b.classList.toggle("zcDisabled", !this.canEdit()));
+        document.querySelectorAll("button").forEach((b) => b.textContent === getText("settings.devious_padlock_editor.remove_padlock") && b.classList.toggle("zcDisabled", !this.combinationToUnlock.isCorrect));
     }
 
     constructor(args: InspectPadlock)
@@ -195,7 +196,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
         this.combinationToUnlock = {
             value: "",
             isCorrect: null
-        }
+        };
     }
 
     load(): void {
@@ -215,7 +216,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
             width: 400,
             padding: 4,
             variant: "filled",
-            text: "Save",
+            text: getText("common.save"),
             isDisabled: () => !this.canEdit(),
             onClick: async () => {
                 if (this.mode === "inspect-padlock") {
@@ -260,7 +261,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                     }
                     syncStorage();
                     toastsManager.success({
-                        message: "Profile saved",
+                        message: getText("toasts.profile_saved"),
                         duration: 3000
                     });
                 }
@@ -274,12 +275,12 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
             width: 1725,
             tabs: [
                 {
-                    name: "General",
+                    name: getText("settings.devious_padlock_editor.tabs.general"),
                     load: () => {
                         this.keyDownListener = this.onKeyDown.bind(this);
                         window.addEventListener("keydown", this.keyDownListener);
                         this.createText({
-                            text: "Protected from cheats",
+                            text: getText("settings.devious_padlock_editor.protected_from_cheats"),
                             x: 100,
                             y: 200,
                             width: 500,
@@ -289,7 +290,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         }).style.textAlign = "center";
 
                         this.createText({
-                            text: "Member number on padlock: " + this.padlockSettings.owner,
+                            text: getText("settings.devious_padlock_editor.member_number_on_padlock") + " " + this.padlockSettings.owner,
                             width: 800,
                             x: 100,
                             y: 400
@@ -298,28 +299,28 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         this.createText({
                             x: 100,
                             y: 480,
-                            text: "Padlock can be unlocked:"
+                            text: getText("settings.devious_padlock_editor.padlock_can_be_unlocked")
                         }).style.fontWeight = "bold";
 
                         this.createText({
                             x: 140,
                             y: 540,
                             width: 800,
-                            text: "<b>1.</b> By those who have the key to this padlock (Owner of padlock, those who fit the minimum role and those whose member numbers are on padlock)"
+                            text: getText("settings.devious_padlock_editor.unlock_by_key_note")
                         });
 
                         this.createText({
                             x: 140,
                             y: 730,
                             width: 800,
-                            text: "<b>2.</b> When the timer expires (if it is set on padlock)"
+                            text: getText("settings.devious_padlock_editor.unlock_by_timer_note")
                         });
 
                         this.createText({
                             x: 140,
                             y: 830,
                             width: 800,
-                            text: "<b>3.</b> When the correct code is entered (if padlock accepts codes)"
+                            text: getText("settings.devious_padlock_editor.unlock_by_code_note")
                         });
 
                         if (this.mode === "inspect-padlock") {
@@ -331,17 +332,17 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                                 width: 90,
                                 height: 90,
                                 tooltip: {
-                                    text: "Export padlock's config",
+                                    text: getText("tooltips.export_profile"),
                                     position: "left"
                                 },
                                 onClick: async () => {
                                     const result = await dialogsManager.prompt({
-                                        message: "Name of profile"
+                                        message: getText("dialogs.name_of_profile")
                                     });
                                     if (result === false || result.trim() === "") return;
                                     modStorage.deviousPadlock.profiles ??= [];
                                     const configIndex = modStorage.deviousPadlock.profiles.findIndex((c) => c.name === result);
-                                    if (configIndex !== -1 && (await dialogsManager.confirm({ message: "Profile with this name already exists. Do you want to overwrite it?" })) === false) return;
+                                    if (configIndex !== -1 && (await dialogsManager.confirm({ message: getText("dialogs.confirm_profile_overwriting") })) === false) return;
                                     const { owner, item, combination, ...rest } = cloneDeep(this.padlockSettings);
                                     const syncConfig: DeviousPadlockProfile = {
                                         name: result,
@@ -359,7 +360,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
 
                         if (typeof this.padlockSettings.combination?.hash === "string") {
                             this.createText({
-                                text: "Enter combination:",
+                                text: getText("settings.devious_padlock_editor.enter_combination"),
                                 anchor: "top-right",
                                 x: 400,
                                 y: 220,
@@ -373,7 +374,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                                     y: 280,
                                     width: 400,
                                     padding: 2,
-                                    placeholder: this.padlockSettings.combination.type === "password" ? "Password" : "PIN-Code",
+                                    placeholder: this.padlockSettings.combination.type === "password" ? getText("settings.devious_padlock_editor.password_placeholder") : getText("settings.devious_padlock_editor.pin_placeholder"),
                                     value: this.combinationToUnlock.value,
                                     onInput: () => this.checkCombination(combination as HTMLInputElement)
                                 });
@@ -406,7 +407,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                             }
 
                             this.createButton({
-                                text: "Remove Padlock",
+                                text: getText("settings.devious_padlock_editor.remove_padlock"),
                                 anchor: "top-right",
                                 x: 400,
                                 y: 450,
@@ -414,7 +415,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                                 isDisabled: () => !this.combinationToUnlock.isCorrect,
                                 onClick: async () => {
                                     const confirmation = await dialogsManager.confirm({
-                                        message: "Are you sure you want to remove padlock?",
+                                        message: getText("dialogs.confirm_padlock_removing"),
                                     });
                                     if (!confirmation) return;
                                     if (this.target.IsPlayer()) {
@@ -443,7 +444,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
 
                         if (this.padlockSettings.unlockTime) {
                             this.createText({
-                                text: `<b>Timer expires at:</b> ${new Date(this.padlockSettings.unlockTime).toUTCString()}`,
+                                text: `${getText("settings.devious_padlock_editor.timer_expires_at")} ${new Date(this.padlockSettings.unlockTime).toUTCString()}`,
                                 x: 1200,
                                 y: 600,
                                 width: 800
@@ -455,7 +456,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                     }
                 },
                 {
-                    name: "Locking",
+                    name: getText("settings.devious_padlock_editor.tabs.locking"),
                     run: () => {
                         this.drawPolylineArrow({
                             points: [
@@ -496,7 +497,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                     },
                     load: () => {
                         this.createText({
-                            text: "<b>Combination</b>",
+                            text: getText("settings.devious_padlock_editor.combination"),
                             width: 850,
                             x: 100,
                             y: 220,
@@ -505,7 +506,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         });
 
                         const combinationTypeBtn = this.createButton({
-                            text: `Type: ${this.combinationToLock.type === "password" ? "password" : "PIN-Code"}`,
+                            text: `${getText("settings.devious_padlock_editor.type_label")} ${this.combinationToLock.type === "password" ? getText("settings.devious_padlock_editor.password_placeholder") : getText("settings.devious_padlock_editor.pin_placeholder")}`,
                             width: 850,
                             x: 100,
                             y: 325,
@@ -513,14 +514,14 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                             isDisabled: () => !this.canEdit(),
                             onClick: () => {
                                 this.combinationToLock.type = this.combinationToLock.type === "password" ? "PIN-Code" : "password";
-                                combinationTypeBtn.textContent = `Type: ${this.combinationToLock.type === "password" ? "password" : "PIN-Code"}`;
+                                combinationTypeBtn.textContent = `${getText("settings.devious_padlock_editor.type_label")} ${this.combinationToLock.type === "password" ? getText("settings.devious_padlock_editor.password_placeholder") : getText("settings.devious_padlock_editor.pin_placeholder")}`;
                                 combination.setAttribute("maxlength", this.combinationToLock.type === "password" ? "25" : "6");
                                 combination.setAttribute("minlength", this.combinationToLock.type === "password" ? "1" : "6");
                             }
                         });
 
                         const combination = this.createInput({
-                            placeholder: "Combination",
+                            placeholder: getText("settings.devious_padlock_editor.combination_placeholder"),
                             x: 100,
                             y: 435,
                             width: 850,
@@ -540,14 +541,14 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         combination.setAttribute("minlength", this.combinationToLock.type === "password" ? "1" : "6");
 
                         this.createButton({
-                            text: "Reset",
+                            text: getText("common.reset"),
                             x: 100,
                             y: 540,
                             padding: 2,
                             isDisabled: () => !this.canEdit(),
                             onClick: () => {
                                 toastsManager.success({
-                                    message: "Combination has been reset",
+                                    message: getText("toasts.combination_reset"),
                                     duration: 3500
                                 });
                                 this.combinationToLock.value = "";
@@ -557,7 +558,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         });
 
                         this.createText({
-                            text: "<b>Unlock Time</b>",
+                            text: getText("settings.devious_padlock_editor.unlock_time"),
                             x: 1050,
                             y: 220,
                             width: 850,
@@ -576,7 +577,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                             y: 325,
                             width: 850,
                             padding: 2,
-                            placeholder: "Time",
+                            placeholder: getText("settings.devious_padlock_editor.time_placeholder"),
                             value: unlockTimeValue,
                             onChange: () => {
                                 this.padlockSettings.unlockTime = new Date(unlockTime.value).toISOString();
@@ -586,14 +587,14 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         unlockTime.setAttribute("type", "datetime-local");
 
                         this.createButton({
-                            text: "Reset",
+                            text: getText("common.reset"),
                             x: 1050,
                             y: 430,
                             padding: 2,
                             isDisabled: () => !this.canEdit(),
                             onClick: () => {
                                 toastsManager.success({
-                                    message: "Timer has been reset",
+                                    message: getText("toasts.timer_reset"),
                                     duration: 3500
                                 });
                                 this.padlockSettings.unlockTime = "";
@@ -602,7 +603,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         });
 
                         this.createText({
-                            text: "<b>Base Lock</b>",
+                            text: getText("settings.devious_padlock_editor.base_lock"),
                             x: 100,
                             y: 660,
                             width: 850,
@@ -618,7 +619,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                             currentIndex: Object.values(BasePadlock)
                                 .indexOf(this.padlockSettings.baseLock!),
                             items: Object.values(BasePadlock)
-                                .map((r) => [basePadlockNames[r], r]),
+                                .map((r) => [basePadlockNames[r](), r]),
                             onChange: (value) => {
                                 this.padlockSettings.baseLock = value;
                                 this.padlockSettings.minimumRole = basePadlockMinimumRole(value, this.padlockSettings.minimumRole);
@@ -634,20 +635,22 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         });
 
                         this.createText({
-                            text: "In addition to the key, the padlock can be unlocked in other ways",
+                            text: getText("settings.devious_padlock_editor.additional_unlock_methods"),
                             x: 80,
                             y: 210,
                             width: 400,
+                            height: 265,
                             anchor: "bottom-right",
                             withBackground: true,
                             padding: 2
                         });
 
                         this.createText({
-                            text: "The padlock's owner (original applicator) may set the base padlock used in BC. This can reduce the triggers resulting from other users' tampering. Non-Exclusive base locks disables 'Member Numbers' keyholders & forces 'Minimum Role' to at least match the base BC lock.",
+                            text: getText("settings.devious_padlock_editor.base_lock_description"),
                             x: 510,
-                            y: 60,
+                            y: 75,
                             width: 510,
+                            height: 350,
                             fontSize: 3,
                             anchor: "bottom-right",
                             withBackground: true,
@@ -656,10 +659,10 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                     }
                 },
                 {
-                    name: "Key Holders",
+                    name: getText("settings.devious_padlock_editor.tabs.key_holders"),
                     load: () => {
                         this.createText({
-                            text: "Minimum role",
+                            text: getText("settings.devious_padlock_editor.minimum_role"),
                             x: 100,
                             y: 200,
                             width: 800,
@@ -675,7 +678,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                                 .indexOf(this.padlockSettings.minimumRole!),
                             items: Object.values(KeyHolderMinimumRole)
                                 .slice(Object.values(KeyHolderMinimumRole).length / 2)
-                                .map((r) => [minimumRolesNames[r as KeyHolderMinimumRole], r]),
+                                .map((r) => [minimumRolesNames[r as KeyHolderMinimumRole](), r]),
                             onChange: (value) => this.padlockSettings.minimumRole = value,
                             isDisabled: (value) => {
                                 if (this.mode === "edit-sync-config") return false;
@@ -688,7 +691,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         });
 
                         this.createInputList({
-                            title: "Member numbers",
+                            title: getText("settings.devious_padlock_editor.member_numbers"),
                             x: 100,
                             y: 425,
                             width: 800,
@@ -703,18 +706,20 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
 
                         this.createText({
                             x: 1200,
-                            y: 259,
+                            y: 210,
                             width: 700,
-                            text: "The minimum role which will always have the key to the padlock. Must meet base lock minimum.",
+                            height: 200,
+                            text: getText("settings.devious_padlock_editor.minimum_role_description"),
                             withBackground: true,
                             padding: 2
                         });
 
                         this.createText({
                             x: 1000,
-                            y: 500,
+                            y: 450,
                             width: 900,
-                            text: "Member numbers which will always have the key to the padlock. Disabled if base lock is not 'Exclusive'",
+                            height: 175,
+                            text: getText("settings.devious_padlock_editor.member_numbers_description"),
                             withBackground: true,
                             padding: 2
                         });
@@ -760,7 +765,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                     }
                 },
                 {
-                    name: "Note",
+                    name: getText("settings.devious_padlock_editor.tabs.note"),
                     load: () => {
                         const note = this.createInput({
                             x: 200,
@@ -769,7 +774,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                             height: 600,
                             textArea: true,
                             value: this.padlockSettings.note,
-                            placeholder: "You can leave a note that other DOGS users can see",
+                            placeholder: getText("settings.devious_padlock_editor.note_placeholder"),
                             isDisabled: () => !this.canEdit(),
                             onChange: () => {
                                 this.padlockSettings.note = note.value;
@@ -778,10 +783,10 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                     }
                 },
                 {
-                    name: "Advanced",
+                    name: getText("settings.devious_padlock_editor.tabs.advanced"),
                     load: () => {
                         this.createCheckbox({
-                            text: "Prevent cheat commands executing",
+                            text: getText("settings.devious_padlock_editor.prevent_cheat_commands"),
                             x: 100,
                             y: 200,
                             width: 800,
@@ -794,7 +799,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                     }
                 },
                 this.mode === "inspect-padlock" && {
-                    name: "Syncing",
+                    name: getText("settings.devious_padlock_editor.tabs.syncing"),
                     run: async () => {
                         DrawCharacter(this.syncTabCanvasCharacter, 1550, 125, 0.85, true);
                         for (const group of AssetGroup) {
@@ -838,7 +843,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         this.onClickListener = this.onClick.bind(this);
                         window.addEventListener("click", this.onClickListener);
                         this.saveButtonElement.style.display = "none";
-                        this.syncingSelectedProfileName = "Current Config";
+                        this.syncingSelectedProfileName = getText("settings.devious_padlock_editor.current_config");
                         const { item, owner, ...rest } = this.padlockSettings;
                         //@ts-expect-error
                         this.syncingSelectedProfile ??= {};
@@ -860,11 +865,12 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         });
 
                         this.createText({
-                            text: "Zones you can sync with choosen profile",
+                            text: getText("settings.devious_padlock_editor.zones_you_can_sync"),
                             x: 1300,
                             y: 220,
                             fontSize: 2.5,
-                            width: 280
+                            width: 280,
+                            height: 60
                         });
 
                         this.createContainer({
@@ -883,11 +889,12 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         });
 
                         this.createText({
-                            text: "Zones you can't sync with choosen profile due limits",
+                            text: getText("settings.devious_padlock_editor.zones_you_cant_sync"),
                             x: 1300,
                             y: 300,
                             fontSize: 2.5,
-                            width: 280
+                            width: 280,
+                            height: 90
                         });
 
                         this.createContainer({
@@ -906,11 +913,12 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         });
 
                         this.createText({
-                            text: "Zones to sync with choosen profile",
+                            text: getText("settings.devious_padlock_editor.zones_to_sync"),
                             x: 1300,
                             y: 400,
                             fontSize: 2.5,
-                            width: 280
+                            width: 280,
+                            height: 60
                         });
 
                         this.createContainer({
@@ -929,15 +937,16 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         });
 
                         this.createText({
-                            text: "Zones already synced with choosen profile",
+                            text: getText("settings.devious_padlock_editor.zones_already_synced"),
                             x: 1300,
                             y: 480,
                             fontSize: 2.5,
-                            width: 280
+                            width: 280,
+                            height: 60
                         });
 
                         this.createText({
-                            text: "<b>Profile</b>",
+                            text: getText("settings.devious_padlock_editor.profile_heading"),
                             x: 200,
                             y: 220,
                             width: 600,
@@ -951,8 +960,8 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                             width: 600,
                             options: [
                                 {
-                                    name: "Current Config",
-                                    text: "[This Padlock Settings]"
+                                    name: getText("settings.devious_padlock_editor.current_config"),
+                                    text: getText("settings.devious_padlock_editor.current_config_description")
                                 },
                                 ...(
                                     modStorage.deviousPadlock.profiles?.map((c) => ({
@@ -962,7 +971,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                                 ) ?? []
                             ],
                             onChange: async (configName) => {
-                                if (configName === "Current Config") {
+                                if (configName === getText("settings.devious_padlock_editor.current_config") || configName === "Current Config") {
                                     const { item, owner, ...rest } = this.padlockSettings;
                                     this.syncingSelectedProfile.padlockSettings = rest;
                                     this.syncingSelectedProfileName = configName;
@@ -987,7 +996,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         });
 
                         this.createButton({
-                            text: "Sync Padlocks",
+                            text: getText("settings.devious_padlock_editor.sync_padlocks"),
                             x: 200,
                             y: 815,
                             padding: 2,
@@ -1017,14 +1026,14 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                                 }
                                 this.exit();
                                 toastsManager.success({
-                                    message: "Profile applied to selected locks",
+                                    message: getText("toasts.profile_applied"),
                                     duration: 3000
                                 });
                             }
                         });
 
                         this.createText({
-                            text: `Sync specified padlocks with specified profile`,
+                            text: getText("settings.devious_padlock_editor.sync_description"),
                             x: 200,
                             y: 450,
                             width: 800,
@@ -1038,7 +1047,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                     }
                 }
             ].filter(t => !!t),
-            currentTabName: "General"
+            currentTabName: getText("settings.devious_padlock_editor.tabs.general")
         });
     }
 

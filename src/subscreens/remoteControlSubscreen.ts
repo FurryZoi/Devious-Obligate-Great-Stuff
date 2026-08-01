@@ -2,21 +2,22 @@ import { BaseSubscreen } from "zois-core/ui";
 import { modStorage } from "@/modules/storage";
 import { RemoteConnectMinimumRole } from "@/modules/remoteControl";
 import { createElement, Radio } from "lucide";
+import { getText } from "zois-core/localization";
 
 const remoteConnectMinimumRolesNames = {
-    [RemoteConnectMinimumRole.FRIEND]: "Friend",
-    [RemoteConnectMinimumRole.WHITELIST]: "Whitelist",
-    [RemoteConnectMinimumRole.LOVER]: "Lover",
-    [RemoteConnectMinimumRole.OWNER]: "Owner"
+    [RemoteConnectMinimumRole.FRIEND]: () => getText("common.minimum_roles.friend"),
+    [RemoteConnectMinimumRole.WHITELIST]: () => getText("common.minimum_roles.whitelist"),
+    [RemoteConnectMinimumRole.LOVER]: () => getText("common.minimum_roles.lover"),
+    [RemoteConnectMinimumRole.OWNER]: () => getText("common.minimum_roles.owner")
 };
 
 export class RemoteControlSubscreen extends BaseSubscreen {
     get name(): string {
-        return "Remote Control";
+        return getText("settings.remote_control.name");
     }
 
     get buttonText(): string {
-        return "Remote Control";
+        return getText("settings.remote_control.name");
     }
 
     get buttonIcon(): SVGElement {
@@ -26,7 +27,7 @@ export class RemoteControlSubscreen extends BaseSubscreen {
     load(): void {
         super.load?.();
         this.createCheckbox({
-            text: "Enabled",
+            text: getText("settings.enabled"),
             x: 100,
             y: 300,
             isChecked: !!modStorage.remoteControl.state,
@@ -36,7 +37,7 @@ export class RemoteControlSubscreen extends BaseSubscreen {
         });
 
         this.createCheckbox({
-            text: "Notify others",
+            text: getText("settings.remote_control.notify_others"),
             x: 100,
             y: 400,
             isChecked: modStorage.remoteControl.notifyOthers ?? true,
@@ -46,10 +47,11 @@ export class RemoteControlSubscreen extends BaseSubscreen {
         });
 
         this.createText({
-            text: "Minimum role to connect remotely",
+            text: getText("settings.remote_control.minimum_role_to_connect_remotely"),
             x: 100,
             y: 520,
-            width: 750
+            width: 750,
+            height: 50
         }).style.textAlign = "center";
 
         this.createBackNextButton({
@@ -61,7 +63,7 @@ export class RemoteControlSubscreen extends BaseSubscreen {
             items: Object.values(RemoteConnectMinimumRole)
                 .slice(Object.values(RemoteConnectMinimumRole).length / 2)
                 .map((r) => {
-                    return [remoteConnectMinimumRolesNames[r as RemoteConnectMinimumRole], r];
+                    return [remoteConnectMinimumRolesNames[r as RemoteConnectMinimumRole](), r];
                 }),
             onChange(value) {
                 modStorage.remoteControl.connectMinimumRole = value
@@ -69,7 +71,7 @@ export class RemoteControlSubscreen extends BaseSubscreen {
         });
 
         this.createText({
-            text: `Remote control lets allowed users to remotely change your appearance, now you don't need to be in the same room to change items of your friends. If remote control is disabled then no one can use it on you. Type "/dogs remote <member number>" to connect remotely.`,
+            text: getText("settings.remote_control.description"),
             x: 925,
             y: 250,
             width: 800,
