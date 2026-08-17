@@ -1,71 +1,16 @@
 {
-  "generated_at": "2026-08-01T11:33:59.531Z",
+  "generated_at": "2026-08-17T19:54:00.968Z",
   "changes": [
     {
-      "message": "Switch to manual workflow trigger",
-      "sha": "1115be8fbab3fc19f6a0252272bd930d1bc949f2",
+      "message": "Fix checkbox rendering on Chromium and issues with scrolls",
+      "sha": "d116b70662b31aaaa48e08446c22948840f12288",
       "author": {
         "name": "FurryZoi",
         "avatar_url": "https://avatars.githubusercontent.com/u/170041826?v=4"
       },
-      "date": "2026-08-01T11:27:10Z",
-      "tags": ["chore"],
-      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/1115be8fbab3fc19f6a0252272bd930d1bc949f2"
-    },
-    {
-      "message": "Update addon build script",
-      "sha": "bc872587d8ceb4ec5743a0cd1eb1d63e9f377223",
-      "author": {
-        "name": "FurryZoi",
-        "avatar_url": "https://avatars.githubusercontent.com/u/170041826?v=4"
-      },
-      "date": "2026-08-01T11:19:32Z",
-      "tags": ["chore"],
-      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/bc872587d8ceb4ec5743a0cd1eb1d63e9f377223"
-    },
-    {
-      "message": "Add environment variables injection",
-      "sha": "8601a5c0f97408e939d577fc57b0a69f949cb712",
-      "author": {
-        "name": "FurryZoi",
-        "avatar_url": "https://avatars.githubusercontent.com/u/170041826?v=4"
-      },
-      "date": "2026-08-01T11:05:47Z",
-      "tags": ["chore"],
-      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/8601a5c0f97408e939d577fc57b0a69f949cb712"
-    },
-    {
-      "message": "Add ru localization",
-      "sha": "88de5ff2e6d30805abb4b6d807fafe5e36e6fa8a",
-      "author": {
-        "name": "FurryZoi",
-        "avatar_url": "https://avatars.githubusercontent.com/u/170041826?v=4"
-      },
-      "date": "2026-08-01T10:37:52Z",
-      "tags": ["localization"],
-      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/88de5ff2e6d30805abb4b6d807fafe5e36e6fa8a"
-    },
-    {
-      "message": "Prevent character from being transparent when connected remotely",
-      "sha": "5e96c5704577849bf830ee022df88a10cb5e9f85",
-      "author": {
-        "name": "FurryZoi",
-        "avatar_url": "https://avatars.githubusercontent.com/u/170041826?v=4"
-      },
-      "date": "2026-07-28T09:29:00Z",
+      "date": "2026-08-17T19:49:25Z",
       "tags": ["fix"],
-      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/5e96c5704577849bf830ee022df88a10cb5e9f85"
-    },
-    {
-      "message": "Update deps and migrate to zois-core v2",
-      "sha": "a3dab12a97c48829da8f4f07a9c1b04576d28f75",
-      "author": {
-        "name": "FurryZoi",
-        "avatar_url": "https://avatars.githubusercontent.com/u/170041826?v=4"
-      },
-      "date": "2026-07-27T17:10:12Z",
-      "tags": ["chore"],
-      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/a3dab12a97c48829da8f4f07a9c1b04576d28f75"
+      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/d116b70662b31aaaa48e08446c22948840f12288"
     }
   ]
 }
