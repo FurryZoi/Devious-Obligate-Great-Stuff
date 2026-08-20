@@ -20,11 +20,6 @@ import changelog from "../changelog.json";
 import { showChangelogModal } from "zois-core/changelogs";
 
 
-export function chatSendChangelog(): void {
-    const text = `<div class="dogsChangelog"><b>DOGS</b> v${MOD_DATA.version}<br><br>Changes: <ul><li>[Change] Replaced "blocked commands" textarea with "prevent cheat commands" checkbox</li><li>[Fix] Fixed a bug with base lock change was not applied due to incorrect validation</li></ul></div>`;
-    messagesManager.sendLocal(text);
-}
-
 let hasInitialized = false;
 
 bootstrap({

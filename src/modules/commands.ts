@@ -1,7 +1,6 @@
 import { toastsManager } from "zois-core/toasts";
 import { messagesManager } from "zois-core/messaging";
 import { setRemoteControlIsInteracting } from "./remoteControl";
-import { chatSendChangelog } from "@/index";
 
 
 interface Command {
@@ -22,11 +21,6 @@ const commands: Command[] = [
             }
             messagesManager.sendLocal(msg);
         }
-    },
-    {
-        name: "changelog",
-        description: "Show latest DOGS changelog",
-        action: chatSendChangelog
     },
     {
         name: "remote",
