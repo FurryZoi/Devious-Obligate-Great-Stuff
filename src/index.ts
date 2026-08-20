@@ -4,8 +4,7 @@ import { loadRemoteControl } from "@/modules/remoteControl";
 import { loadSettingsMenu } from "@/modules/settingsMenu";
 import { loadCommands } from "@/modules/commands";
 import { loadDeviousPadlock } from "@/modules/deviousPadlock";
-import { isVersionNewer, bootstrap, injectStyles, ModData, waitFor, MOD_DATA } from "zois-core";
-import css from "./styles.css";
+import { isVersionNewer, bootstrap, ModData, waitFor, MOD_DATA } from "zois-core";
 import { toastsManager } from "zois-core/toasts";
 import { messagesManager } from "zois-core/messaging";
 import { version } from "../package.json";
@@ -57,8 +56,6 @@ bootstrap({
 function initializeDOGS(): void {
     if (hasInitialized) return;
     hasInitialized = true;
-
-    injectStyles(css);
 
     initStorage();
     loadSettingsMenu();
