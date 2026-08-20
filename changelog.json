@@ -1,16 +1,28 @@
 {
-  "generated_at": "2026-08-17T19:54:00.968Z",
+  "generated_at": "2026-08-20T19:58:53.242Z",
   "changes": [
     {
-      "message": "Fix checkbox rendering on Chromium and issues with scrolls",
-      "sha": "d116b70662b31aaaa48e08446c22948840f12288",
+      "message": "Delete changelog chat command",
+      "sha": "52dae8504db6dc50b63065aea48191af1d2ca6a7",
       "author": {
         "name": "FurryZoi",
         "avatar_url": "https://avatars.githubusercontent.com/u/170041826?v=4"
       },
-      "date": "2026-08-17T19:49:25Z",
+      "date": "2026-08-20T19:58:11Z",
+      "tags": [],
+      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/52dae8504db6dc50b63065aea48191af1d2ca6a7"
+    },
+    {
+      "message": "Delete global reset styles",
+      "note": "This is a 100 commit :>",
+      "sha": "c9d429d05be0da4f2eed57f65ed0d67b2525df17",
+      "author": {
+        "name": "FurryZoi",
+        "avatar_url": "https://avatars.githubusercontent.com/u/170041826?v=4"
+      },
+      "date": "2026-08-20T17:21:45Z",
       "tags": ["fix"],
-      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/d116b70662b31aaaa48e08446c22948840f12288"
+      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/c9d429d05be0da4f2eed57f65ed0d67b2525df17"
     }
   ]
 }
