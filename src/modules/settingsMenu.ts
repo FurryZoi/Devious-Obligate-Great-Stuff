@@ -1,5 +1,5 @@
-import slaveryImage from "@/images/slavery.png";
-import { MainSubscreen } from "@/subscreens/mainSubscreen";
+import slaveryImage from "images/slavery.png";
+import { MainSubscreen } from "subscreens/mainSubscreen";
 import { getCurrentSubscreen, setSubscreen } from "zois-core/ui";
 
 

@@ -1,6 +1,6 @@
 import { BaseSubscreen } from "zois-core/ui";
-import { modStorage } from "@/modules/storage";
-import { RemoteConnectMinimumRole } from "@/modules/remoteControl";
+import { modStorage } from "modules/storage";
+import { RemoteConnectMinimumRole } from "modules/remoteControl";
 import { createElement, Radio } from "lucide";
 import { getText } from "zois-core/localization";
 
@@ -12,20 +12,19 @@ const remoteConnectMinimumRolesNames = {
 };
 
 export class RemoteControlSubscreen extends BaseSubscreen {
-    get name(): string {
+    public get name(): string {
         return getText("settings.remote_control.name");
     }
 
-    get buttonText(): string {
+    public get buttonText(): string {
         return getText("settings.remote_control.name");
     }
 
-    get buttonIcon(): SVGElement {
+    public get buttonIcon(): SVGElement {
         return createElement(Radio);
     }
 
-    load(): void {
-        super.load?.();
+    public onLoad(): void {
         this.createCheckbox({
             text: getText("settings.enabled"),
             x: 100,

@@ -1,27 +1,25 @@
-import { BasePadlock, DeviousPadlockUpdateData, KeyHolderMinimumRole } from "@/modules/deviousPadlock";
+import { BasePadlock, DeviousPadlockUpdateData, KeyHolderMinimumRole } from "src/modules/deviousPadlock";
 import { IsArray, IsBoolean, isEnum, IsIn, IsNumber, IsOptional, IsString, Matches, Type, ValidateNested, } from "zois-core/validation";
-import { ValidateCustom } from "./validate";
+import { ValidateWith } from "./decorators";
 
 class CombinationToLockDto {
-    @IsIn(['PIN-Code', 'password'])
-    // @ts-expect-error
-    type: "PIN-Code" | "password";
+    @IsIn(["PIN-Code", "password"])
+    type!: "PIN-Code" | "password";
 
     @IsString()
     @Matches(/^[a-zA-Z0-9!@#$%^&*]+$/, {
-        message: 'combination contains invalid characters'
+        message: "combination contains invalid characters"
     })
-    // @ts-expect-error
-    value: string;
+    value!: string;
 }
 
 export class PadlockConfigDto implements DeviousPadlockUpdateData {
     @IsOptional()
-    @ValidateCustom((dto) => isEnum(dto.baseLock, BasePadlock))
+    @ValidateWith((dto) => isEnum(dto.baseLock, BasePadlock))
     baseLock?: BasePadlock;
 
     @IsOptional()
-    @ValidateCustom((dto) => isEnum(dto.minimumRole, KeyHolderMinimumRole))
+    @ValidateWith((dto) => isEnum(dto.minimumRole, KeyHolderMinimumRole))
     minimumRole?: KeyHolderMinimumRole;
 
     @IsOptional()
@@ -39,7 +37,7 @@ export class PadlockConfigDto implements DeviousPadlockUpdateData {
 
     @IsOptional()
     @IsString()
-    @ValidateCustom((obj: PadlockConfigDto) => {
+    @ValidateWith((obj: PadlockConfigDto) => {
         const date = new Date(obj.unlockTime ?? "");
         return !isNaN(date.getTime());
     }, { message: "unlockTime must be a valid ISO date string" })
@@ -48,8 +46,7 @@ export class PadlockConfigDto implements DeviousPadlockUpdateData {
     @IsOptional()
     @Type(() => CombinationToLockDto)
     @ValidateNested()
-    // @ts-expect-error
-    combinationToLock: CombinationToLockDto
+    combinationToLock?: CombinationToLockDto
 
     @IsOptional()
     @IsString()
@@ -58,15 +55,13 @@ export class PadlockConfigDto implements DeviousPadlockUpdateData {
 
 export class UpdatePadlockMessageDto {
     @IsString()
-    @ValidateCustom((obj) => {
+    @ValidateWith((obj) => {
         const g = AssetGroupGet("Female3DCG", obj.groupName);
-        return !!(g && g.IsItem);
+        return !!g && g.IsItem();
     })
-    // @ts-expect-error
-    groupName: AssetGroupItemName;
+    groupName!: AssetGroupItemName;
 
     @Type(() => PadlockConfigDto)
     @ValidateNested()
-    // @ts-expect-error
-    config: PadlockConfigDto;
+    config!: PadlockConfigDto;
 }

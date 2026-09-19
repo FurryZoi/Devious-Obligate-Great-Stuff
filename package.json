@@ -3,9 +3,10 @@
   "version": "2.2.2",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "esbuild src/index.ts --bundle --minify --legal-comments=none --sourcemap --watch --outfile=dist/bundle.js --loader:.ts=ts --loader:.css=text --loader:.png=dataurl --loader:.svg=dataurl",
-    "build": "node ./build.mjs",
-    "generate-changelog": "zois-core generate-changelog --owner=FurryZoi --repo=Devious-Obligate-Great-Stuff"
+    "dev": "node ./scripts/dev.mjs",
+    "build": "node ./scripts/build.mjs",
+    "build:dev": "node ./scripts/build.mjs --dev",
+    "generate-changelog": "zois-core generate-changelog"
   },
   "keywords": [],
   "author": "",
@@ -13,9 +14,11 @@
   "description": "",
   "devDependencies": {
     "@types/lodash-es": "^4.17.12",
+    "chalk": "^6.0.0",
     "dotenv": "^17.4.2",
     "esbuild": "^0.28.1",
     "esbuild-plugin-copy": "^2.1.1",
+    "open": "^11.0.4",
     "typescript": "^7.0.2"
   },
   "dependencies": {
@@ -23,7 +26,7 @@
     "lodash-es": "^4.18.1",
     "lucide": "^1.29.0",
     "reflect-metadata": "^0.2.2",
-    "zois-core": "^2.1.1"
+    "zois-core": "^2.2.1"
   },
   "pnpm": {
     "overrides": {},

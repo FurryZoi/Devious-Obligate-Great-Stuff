@@ -1,6 +1,6 @@
 import { BaseSubscreen } from "zois-core/ui";
-import { modStorage, SavedItem } from "@/modules/storage";
-import { PutPadlockMinimumRole } from "@/modules/deviousPadlock";
+import { modStorage, SavedItem } from "modules/storage";
+import { PutPadlockMinimumRole } from "src/modules/deviousPadlock";
 import { toastsManager } from "zois-core/toasts";
 import { createElement, LockKeyhole } from "lucide";
 import { getText } from "zois-core/localization";
@@ -15,20 +15,19 @@ const putPadlockMinimumRolesNames = {
 } as const;
 
 export class DeviousPadlockSubscreen extends BaseSubscreen {
-    get name(): string {
+    public get name(): string {
         return getText("common.devious_padlock");
     }
 
-    get buttonText(): string {
+    public get buttonText(): string {
         return getText("common.devious_padlock");
     }
 
-    get buttonIcon(): SVGElement {
+    public get buttonIcon(): SVGElement {
         return createElement(LockKeyhole);
     }
 
-    load(): void {
-        super.load?.();
+    public onLoad(): void {
         this.createCheckbox({
             text: getText("settings.enabled"),
             x: 100,

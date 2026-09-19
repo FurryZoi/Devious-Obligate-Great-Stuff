@@ -1,7 +1,6 @@
-import { BaseSubscreen, setSubscreen } from "zois-core/ui";
-import icon from "@/images/settings-devious-padlock.png";
-import { ModStorage, modStorage, DeviousPadlockProfile, syncStorage, SavedItem } from "@/modules/storage";
-import { BasePadlock, basePadlockMinimumRole, canSetKeyHolderMinimumRole, canUseBasePadlock, changePadlockSettings, deviousPadlock, DeviousPadlockSettings, DeviousPadlockUpdateData, getPadlockSettings, hashCombination, hasKeyToPadlock, isItemGroupSynced, isItemGroupSyncedWithConfig, KeyHolderMinimumRole, syncPadlockConfigurationWithItemGroups, unsyncItemGroups, validatePadlockSettingsUpdate } from "@/modules/deviousPadlock";
+import { BaseSubscreen } from "zois-core/ui";
+import { modStorage, DeviousPadlockProfile, syncStorage, type SavedItem } from "modules/storage";
+import { BasePadlock, basePadlockMinimumRole, canSetKeyHolderMinimumRole, canUseBasePadlock, changePadlockSettings, deviousPadlock, DeviousPadlockSettings, DeviousPadlockUpdateData, getPadlockSettings, hashCombination, hasKeyToPadlock, isItemGroupSynced, isItemGroupSyncedWithConfig, KeyHolderMinimumRole, syncPadlockConfigurationWithItemGroups, unsyncItemGroups, validatePadlockSettingsUpdate } from "src/modules/deviousPadlock";
 import { toastsManager } from "zois-core/toasts";
 import { dialogsManager } from "zois-core/dialogs";
 import { messagesManager } from "zois-core/messaging";
@@ -9,9 +8,11 @@ import { getNickname } from "zois-core";
 import { smartGetItemName } from "zois-core/wardrobe";
 import { StyleModule } from "zois-core/shard-modules";
 import { cloneDeep } from "lodash-es";
-import { SyncPadlockMessageDto } from "@/dto/syncPadlockMessageDto";
+import { SyncPadlockMessageDto } from "dto/syncPadlockMessageDto";
 import { logger } from "zois-core/logging";
 import { getText } from "zois-core/localization";
+import { RemovePadlockMessageDto } from "src/dto/removePadlockMessageDto";
+import { UpdatePadlockMessageDto } from "src/dto/updatePadlockMessageDto";
 
 interface InspectPadlock {
     mode: "inspect-padlock"
@@ -54,7 +55,7 @@ const minimumRolesNames = {
 }
 
 export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
-    get name() {
+    public get name() {
         return "";
     }
 
@@ -74,7 +75,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
     private pincodeCombinationInputs: HTMLInputElement[] = [];
     private syncTabCanvasCharacter!: Character;
     private saveButtonElement!: HTMLButtonElement;
-    private zoneNamesToSync: AssetGroupName[] = [];
+    private zoneNamesToSync: AssetGroupItemName[] = [];
     private syncingSelectedProfile!: {
         settings: DeviousPadlockProfile
         padlockSettings: Omit<DeviousPadlockSettings, "item" | "owner">
@@ -82,12 +83,12 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
     private syncingSelectedProfileName!: string;
     private mode: InspectPadlock["mode"] | EditSyncConfig["mode"];
     private currentSyncConfigName!: string;
+    private generalKeyDownListener: ((e: KeyboardEvent) => void) | null = null;
+    private syncingClickListener: ((e: MouseEvent) => void) | null = null;
 
     private canEdit = () => this.itemGroupName === undefined || hasKeyToPadlock(this.itemGroupName, Player, this.target) || this.combinationToUnlock.isCorrect;
-    private keyDownListener!: (e: KeyboardEvent) => void;
-    private onClickListener!: (e: MouseEvent) => void;
 
-    private onKeyDown(e: KeyboardEvent): void {
+    private generalKeyDown(e: KeyboardEvent): void {
         if (this.pincodeCombinationInputs.length === 0) return;
         if (e.key === "Backspace") {
             const t = this.pincodeCombinationInputs.toReversed().find((w) => w.value !== "");
@@ -101,14 +102,14 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
         if (emptyInput) emptyInput.focus();
     }
 
-    private onClick(e: MouseEvent): void {
+    private syncingClick(e: MouseEvent): void {
         for (const group of AssetGroup) {
             if (!Array.isArray(group.Zone)) continue;
             const groupItem = InventoryGet(this.target, group.Name);
             if (!groupItem) continue;
-            if (!group.IsItem) continue;
+            if (!group.IsItem()) continue;
             if (groupItem.Property?.Name !== deviousPadlock.Name) continue;
-            if (!hasKeyToPadlock(group.Name as AssetGroupItemName, Player, this.target)) continue;
+            if (!hasKeyToPadlock(group.Name, Player, this.target)) continue;
             if (DialogClickedInZone(this.syncTabCanvasCharacter, group.Zone[0], 0.8, 1550, 160, this.syncTabCanvasCharacter.HeightRatio)) {
                 if (this.zoneNamesToSync.includes(group.Name)) this.zoneNamesToSync.splice(this.zoneNamesToSync.indexOf(group.Name), 1);
                 else this.zoneNamesToSync.push(group.Name);
@@ -168,7 +169,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                     ...args.syncConfig,
                     combination: {
                         ...args.syncConfig.combination!,
-                        hash: undefined
+                        hash: ""
                     },
                     item: null,
                     name: undefined,
@@ -187,11 +188,11 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
             }
         }
 
-        if (this.padlockSettings.minimumRole === undefined) this.padlockSettings.minimumRole = KeyHolderMinimumRole.EVERYONE_EXCEPT_WEARER;
-        if (this.padlockSettings.memberNumbers === undefined) this.padlockSettings.memberNumbers = [];
-        if (this.padlockSettings.preventCheatCommands === undefined) this.padlockSettings.preventCheatCommands = false;
-        if (this.padlockSettings.baseLock === undefined) this.padlockSettings.baseLock = BasePadlock.EXCLUSIVE;
-        if (this.padlockSettings.note === undefined) this.padlockSettings.note = "";
+        this.padlockSettings.minimumRole ??= KeyHolderMinimumRole.EVERYONE_EXCEPT_WEARER;
+        this.padlockSettings.memberNumbers ??= [];
+        this.padlockSettings.preventCheatCommands ??= false;
+        this.padlockSettings.baseLock ??= BasePadlock.EXCLUSIVE;
+        this.padlockSettings.note ??= "";
 
         this.combinationToUnlock = {
             value: "",
@@ -199,8 +200,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
         };
     }
 
-    load(): void {
-        super.load();
+    public onLoad(): void {
         this.syncTabCanvasCharacter = CharacterCreate(Player.AssetFamily, CharacterType.NPC, "LC_CanvasCharacter");
         ServerAppearanceLoadFromBundle(
             this.syncTabCanvasCharacter,
@@ -238,7 +238,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                             );
                         }
                     } else {
-                        messagesManager.sendPacket("changePadlockSettings", {
+                        messagesManager.sendPacket<UpdatePadlockMessageDto>("changePadlockSettings", {
                             groupName: this.itemGroupName,
                             config: updateConfig
                         }, this.target.MemberNumber);
@@ -277,8 +277,8 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                 {
                     name: getText("settings.devious_padlock_editor.tabs.general"),
                     load: () => {
-                        this.keyDownListener = this.onKeyDown.bind(this);
-                        window.addEventListener("keydown", this.keyDownListener);
+                        this.generalKeyDownListener = this.generalKeyDown.bind(this);
+                        window.addEventListener("keydown", this.generalKeyDownListener);
                         this.createText({
                             text: getText("settings.devious_padlock_editor.protected_from_cheats"),
                             x: 100,
@@ -358,7 +358,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                             });
                         }
 
-                        if (typeof this.padlockSettings.combination?.hash === "string") {
+                        if (this.mode === "inspect-padlock" && typeof this.padlockSettings.combination?.hash === "string") {
                             this.createText({
                                 text: getText("settings.devious_padlock_editor.enter_combination"),
                                 anchor: "top-right",
@@ -432,7 +432,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                                             this.exit();
                                         }
                                     } else {
-                                        messagesManager.sendPacket("removePadlock", {
+                                        messagesManager.sendPacket<RemovePadlockMessageDto>("removePadlock", {
                                             groupName: this.itemGroupName,
                                             combination: this.combinationToUnlock.value
                                         }, this.target.MemberNumber);
@@ -447,12 +447,12 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                                 text: `${getText("settings.devious_padlock_editor.timer_expires_at")} ${new Date(this.padlockSettings.unlockTime).toUTCString()}`,
                                 x: 1200,
                                 y: 600,
-                                width: 800
+                                width: 650
                             });
                         }
                     },
                     unload: () => {
-                        window.removeEventListener("keydown", this.keyDownListener);
+                        if (this.generalKeyDownListener) window.removeEventListener("keydown", this.generalKeyDownListener);
                     }
                 },
                 {
@@ -806,12 +806,12 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                             if (!Array.isArray(group.Zone)) continue;
                             const groupItem = InventoryGet(this.target, group.Name);
                             if (!groupItem) continue;
-                            if (!group.IsItem) continue;
+                            if (!group.IsItem()) continue;
                             if (groupItem.Property?.Name !== deviousPadlock.Name) continue;
                             let borderColor: string;
                             let fillColor: string;
                             if (
-                                hasKeyToPadlock(group.Name as AssetGroupItemName, Player, this.target) &&
+                                hasKeyToPadlock(group.Name, Player, this.target) &&
                                 (
                                     this.syncingSelectedProfile.padlockSettings.baseLock === undefined ||
                                     canUseBasePadlock(Player, this.target, this.padlockSettings.owner, this.syncingSelectedProfile.padlockSettings.baseLock)
@@ -832,7 +832,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                                 borderColor = ZoneBorderColor.LIMITED;
                                 fillColor = ZoneFillColor.LIMITED;
                             }
-                            if (isItemGroupSyncedWithConfig(this.target, group.Name as AssetGroupItemName, this.syncingSelectedProfile.padlockSettings)) {
+                            if (isItemGroupSyncedWithConfig(this.target, group.Name, this.syncingSelectedProfile.padlockSettings)) {
                                 borderColor = ZoneBorderColor.SYNCED;
                                 fillColor = ZoneFillColor.SYNCED;
                             }
@@ -840,8 +840,8 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         }
                     },
                     load: () => {
-                        this.onClickListener = this.onClick.bind(this);
-                        window.addEventListener("click", this.onClickListener);
+                        this.syncingClickListener = this.syncingClick.bind(this);
+                        window.addEventListener("click", this.syncingClickListener);
                         this.saveButtonElement.style.display = "none";
                         this.syncingSelectedProfileName = getText("settings.devious_padlock_editor.current_config");
                         const { item, owner, ...rest } = this.padlockSettings;
@@ -1042,7 +1042,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                         });
                     },
                     unload: () => {
-                        window.removeEventListener("click", this.onClickListener);
+                        if (this.syncingClickListener) window.removeEventListener("click", this.syncingClickListener);
                         this.saveButtonElement.style.display = "";
                     }
                 }
@@ -1051,8 +1051,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
         });
     }
 
-    exit(): void {
-        super.exit?.();
+    public onExit() {
         if (this.mode === "inspect-padlock") {
             if (ChatRoomData !== null) CommonSetScreen("Online", "ChatRoom");
             else CommonSetScreen("Room", "MainHall");

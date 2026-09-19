@@ -1,9 +1,9 @@
 import { registerDecorator, ValidationOptions, ValidationArguments } from "zois-core/validation";
 
-export function ValidateCustom<T extends object>(validator: (object: T) => boolean, validationOptions?: ValidationOptions) {
+export function ValidateWith<T extends object>(validator: (object: T) => boolean, validationOptions?: ValidationOptions) {
     return (object: T, propertyName: string) => {
         registerDecorator({
-            name: 'validateCustom',
+            name: "validateCustom",
             target: object.constructor,
             propertyName: propertyName,
             options: validationOptions,

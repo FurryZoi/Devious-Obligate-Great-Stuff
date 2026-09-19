@@ -1,15 +1,13 @@
 // ==UserScript==
 // @name DOGS
 // @namespace https://www.bondageprojects.com/
-// @version 1.0.2
+// @version 1.0.3
 // @description Devious Obligate Great Stuff
 // @author Zoi
-// @match https://bondageprojects.elementfx.com/*
-// @match https://www.bondageprojects.elementfx.com/*
-// @match https://bondage-europe.com/*
-// @match https://www.bondage-europe.com/*
-// @match https://www.bondageprojects.com/*
-// @match https://bondageprojects.com/*
+// @match https://*.bondageprojects.elementfx.com/*
+// @match https://*.bondage-europe.com/*
+// @match https://*.bondageeurope.com/*
+// @match https://*.bondageprojects.com/*
 // @run-at document-end
 // @grant none
 // ==/UserScript==

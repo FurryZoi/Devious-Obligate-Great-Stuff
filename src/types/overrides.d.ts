@@ -1,5 +1,5 @@
 interface Character {
-    DOGS?: import("@/modules/storage").ModStorage
+    DOGS?: import("modules/storage").ModStorage
 }
 
 interface ItemProperties {
@@ -15,8 +15,4 @@ interface Window {
     InventoryItemMiscDeviousPadlockLoad: ScreenLoadHandler
 }
 
-declare const ENV_VARS: EnvVars;
-
-interface EnvVars {
-    [key: string]: string | undefined;
-}
+declare const IS_DEV: boolean;

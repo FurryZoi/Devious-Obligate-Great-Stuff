@@ -126,7 +126,7 @@ export function initStorage(): void {
             if (data) modStorage = JSON.parse(data);
         }
     } catch (error) {
-        logger.error('Failed to initialize storage:', error);
+        logger.error("Failed to initialize storage:", error);
     } finally {
         modStorage ??= defaults
     }

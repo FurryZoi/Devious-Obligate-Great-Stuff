@@ -1,22 +1,21 @@
 import { BaseSubscreen } from "zois-core/ui";
 import { DeviousPadlockSubscreen } from "./deviousPadlockSubscreen";
 import { RemoteControlSubscreen } from "./remoteControlSubscreen";
-import { syncStorage } from "@/modules/storage";
-import { MOD_DATA, version } from "zois-core";
+import { syncStorage } from "modules/storage";
+import { MOD_DATA } from "zois-core";
 import { StyleModule, TypeModule } from "zois-core/shard-modules";
 import { ProfilesSubscreen } from "./profilesSubscreen";
-import { Bug, Code, Code2, createElement, GitPullRequest, PenSquare } from "lucide";
-import { GITHUB_REPO_URL } from "@/constants";
+import { Bug, Code2, createElement, GitPullRequest, PenSquare } from "lucide";
 import { getText } from "zois-core/localization";
+import { GITHUB_REPO_URL } from "src/constants";
 import { showChangelogModal } from "zois-core/changelogs";
 
 export class MainSubscreen extends BaseSubscreen {
-    get name(): string {
+    public get name(): string {
         return "Devious Obligate Good Stuff";
     }
 
-    load(): void {
-        super.load?.();
+    public onLoad(): void {
         [
             new DeviousPadlockSubscreen(),
             new ProfilesSubscreen(),
@@ -117,7 +116,7 @@ export class MainSubscreen extends BaseSubscreen {
         });
     }
 
-    exit(): void {
+    public exit(): void {
         super.exit();
         syncStorage();
         this.setSubscreen(null);

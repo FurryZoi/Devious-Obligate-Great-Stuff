@@ -176,11 +176,66 @@ export function loadRemoteControl(): void {
 	});
 
 	hookFunction("DialogDraw", HookPriority.OBSERVE, (args, next) => {
-		if (!CurrentCharacter?.Canvas?.getContext('2d') || !CurrentCharacter?.CanvasBlink?.getContext('2d')) return next(args);
+		if (!CurrentCharacter?.Canvas?.getContext("2d") || !CurrentCharacter?.CanvasBlink?.getContext("2d")) return next(args);
 		if (!remoteControlIsInteracting) return next(args);
 		next(args);
-		CurrentCharacter.Canvas.getContext('2d')!.globalAlpha = 1.0;
-		CurrentCharacter.CanvasBlink.getContext('2d')!.globalAlpha = 1.0;
+		CurrentCharacter.Canvas.getContext("2d")!.globalAlpha = 1.0;
+		CurrentCharacter.CanvasBlink.getContext("2d")!.globalAlpha = 1.0;
 		CharacterAppearanceBuildCanvas(CurrentCharacter);
 	});
+
+	CommandCombine({
+		Tag: "connect",
+		Description: "Remotely connect to target player using DOGS remote control",
+		Action: async (argumentsString: string, message: string, args: string[]) => {
+			const targetNumber = parseInt(args[0]);
+			if (!targetNumber) {
+				return messagesManager.sendLocal(
+					`Example: /connect <member number>`
+				);
+			}
+
+			const toastId = toastsManager.spinner({
+				title: "Connecting...",
+				message: `Member number: ${targetNumber}`
+			});
+
+			const response = await messagesManager.sendRequest<{
+				rejectReason?: string
+				bundle?: ServerAccountDataSynced
+			}>({
+				type: "beep",
+				message: "remoteControlConnect",
+				target: targetNumber
+			});
+
+			toastsManager.removeSpinner(toastId);
+
+			if (response.isError) {
+				return toastsManager.error({
+					title: "Connection was not established",
+					message: "Something wrong happened... Maybe target player offline or not using DOGS?",
+					duration: 6000
+				});
+			}
+
+			if (response.data?.rejectReason) {
+				return toastsManager.error({
+					title: "Connection rejected",
+					message: response.data.rejectReason,
+					duration: 6000
+				});
+			}
+
+			if (!response.data?.bundle) return;
+			if (!ServerPlayerIsInChatRoom()) return;
+			if (CurrentScreen !== "ChatRoom") CommonSetScreen("Online", "ChatRoom");
+			const C = CharacterLoadOnline(response.data.bundle, targetNumber);
+			setRemoteControlIsInteracting(true);
+			ChatRoomFocusCharacter(C);
+			if (!C.AllowItem) C.AllowItem = true;
+			DialogChangeMode("items");
+			DialogChangeFocusToGroup(C, "ItemArms");
+		}
+	})
 }

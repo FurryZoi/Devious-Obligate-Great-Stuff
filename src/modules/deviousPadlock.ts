@@ -3,16 +3,17 @@ import { colorsEqual, getNickname, getPlayer, MOD_DATA, waitFor } from "zois-cor
 import { callOriginal, hookFunction, HookPriority } from "zois-core/mod-sdk";
 import { messagesManager } from "zois-core/messaging";
 import { getCurrentSubscreen, setSubscreen } from "zois-core/ui";
-import deviousPadlockImage from "@/images/devious-padlock.png";
+import deviousPadlockImage from "images/devious-padlock.png";
 import { cloneDeep, get, isEqual } from "lodash-es";
-import { DeviousPadlockSettingsSubscreen } from "@/subscreens/deviousPadlockSettingsSubscreen";
+import { DeviousPadlockSettingsSubscreen } from "subscreens/deviousPadlockSettingsSubscreen";
 import { remoteControlIsInteracting } from "./remoteControl";
 import { smartGetItemName } from "zois-core/wardrobe";
-import { SyncPadlockMessageDto } from "@/dto/syncPadlockMessageDto";
-import { UpdatePadlockMessageDto } from "@/dto/updatePadlockMessageDto";
-import { KNOWN_CHEAT_COMMANDS } from "@/constants";
+import { SyncPadlockMessageDto } from "dto/syncPadlockMessageDto";
+import { UpdatePadlockMessageDto } from "dto/updatePadlockMessageDto";
+import { DEVIOUS_PADLOCK_COOLDOWN_TIME, DEVIOUS_PADLOCK_IGNORED_ITEM_PROPERTIES, DEVIOUS_PADLOCK_MAX_TRIGGER_COUNT, DEVIOUS_PADLOCK_MINIMUM_FIRST_TRIGGER_INTERVAL, KNOWN_CHEAT_COMMANDS } from "src/constants";
 import { logger } from "zois-core/logging";
 import { getText } from "zois-core/localization";
+import { RemovePadlockMessageDto } from "src/dto/removePadlockMessageDto";
 
 export const deviousPadlock: AssetDefinition.Item = {
 	Effect: [],
@@ -74,7 +75,7 @@ export interface DeviousPadlockSettings {
 	unlockTime?: string
 	combination?: {
 		type: "PIN-Code" | "password"
-		hash?: string
+		hash: string
 	}
 }
 
@@ -87,10 +88,6 @@ let deviousPadlockTriggerCooldown: {
 	firstTriggerTime: Date.now(),
 	state: false
 };
-
-const MAX_TRIGGER_COUNT = 12;
-const MINIMUM_FIRST_TRIGGER_INTERVAL = 1000 * 20;
-const COOLDOWN_TIME = 1000 * 60 * 2;
 
 let hasLoadedDeviousPadlock = false;
 
@@ -199,7 +196,7 @@ function isFriend(a: Character, b: Character) {
 }
 
 function isInFamilyOfCharacter(a: Character, b: Character) {
-	return a.IsInFamilyOfMemberNumber(b.MemberNumber!);
+	return a.IsInFamilyOfMemberNumber(b.MemberNumber ?? -1);
 }
 
 export function canUseBasePadlock(target1: Character, target2: Character, padlockOwner: number, baseLock: BasePadlock): boolean {
@@ -496,15 +493,10 @@ function checkDeviousPadlocks(target: Character): void {
 				&& property?.LockedBy === basePadlock
 			);
 
-			const ignoredProperties = [
-				"OrgasmCount", "RuinedOrgasmCount", "TimeSinceLastOrgasm",
-				"TimeWorn", "TriggerCount"
-			];
-
 			const getValidProperties = (properties: ItemProperties | undefined) => {
 				if (!CommonIsObject(properties)) return properties;
 				const propertiesCopy = { ...properties };
-				ignoredProperties.forEach((p) => {
+				DEVIOUS_PADLOCK_IGNORED_ITEM_PROPERTIES.forEach((p) => {
 					delete (propertiesCopy as Record<any, any>)[p];
 				});
 				return propertiesCopy;
@@ -514,7 +506,7 @@ function checkDeviousPadlocks(target: Character): void {
 				if (!CommonIsObject(properties)) return properties;
 				const propertiesCopy = { ...properties };
 				Object.keys(propertiesCopy).forEach((p) => {
-					if (!ignoredProperties.includes(p)) {
+					if (!DEVIOUS_PADLOCK_IGNORED_ITEM_PROPERTIES.includes(p)) {
 						delete (propertiesCopy as Record<any, any>)[p];
 					}
 				});
@@ -578,15 +570,15 @@ function checkDeviousPadlocks(target: Character): void {
 			}
 			if (deviousPadlockTriggerCooldown.count === 0) deviousPadlockTriggerCooldown.firstTriggerTime = Date.now();
 			deviousPadlockTriggerCooldown.count++;
-			if (deviousPadlockTriggerCooldown.count > MAX_TRIGGER_COUNT) {
+			if (deviousPadlockTriggerCooldown.count > DEVIOUS_PADLOCK_MAX_TRIGGER_COUNT) {
 				deviousPadlockTriggerCooldown.count = 0;
-				if ((Date.now() - deviousPadlockTriggerCooldown.firstTriggerTime) < MINIMUM_FIRST_TRIGGER_INTERVAL) {
+				if ((Date.now() - deviousPadlockTriggerCooldown.firstTriggerTime) < DEVIOUS_PADLOCK_MINIMUM_FIRST_TRIGGER_INTERVAL) {
 					deviousPadlockTriggerCooldown.state = true;
-					messagesManager.sendAction(`[COOLDOWN] Devious padlocks were disabled for ${COOLDOWN_TIME / (1000 * 60)} minutes, ask any keyholder to remove padlock which conflicts. Please disable DOGS mod if this message repeats`);
+					messagesManager.sendAction(`[COOLDOWN] Devious padlocks were disabled for ${DEVIOUS_PADLOCK_COOLDOWN_TIME / (1000 * 60)} minutes, ask any keyholder to remove padlock which conflicts. Please disable DOGS mod if this message repeats`);
 					setTimeout(() => {
 						deviousPadlockTriggerCooldown.state = false;
 						checkDeviousPadlocks(Player);
-					}, COOLDOWN_TIME);
+					}, DEVIOUS_PADLOCK_COOLDOWN_TIME);
 				}
 			}
 		}
@@ -869,21 +861,21 @@ export async function loadDeviousPadlock(): Promise<void> {
 		}
 	);
 
-	messagesManager.onPacket("removePadlock", async (data, sender) => {
+	messagesManager.onPacket("removePadlock", RemovePadlockMessageDto, async (data: RemovePadlockMessageDto, sender) => {
 		const itemGroups = (modStorage.deviousPadlock.itemGroups ??= {});
-		const groupName = data.groupName as AssetGroupItemName;
+		const groupName = data.groupName;
 		const item = InventoryGet(Player, groupName);
 		if (!item) return;
 
-		if (typeof data.combination === "string" && !!itemGroups[groupName]) {
+		if (!!itemGroups[groupName]) {
 			if (
 				await hashCombination(data.combination) ===
 				itemGroups[groupName].combination?.hash
 			) {
 				const itemName = smartGetItemName(item);
-				delete modStorage.deviousPadlock.itemGroups[data.groupName as AssetGroupItemName];
+				delete modStorage.deviousPadlock.itemGroups[data.groupName];
 				unsyncItemGroups([data.groupName], false);
-				InventoryUnlock(Player, data.groupName as AssetGroupItemName);
+				InventoryUnlock(Player, data.groupName);
 				ChatRoomCharacterUpdate(Player);
 				syncStorage();
 				messagesManager.sendAction(

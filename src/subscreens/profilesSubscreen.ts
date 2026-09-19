@@ -1,7 +1,5 @@
 import { BaseSubscreen } from "zois-core/ui";
-import { DeviousPadlockSubscreen } from "./deviousPadlockSubscreen";
-import { RemoteControlSubscreen } from "./remoteControlSubscreen";
-import { modStorage, syncStorage } from "@/modules/storage";
+import { modStorage, syncStorage } from "modules/storage";
 import { CenterModule, StyleModule, TypeModule } from "zois-core/shard-modules";
 import { MainSubscreen } from "./mainSubscreen";
 import { dialogsManager } from "zois-core/dialogs";
@@ -10,21 +8,19 @@ import { createElement, Save } from "lucide";
 import { getText } from "zois-core/localization";
 
 export class ProfilesSubscreen extends BaseSubscreen {
-    get name(): string {
+    public get name(): string {
         return getText("settings.profiles.name");
     }
 
-    get buttonText(): string {
+    public get buttonText(): string {
         return getText("settings.profiles.name");
     }
 
-    get buttonIcon(): SVGElement {
+    public get buttonIcon(): SVGElement {
         return createElement(Save);
     }
 
-    load(): void {
-        super.load?.();
-
+    public onLoad(): void {
         if (
             !modStorage.deviousPadlock?.profiles ||
             modStorage.deviousPadlock.profiles.length === 0
@@ -52,7 +48,7 @@ export class ProfilesSubscreen extends BaseSubscreen {
             height: 600,
             scroll: "y",
             modules: {
-                base: [
+                content: [
                     new StyleModule({
                         display: "flex",
                         flexDirection: "column",
@@ -66,15 +62,16 @@ export class ProfilesSubscreen extends BaseSubscreen {
             const row = this.createContainer({
                 parent: container,
                 modules: {
-                    base: [
+                    content: [
                         new StyleModule({
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "space-between"
+                            columnGap: "0.5em"
                         })
                     ]
                 }
             });
+
             this.createButton({
                 text: config.name,
                 parent: row,
@@ -90,6 +87,7 @@ export class ProfilesSubscreen extends BaseSubscreen {
                     );
                 }
             });
+            
             this.createButton({
                 icon: "Icons/Trash.png",
                 parent: row,
@@ -109,7 +107,7 @@ export class ProfilesSubscreen extends BaseSubscreen {
         });
     }
 
-    exit(): void {
+    public exit(): void {
         super.exit?.();
         this.setSubscreen(new MainSubscreen());
         syncStorage();

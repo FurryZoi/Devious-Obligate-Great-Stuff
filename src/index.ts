@@ -1,24 +1,22 @@
 import "reflect-metadata";
-import { initStorage, modStorage, syncStorage } from "@/modules/storage";
-import { loadRemoteControl } from "@/modules/remoteControl";
-import { loadSettingsMenu } from "@/modules/settingsMenu";
-import { loadCommands } from "@/modules/commands";
-import { loadDeviousPadlock } from "@/modules/deviousPadlock";
+import { initStorage, modStorage, syncStorage } from "modules/storage";
+import { loadRemoteControl } from "modules/remoteControl";
+import { loadSettingsMenu } from "modules/settingsMenu";
+import { loadDeviousPadlock } from "modules/deviousPadlock";
 import { isVersionNewer, bootstrap, ModData, waitFor, MOD_DATA } from "zois-core";
 import { toastsManager } from "zois-core/toasts";
 import { messagesManager } from "zois-core/messaging";
 import { version } from "../package.json";
 import { DeviousPadlockSubscreen } from "./subscreens/deviousPadlockSubscreen";
-import { MainSubscreen } from "./subscreens/mainSubscreen";
-import { RemoteControlSubscreen } from "./subscreens/remoteControlSubscreen";
-import { ProfilesSubscreen } from "./subscreens/profilesSubscreen";
+import { MainSubscreen } from "subscreens/mainSubscreen";
+import { RemoteControlSubscreen } from "subscreens/remoteControlSubscreen";
+import { ProfilesSubscreen } from "subscreens/profilesSubscreen";
 import { GITHUB_REPO_URL } from "./constants";
-import { loadDialogs } from "./modules/dialogs";
+import { loadDialogs } from "modules/dialogs";
 import { logger } from "zois-core/logging";
 import { getText } from "zois-core/localization";
 import changelog from "../changelog.json";
 import { showChangelogModal } from "zois-core/changelogs";
-
 
 let hasInitialized = false;
 
@@ -40,7 +38,7 @@ bootstrap({
             default: "en",
             supported: ["en", "ru"]
         },
-        translationsFolderPath: ENV_VARS.IS_DEV === "true" ? `http://localhost:8000/localization` : "https://furryzoi.github.io/Devious-Obligate-Great-Stuff/localization"
+        translationsFolderPath: IS_DEV ? `http://localhost:8000/localization` : "https://furryzoi.github.io/Devious-Obligate-Great-Stuff/localization"
     },
     changelog: {
         data: changelog as NonNullable<ModData["changelog"]>["data"]
@@ -54,7 +52,6 @@ function initializeDOGS(): void {
 
     initStorage();
     loadSettingsMenu();
-    loadCommands();
     loadDialogs();
     loadRemoteControl();
     void loadDeviousPadlock();
