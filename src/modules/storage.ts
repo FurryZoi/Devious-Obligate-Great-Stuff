@@ -9,7 +9,7 @@ import { logger } from "zois-core/logging";
 export type SavedItem = {
     name: string
     color?: ItemColor
-    craft?: CraftingItem
+    craft?: CraftingPartialItem
     property?: ItemProperties
 }
 

@@ -113,11 +113,6 @@ function getAssetGroupDefinition(groupName: AssetGroupName): AssetGroupDefinitio
 	return groupDefinition as AssetGroupDefinition | undefined;
 }
 
-function getItemColor(itemColor: BCColor[] | null | undefined, craftingItemColor: CraftingItem["Color"] | null | undefined) {
-	if (itemColor === null || itemColor === undefined || itemColor === "Default") return craftingItemColor ?? "Default";
-	return itemColor;
-}
-
 function registerPadlockAssetWithCompatibility(group: AssetGroup, groupDefinition?: AssetGroupDefinition): void {
 	const assetAddCompat = AssetAdd as unknown as (...args: unknown[]) => void;
 	const attempts: Array<() => void> = [
@@ -515,7 +510,7 @@ function checkDeviousPadlocks(sourceCharacter: Character): void {
 
 			if (
 				currentItem?.Asset?.Name !== savedItem.name ||
-				!colorsEqual(getItemColor(currentItem.Color, currentItem.Craft?.Color), getItemColor(savedItem.color, savedItem.craft?.Color)) ||
+				!colorsEqual(currentItem.Color, savedItem.color) ||
 				JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) ||
 				JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property)) ||
 				padlockChanged
@@ -543,7 +538,8 @@ function checkDeviousPadlocks(sourceCharacter: Character): void {
 						...getIgnoredProperties(currentItem?.Asset?.Name === savedItem.name ? currentItem.Property : savedItem.property)
 					};
 					newItem.Property.Effect ??= [];
-					newItem.Property.Effect.push("Lock");
+					if (!newItem.Property.Effect.includes("Lock")) newItem.Property.Effect.push("Lock");
+					newItem.Property.Effect = [...new Set(newItem.Property.Effect)];
 					if (newItem.Property.Name !== deviousPadlock.Name) newItem.Property.Name = deviousPadlock.Name;
 					if (newItem.Property.LockedBy !== basePadlock) newItem.Property.LockedBy = basePadlock;
 					if (newItem.Property.LockMemberNumber !== owner) newItem.Property.LockMemberNumber = owner;
