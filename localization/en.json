@@ -48,7 +48,7 @@
             "name": "Remote Control",
             "notify_others": "Notify others",
             "minimum_role_to_connect_remotely": "Minimum role to connect remotely",
-            "description": "Remote control lets allowed users to remotely change your appearance, now you don't need to be in the same room to change items of your friends. If remote control is disabled then no one can use it on you. Type \"/dogs remote <member number>\" to connect remotely."
+            "description": "Remote control lets allowed users to remotely change your appearance, now you don't need to be in the same room to change items of your friends. If remote control is disabled then no one can use it on you. Type \"/connect [member number]\" to connect remotely."
         },
         "devious_padlock_editor": {
             "base_padlocks": {
