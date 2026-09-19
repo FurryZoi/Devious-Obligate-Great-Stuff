@@ -22,7 +22,7 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
-    "bc-stubs": "130.0.0",
+    "bc-stubs": "132.0.0",
     "lodash-es": "^4.18.1",
     "lucide": "^1.29.0",
     "reflect-metadata": "^0.2.2",

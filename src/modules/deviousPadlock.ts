@@ -113,7 +113,7 @@ function getAssetGroupDefinition(groupName: AssetGroupName): AssetGroupDefinitio
 	return groupDefinition as AssetGroupDefinition | undefined;
 }
 
-function getItemColor(itemColor: Item["Color"] | null | undefined, craftingItemColor: CraftingItem["Color"] | null | undefined) {
+function getItemColor(itemColor: BCColor[] | null | undefined, craftingItemColor: CraftingItem["Color"] | null | undefined) {
 	if (itemColor === null || itemColor === undefined || itemColor === "Default") return craftingItemColor ?? "Default";
 	return itemColor;
 }
@@ -470,11 +470,11 @@ export async function changePadlockSettings(
 	syncStorage();
 }
 
-function onAppearanceChange(target1: Character, target2: Character): void {
-	if (target2.IsPlayer()) checkDeviousPadlocks(target1);
+function onAppearanceChange(source: Character, target: Character): void {
+	if (target.IsPlayer()) checkDeviousPadlocks(source);
 }
 
-function checkDeviousPadlocks(target: Character): void {
+function checkDeviousPadlocks(sourceCharacter: Character): void {
 	if (modStorage.deviousPadlock.itemGroups) {
 		let padlocksChangedItemNames: string[] = [];
 		let pushChatRoom: boolean = false;
@@ -520,7 +520,7 @@ function checkDeviousPadlocks(target: Character): void {
 				JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property)) ||
 				padlockChanged
 			) {
-				if (hasKeyToPadlock(groupName, target, Player)) {
+				if (hasKeyToPadlock(groupName, sourceCharacter, Player)) {
 					if (padlockChanged) {
 						delete modStorage.deviousPadlock.itemGroups[groupName];
 						unsyncItemGroups([groupName], false);
@@ -593,11 +593,11 @@ function checkDeviousPadlocks(target: Character): void {
 				!modStorage.deviousPadlock.itemGroups ||
 				!modStorage.deviousPadlock.itemGroups[item.Asset.Group.Name as AssetGroupItemName]
 			) {
-				if (!canPutDeviousPadlock(item.Asset.Group.Name as AssetGroupItemName, target, Player) || deviousPadlockTriggerCooldown.state) {
+				if (!canPutDeviousPadlock(item.Asset.Group.Name as AssetGroupItemName, sourceCharacter, Player) || deviousPadlockTriggerCooldown.state) {
 					InventoryUnlock(Player, item.Asset.Group.Name as AssetGroupItemName);
 					ChatRoomCharacterUpdate(Player);
 				} else {
-					registerDeviousPadlockInModStorage(item.Asset.Group.Name as AssetGroupItemName, target.MemberNumber!);
+					registerDeviousPadlockInModStorage(item.Asset.Group.Name as AssetGroupItemName, sourceCharacter.MemberNumber!);
 				}
 			}
 		}
@@ -937,6 +937,19 @@ export async function loadDeviousPadlock(): Promise<void> {
 			}
 		}
 		return next(args);
+	});
+
+	hookFunction("ItemPropertiesCompress", HookPriority.ADD_BEHAVIOR, (args, next) => {
+		const [item] = args;
+		const savedName = item?.Property?.Name === deviousPadlock.Name
+			? deviousPadlock.Name
+			: undefined;
+
+		const result = next(args);
+		if (savedName && result && typeof result === "object") {
+			result.Name = savedName;
+		}
+		return result;
 	});
 
 	hookFunction("DialogSetStatus", HookPriority.ADD_BEHAVIOR, (args, next) => {

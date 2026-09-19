@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       bc-stubs:
-        specifier: 130.0.0
-        version: 130.0.0
+        specifier: 132.0.0
+        version: 132.0.0
       lodash-es:
         specifier: ^4.18.1
         version: 4.18.1
@@ -421,8 +421,8 @@ packages:
     resolution: {integrity: sha512-HGyxoOTYUyCM6stUe6EJgnd4EoewAI7zMdfqO+kGjnlZmBDz/cR5pf8r/cR4Wq60sL/p0IkcjUEEPwS3GFrIyw==}
     engines: {node: '>=8'}
 
-  bc-stubs@130.0.0:
-    resolution: {integrity: sha512-WXbJz9nn6PraZReYPYrDBao5mF8Jtn4xo6hwagjyYeuwdH+e57WwMB8g20pKgTBcbzv2tt/OHgrJcrYfZR2lIA==}
+  bc-stubs@132.0.0:
+    resolution: {integrity: sha512-mYQx/aBFyZ+Ma4wQ1Sr8hJuxR16czg5Bo2F/w0Ynx6iEMmOMHSwyAXKe5hTCUNirruJTzTQWlMi0vYTFHpQ2GQ==}
 
   before-after-hook@4.0.0:
     resolution: {integrity: sha512-q6tR3RPqIB1pMiTRMFcZwuG5T8vwp+vUvEG0vuI6B+Rikh5BfPp2fQ82c925FOs+b0lcFQ8CFrL+KbilfZFhOQ==}
@@ -978,7 +978,7 @@ snapshots:
 
   array-union@2.1.0: {}
 
-  bc-stubs@130.0.0:
+  bc-stubs@132.0.0:
     dependencies:
       '@total-typescript/ts-reset': 0.6.1
       socket.io-client: 4.6.1
