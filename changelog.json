@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-17T21:37:16.513Z",
+  "generated_at": "2026-09-19T11:01:17.571Z",
   "contributors": [
     {
       "name": "Zoi",
@@ -9,20 +9,29 @@
   ],
   "changes": [
     {
-      "message": "Delete changelog chat command",
-      "sha": "52dae8504db6dc50b63065aea48191af1d2ca6a7",
+      "message": "Adapt devious padlock to R132",
+      "sha": "c4c6a11731b277ed94348b50e0bca391b7b8ff1f",
       "author": "Zoi",
-      "date": "2026-08-20T19:58:11Z",
-      "tags": [],
-      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/52dae8504db6dc50b63065aea48191af1d2ca6a7"
+      "date": "2026-09-19T10:59:01Z",
+      "tags": ["fix"],
+      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/c4c6a11731b277ed94348b50e0bca391b7b8ff1f"
     },
     {
-      "message": "Delete global reset styles",
-      "sha": "c9d429d05be0da4f2eed57f65ed0d67b2525df17",
+      "message": "Ignore devious padlock properties when compress item properties",
+      "sha": "2594ba7da94e6825a8bc649e3d58ba5f1ab6d749",
       "author": "Zoi",
-      "date": "2026-08-20T17:21:45Z",
+      "date": "2026-09-19T10:05:53Z",
       "tags": ["fix"],
-      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/c9d429d05be0da4f2eed57f65ed0d67b2525df17"
+      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/2594ba7da94e6825a8bc649e3d58ba5f1ab6d749"
+    },
+    {
+      "message": "Refactor some code",
+      "note": "The code is not broken. It is simply in a state of deep philosophical denial of it's responsibility.",
+      "sha": "1f68928ace483bcb7de743df0b149946563d0c40",
+      "author": "Zoi",
+      "date": "2026-09-19T08:27:39Z",
+      "tags": ["chore", "fix"],
+      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/1f68928ace483bcb7de743df0b149946563d0c40"
     }
   ]
 }

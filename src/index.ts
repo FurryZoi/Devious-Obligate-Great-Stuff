@@ -67,6 +67,7 @@ function initializeDOGS(): void {
             modStorage.version = version;
             syncStorage();
             const text = document.createElement("p");
+            text.style.margin = "0";
             text.textContent = "DOGS was updated, click here to read changelog"
             text.onclick = showChangelogModal;
             messagesManager.sendLocal(text);
