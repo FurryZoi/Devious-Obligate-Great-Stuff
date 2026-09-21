@@ -9454,12 +9454,19 @@ One of mods you are using is using an old version of SDK. It will work for now b
     "/unlock",
     "/untie"
   ];
-  var DEVIOUS_PADLOCK_IGNORED_ITEM_PROPERTIES = [
-    "OrgasmCount",
-    "RuinedOrgasmCount",
-    "TimeSinceLastOrgasm",
-    "TimeWorn",
-    "TriggerCount"
+  var DEVIOUS_PADLOCK_ITEM_PROPERTIES_TO_COMPARE = [
+    "TypeRecord",
+    "LockMemberName",
+    "OverridePriority",
+    "PunishOrgasm",
+    "PunishStandup",
+    "PunishStruggle",
+    "PunishStruggleOther",
+    "ShockLevel",
+    "ShowText",
+    "TriggerValues",
+    "InflateLevel",
+    "Intensity"
   ];
   var DEVIOUS_PADLOCK_MAX_TRIGGER_COUNT = 12;
   var DEVIOUS_PADLOCK_MINIMUM_FIRST_TRIGGER_INTERVAL = 1e3 * 20;
@@ -9601,7 +9608,6 @@ One of mods you are using is using an old version of SDK. It will work for now b
     }
     modStorage.deviousPadlock.itemGroups ??= {};
     modStorage.deviousPadlock.itemGroups[group] = lockDef;
-    syncStorage();
   }
   async function inspectDeviousPadlock() {
     const screen = ["Character", "InspectDeviousPadlock"];
@@ -9796,9 +9802,10 @@ One of mods you are using is using an old version of SDK. It will work for now b
     if (target.IsPlayer()) checkDeviousPadlocks(source);
   }
   function checkDeviousPadlocks(sourceCharacter) {
+    let appearanceChanged = false;
+    let sync = false;
     if (modStorage.deviousPadlock.itemGroups) {
       let padlocksChangedItemNames = [];
-      let pushChatRoom = false;
       for (const group in modStorage.deviousPadlock.itemGroups ?? {}) {
         const groupName = group;
         const currentItem = InventoryGet(Player, groupName);
@@ -9811,23 +9818,13 @@ One of mods you are using is using an old version of SDK. It will work for now b
         const padlockChanged = !(property?.Name === deviousPadlock.Name && property?.LockedBy === basePadlock);
         const getValidProperties = (properties) => {
           if (!CommonIsObject(properties)) return properties;
-          const propertiesCopy = { ...properties };
-          DEVIOUS_PADLOCK_IGNORED_ITEM_PROPERTIES.forEach((p) => {
-            delete propertiesCopy[p];
+          const validProperties = {};
+          DEVIOUS_PADLOCK_ITEM_PROPERTIES_TO_COMPARE.forEach((p) => {
+            if (Object.hasOwn(properties, p)) validProperties[p] = properties[p];
           });
-          return propertiesCopy;
+          return validProperties;
         };
-        const getIgnoredProperties = (properties) => {
-          if (!CommonIsObject(properties)) return properties;
-          const propertiesCopy = { ...properties };
-          Object.keys(propertiesCopy).forEach((p) => {
-            if (!DEVIOUS_PADLOCK_IGNORED_ITEM_PROPERTIES.includes(p)) {
-              delete propertiesCopy[p];
-            }
-          });
-          return propertiesCopy;
-        };
-        if (currentItem?.Asset?.Name !== savedItem.name || !colorsEqual(currentItem.Color, savedItem.color) || JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) || JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property)) || padlockChanged) {
+        if (currentItem?.Asset?.Name !== savedItem.name || !colorsEqual(currentItem.Color, savedItem.color) || !isEqual_default(currentItem?.Craft, savedItem.craft) || !isEqual_default(getValidProperties(currentItem?.Property), getValidProperties(savedItem.property)) || padlockChanged) {
           if (hasKeyToPadlock(groupName, sourceCharacter, Player)) {
             if (padlockChanged) {
               delete modStorage.deviousPadlock.itemGroups[groupName];
@@ -9835,7 +9832,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
             } else {
               modStorage.deviousPadlock.itemGroups[groupName].item = getSavedItemData(currentItem);
             }
-            syncStorage();
+            sync = true;
           } else if (!deviousPadlockTriggerCooldown.state) {
             const savedAsset = AssetGet(Player.AssetFamily, groupName, savedItem.name);
             if (!savedAsset) {
@@ -9843,11 +9840,11 @@ One of mods you are using is using an old version of SDK. It will work for now b
               continue;
             }
             const difficulty = savedAsset.Difficulty;
-            let newItem = InventoryWear(Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft);
+            let newItem = InventoryWear(Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft, false);
             if (!newItem) continue;
             newItem.Property = {
-              ...getValidProperties(savedItem.property),
-              ...getIgnoredProperties(currentItem?.Asset?.Name === savedItem.name ? currentItem.Property : savedItem.property)
+              ...currentItem?.Property ?? {},
+              ...getValidProperties(savedItem.property)
             };
             newItem.Property.Effect ??= [];
             if (!newItem.Property.Effect.includes("Lock")) newItem.Property.Effect.push("Lock");
@@ -9859,16 +9856,12 @@ One of mods you are using is using an old version of SDK. It will work for now b
             ValidationSanitizeLock(Player, newItem);
             modStorage.deviousPadlock.itemGroups[groupName].item = getSavedItemData(newItem);
             if (padlockChanged) padlocksChangedItemNames.push(newItem.Craft?.Name ? newItem.Craft.Name : newItem.Asset.Description);
-            pushChatRoom = true;
-            syncStorage();
+            appearanceChanged = true;
+            sync = true;
           }
-        } else if (JSON.stringify(getIgnoredProperties(currentItem?.Property)) !== JSON.stringify(getIgnoredProperties(savedItem.property))) {
-          modStorage.deviousPadlock.itemGroups[groupName].item = getSavedItemData(currentItem);
-          syncStorage();
         }
       }
-      if (ServerPlayerIsInChatRoom() && pushChatRoom) {
-        ChatRoomCharacterUpdate(Player);
+      if (ServerPlayerIsInChatRoom() && appearanceChanged) {
         if (padlocksChangedItemNames.length === 1) {
           messagesManager.sendAction(`Devious padlock appears again on ${getNickname(Player)}'s ${padlocksChangedItemNames[0]}`);
         }
@@ -9895,13 +9888,21 @@ One of mods you are using is using an old version of SDK. It will work for now b
         if (!modStorage.deviousPadlock.itemGroups || !modStorage.deviousPadlock.itemGroups[item.Asset.Group.Name]) {
           if (!canPutDeviousPadlock(item.Asset.Group.Name, sourceCharacter, Player) || deviousPadlockTriggerCooldown.state) {
             InventoryUnlock(Player, item.Asset.Group.Name);
-            ChatRoomCharacterUpdate(Player);
+            appearanceChanged = true;
           } else {
             registerDeviousPadlockInModStorage(item.Asset.Group.Name, sourceCharacter.MemberNumber);
+            sync = true;
           }
         }
       }
     });
+    if (sync) {
+      syncStorage();
+    }
+    if (appearanceChanged) {
+      CharacterRefresh(Player, true);
+      ChatRoomCharacterUpdate(Player);
+    }
   }
   function checkDeviousPadlocksTimers() {
     if (!modStorage.deviousPadlock.itemGroups || deviousPadlockTriggerCooldown.state) return;
@@ -11191,7 +11192,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
   }
 
   // package.json
-  var version2 = "2.2.3";
+  var version2 = "2.3.0";
 
   // src/modules/dialogs.ts
   function loadDialogs() {
@@ -11274,7 +11275,7 @@ One of mods you are using is using an old version of SDK. It will work for now b
 
   // changelog.json
   var changelog_default = {
-    generated_at: "2026-09-19T11:01:17.571Z",
+    generated_at: "2026-09-21T19:00:13.790Z",
     contributors: [
       {
         name: "Zoi",
@@ -11284,29 +11285,12 @@ One of mods you are using is using an old version of SDK. It will work for now b
     ],
     changes: [
       {
-        message: "Adapt devious padlock to R132",
-        sha: "c4c6a11731b277ed94348b50e0bca391b7b8ff1f",
+        message: "Compare only safe certain item properties when check devious padlocks, Optimize updates to avoid forced disconnects, Many other fixes that cover all recent and long-standing issues with devious padlocks.",
+        sha: "7a40f71f5d4fda5a2c07f01f07de18d1930fc711",
         author: "Zoi",
-        date: "2026-09-19T10:59:01Z",
+        date: "2026-09-21T18:39:11Z",
         tags: ["fix"],
-        commit_url: "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/c4c6a11731b277ed94348b50e0bca391b7b8ff1f"
-      },
-      {
-        message: "Ignore devious padlock properties when compress item properties",
-        sha: "2594ba7da94e6825a8bc649e3d58ba5f1ab6d749",
-        author: "Zoi",
-        date: "2026-09-19T10:05:53Z",
-        tags: ["fix"],
-        commit_url: "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/2594ba7da94e6825a8bc649e3d58ba5f1ab6d749"
-      },
-      {
-        message: "Refactor some code",
-        note: "The code is not broken. It is simply in a state of deep philosophical denial of it's responsibility.",
-        sha: "1f68928ace483bcb7de743df0b149946563d0c40",
-        author: "Zoi",
-        date: "2026-09-19T08:27:39Z",
-        tags: ["chore", "fix"],
-        commit_url: "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/1f68928ace483bcb7de743df0b149946563d0c40"
+        commit_url: "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/7a40f71f5d4fda5a2c07f01f07de18d1930fc711"
       }
     ]
   };
