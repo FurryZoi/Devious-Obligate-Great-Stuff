@@ -10,7 +10,7 @@ import { remoteControlIsInteracting } from "./remoteControl";
 import { smartGetItemName } from "zois-core/wardrobe";
 import { SyncPadlockMessageDto } from "dto/syncPadlockMessageDto";
 import { UpdatePadlockMessageDto } from "dto/updatePadlockMessageDto";
-import { DEVIOUS_PADLOCK_COOLDOWN_TIME, DEVIOUS_PADLOCK_IGNORED_ITEM_PROPERTIES, DEVIOUS_PADLOCK_MAX_TRIGGER_COUNT, DEVIOUS_PADLOCK_MINIMUM_FIRST_TRIGGER_INTERVAL, KNOWN_CHEAT_COMMANDS } from "src/constants";
+import { DEVIOUS_PADLOCK_COOLDOWN_TIME, DEVIOUS_PADLOCK_ITEM_PROPERTIES_TO_COMPARE, DEVIOUS_PADLOCK_MAX_TRIGGER_COUNT, DEVIOUS_PADLOCK_MINIMUM_FIRST_TRIGGER_INTERVAL, KNOWN_CHEAT_COMMANDS } from "src/constants";
 import { logger } from "zois-core/logging";
 import { getText } from "zois-core/localization";
 import { RemovePadlockMessageDto } from "src/dto/removePadlockMessageDto";
@@ -177,7 +177,6 @@ export function registerDeviousPadlockInModStorage(group: AssetGroupItemName, ow
 	}
 	modStorage.deviousPadlock.itemGroups ??= {};
 	modStorage.deviousPadlock.itemGroups[group] = lockDef;
-	syncStorage();
 }
 
 export async function inspectDeviousPadlock(): Promise<void> {
@@ -470,9 +469,10 @@ function onAppearanceChange(source: Character, target: Character): void {
 }
 
 function checkDeviousPadlocks(sourceCharacter: Character): void {
+	let appearanceChanged = false;
+	let sync = false;
 	if (modStorage.deviousPadlock.itemGroups) {
 		let padlocksChangedItemNames: string[] = [];
-		let pushChatRoom: boolean = false;
 		for (const group in modStorage.deviousPadlock.itemGroups ?? {}) {
 			const groupName = group as AssetGroupItemName;
 			const currentItem = InventoryGet(Player, groupName);
@@ -490,29 +490,18 @@ function checkDeviousPadlocks(sourceCharacter: Character): void {
 
 			const getValidProperties = (properties: ItemProperties | undefined) => {
 				if (!CommonIsObject(properties)) return properties;
-				const propertiesCopy = { ...properties };
-				DEVIOUS_PADLOCK_IGNORED_ITEM_PROPERTIES.forEach((p) => {
-					delete (propertiesCopy as Record<any, any>)[p];
+				const validProperties: ItemProperties = {};
+				DEVIOUS_PADLOCK_ITEM_PROPERTIES_TO_COMPARE.forEach((p) => {
+					if (Object.hasOwn(properties, p)) (validProperties as Record<any, any>)[p] = properties[p];
 				});
-				return propertiesCopy;
-			}
-
-			const getIgnoredProperties = (properties: ItemProperties | undefined) => {
-				if (!CommonIsObject(properties)) return properties;
-				const propertiesCopy = { ...properties };
-				Object.keys(propertiesCopy).forEach((p) => {
-					if (!DEVIOUS_PADLOCK_IGNORED_ITEM_PROPERTIES.includes(p)) {
-						delete (propertiesCopy as Record<any, any>)[p];
-					}
-				});
-				return propertiesCopy;
+				return validProperties;
 			}
 
 			if (
 				currentItem?.Asset?.Name !== savedItem.name ||
 				!colorsEqual(currentItem.Color, savedItem.color) ||
-				JSON.stringify(currentItem?.Craft) !== JSON.stringify(savedItem.craft) ||
-				JSON.stringify(getValidProperties(currentItem?.Property)) !== JSON.stringify(getValidProperties(savedItem.property)) ||
+				!isEqual(currentItem?.Craft, savedItem.craft) ||
+				!isEqual(getValidProperties(currentItem?.Property), getValidProperties(savedItem.property)) ||
 				padlockChanged
 			) {
 				if (hasKeyToPadlock(groupName, sourceCharacter, Player)) {
@@ -522,7 +511,7 @@ function checkDeviousPadlocks(sourceCharacter: Character): void {
 					} else {
 						modStorage.deviousPadlock.itemGroups[groupName]!.item = getSavedItemData(currentItem!);
 					}
-					syncStorage();
+					sync = true;
 				} else if (!deviousPadlockTriggerCooldown.state) {
 					const savedAsset = AssetGet(Player.AssetFamily, groupName, savedItem.name);
 					if (!savedAsset) {
@@ -531,11 +520,11 @@ function checkDeviousPadlocks(sourceCharacter: Character): void {
 					}
 
 					const difficulty = savedAsset.Difficulty;
-					let newItem = InventoryWear(Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft);
+					let newItem = InventoryWear(Player, savedItem.name, groupName, savedItem.color, difficulty, Player.MemberNumber, savedItem.craft, false);
 					if (!newItem) continue;
 					newItem.Property = {
-						...getValidProperties(savedItem.property),
-						...getIgnoredProperties(currentItem?.Asset?.Name === savedItem.name ? currentItem.Property : savedItem.property)
+						...(currentItem?.Property ?? {}),
+						...getValidProperties(savedItem.property)
 					};
 					newItem.Property.Effect ??= [];
 					if (!newItem.Property.Effect.includes("Lock")) newItem.Property.Effect.push("Lock");
@@ -547,17 +536,13 @@ function checkDeviousPadlocks(sourceCharacter: Character): void {
 					ValidationSanitizeLock(Player, newItem);
 					modStorage.deviousPadlock.itemGroups[groupName]!.item = getSavedItemData(newItem);
 					if (padlockChanged) padlocksChangedItemNames.push(newItem.Craft?.Name ? newItem.Craft.Name : newItem.Asset.Description);
-					pushChatRoom = true;
-					syncStorage();
+					appearanceChanged = true;
+					sync = true;
 				}
-			} else if (JSON.stringify(getIgnoredProperties(currentItem?.Property)) !== JSON.stringify(getIgnoredProperties(savedItem.property))) {
-				modStorage.deviousPadlock.itemGroups[groupName]!.item = getSavedItemData(currentItem);
-				syncStorage();
 			}
 		}
 
-		if (ServerPlayerIsInChatRoom() && pushChatRoom) {
-			ChatRoomCharacterUpdate(Player);
+		if (ServerPlayerIsInChatRoom() && appearanceChanged) {
 			if (padlocksChangedItemNames.length === 1) {
 				messagesManager.sendAction(`Devious padlock appears again on ${getNickname(Player)}'s ${padlocksChangedItemNames[0]}`);
 			}
@@ -578,6 +563,7 @@ function checkDeviousPadlocks(sourceCharacter: Character): void {
 				}
 			}
 		}
+
 	}
 
 	Player.Appearance.forEach((item) => {
@@ -591,13 +577,23 @@ function checkDeviousPadlocks(sourceCharacter: Character): void {
 			) {
 				if (!canPutDeviousPadlock(item.Asset.Group.Name as AssetGroupItemName, sourceCharacter, Player) || deviousPadlockTriggerCooldown.state) {
 					InventoryUnlock(Player, item.Asset.Group.Name as AssetGroupItemName);
-					ChatRoomCharacterUpdate(Player);
+					appearanceChanged = true;
 				} else {
 					registerDeviousPadlockInModStorage(item.Asset.Group.Name as AssetGroupItemName, sourceCharacter.MemberNumber!);
+					sync = true;
 				}
 			}
 		}
 	});
+
+	if (sync) {
+		syncStorage();
+	}
+
+	if (appearanceChanged) {
+		CharacterRefresh(Player, true);
+		ChatRoomCharacterUpdate(Player);
+	}
 }
 
 function checkDeviousPadlocksTimers(): void {
