@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-21T19:00:13.790Z",
+  "generated_at": "2026-10-20T21:39:42.066Z",
   "contributors": [
     {
       "name": "Zoi",
@@ -9,12 +9,12 @@
   ],
   "changes": [
     {
-      "message": "Compare only safe certain item properties when check devious padlocks, Optimize updates to avoid forced disconnects, Many other fixes that cover all recent and long-standing issues with devious padlocks.",
-      "sha": "7a40f71f5d4fda5a2c07f01f07de18d1930fc711",
+      "message": "Adapt devious padlock to R133",
+      "sha": "75ec005de298a93cc8a7eac60d3649b57e25e3f4",
       "author": "Zoi",
-      "date": "2026-09-21T18:39:11Z",
+      "date": "2026-10-20T21:37:32Z",
       "tags": ["fix"],
-      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/7a40f71f5d4fda5a2c07f01f07de18d1930fc711"
+      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/75ec005de298a93cc8a7eac60d3649b57e25e3f4"
     }
   ]
 }
