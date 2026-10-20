@@ -3,7 +3,7 @@ interface Character {
 }
 
 interface ItemProperties {
-    Name?: string
+    IsDeviousLock?: boolean
 }
 
 interface Window {

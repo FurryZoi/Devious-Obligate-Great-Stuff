@@ -10,3 +10,11 @@ export const DEVIOUS_PADLOCK_ITEM_PROPERTIES_TO_COMPARE: (keyof ItemProperties)[
 export const DEVIOUS_PADLOCK_MAX_TRIGGER_COUNT = 12;
 export const DEVIOUS_PADLOCK_MINIMUM_FIRST_TRIGGER_INTERVAL = 1000 * 20;
 export const DEVIOUS_PADLOCK_COOLDOWN_TIME = 1000 * 60 * 2;
+export const CRAFTING_PARTIAL_KEYS = [
+	"Name",
+	"MemberName",
+	"MemberNumber",
+	"Description",
+	"Effects",
+	"Private",
+] as const;

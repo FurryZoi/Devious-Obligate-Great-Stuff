@@ -1,7 +1,7 @@
 import { MOD_DATA } from "zois-core";
 import { hookFunction, HookPriority } from "zois-core/mod-sdk";
 import { modStorage, syncStorage } from "./storage";
-import { deviousPadlock, getPadlocksAmount } from "./deviousPadlock";
+import { deviousPadlock, getPadlocksAmount, isDeviousLock } from "./deviousPadlock";
 
 export function loadDialogs() {
     hookFunction("CharacterBuildDialog", HookPriority.OBSERVE, (args, next) => {
@@ -65,7 +65,7 @@ export function loadDialogs() {
                 delete modStorage.deviousPadlock.itemGroups;
                 delete modStorage.deviousPadlock.synced;
                 for (const item of Player.Appearance) {
-                    if (item.Property?.Name === deviousPadlock.Name) {
+                    if (isDeviousLock(item)) {
                         InventoryUnlock(Player, item);
                     }
                 }

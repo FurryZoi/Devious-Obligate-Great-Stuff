@@ -8,9 +8,9 @@ import { logger } from "zois-core/logging";
 
 export type SavedItem = {
     name: string
-    color?: ItemColor
+    color?: BCColor[]
     craft?: CraftingPartialItem
-    property?: ItemProperties
+    property?: ItemPropertiesMinimized
 }
 
 export interface DeviousPadlockProfile {

@@ -1,6 +1,6 @@
 import { BaseSubscreen } from "zois-core/ui";
 import { modStorage, DeviousPadlockProfile, syncStorage, type SavedItem } from "modules/storage";
-import { BasePadlock, basePadlockMinimumRole, canSetKeyHolderMinimumRole, canUseBasePadlock, changePadlockSettings, deviousPadlock, DeviousPadlockSettings, DeviousPadlockUpdateData, getPadlockSettings, hashCombination, hasKeyToPadlock, isItemGroupSynced, isItemGroupSyncedWithConfig, KeyHolderMinimumRole, syncPadlockConfigurationWithItemGroups, unsyncItemGroups, validatePadlockSettingsUpdate } from "src/modules/deviousPadlock";
+import { BasePadlock, basePadlockMinimumRole, canSetKeyHolderMinimumRole, canUseBasePadlock, changePadlockSettings, deviousPadlock, DeviousPadlockSettings, DeviousPadlockUpdateData, getPadlockSettings, hashCombination, hasKeyToPadlock, isDeviousLock, isItemGroupSynced, isItemGroupSyncedWithConfig, KeyHolderMinimumRole, syncPadlockConfigurationWithItemGroups, unsyncItemGroups, validatePadlockSettingsUpdate } from "src/modules/deviousPadlock";
 import { toastsManager } from "zois-core/toasts";
 import { dialogsManager } from "zois-core/dialogs";
 import { messagesManager } from "zois-core/messaging";
@@ -108,7 +108,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
             const groupItem = InventoryGet(this.target, group.Name);
             if (!groupItem) continue;
             if (!group.IsItem()) continue;
-            if (groupItem.Property?.Name !== deviousPadlock.Name) continue;
+            if (!isDeviousLock(groupItem)) continue;
             if (!hasKeyToPadlock(group.Name, Player, this.target)) continue;
             if (DialogClickedInZone(this.syncTabCanvasCharacter, group.Zone[0], 0.8, 1550, 160, this.syncTabCanvasCharacter.HeightRatio)) {
                 if (this.zoneNamesToSync.includes(group.Name)) this.zoneNamesToSync.splice(this.zoneNamesToSync.indexOf(group.Name), 1);
@@ -807,7 +807,7 @@ export class DeviousPadlockSettingsSubscreen extends BaseSubscreen {
                             const groupItem = InventoryGet(this.target, group.Name);
                             if (!groupItem) continue;
                             if (!group.IsItem()) continue;
-                            if (groupItem.Property?.Name !== deviousPadlock.Name) continue;
+                            if (!isDeviousLock(groupItem)) continue;
                             let borderColor: string;
                             let fillColor: string;
                             if (
