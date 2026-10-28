@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-20T21:39:42.066Z",
+  "generated_at": "2026-10-28T09:35:36.059Z",
   "contributors": [
     {
       "name": "Zoi",
@@ -9,12 +9,12 @@
   ],
   "changes": [
     {
-      "message": "Adapt devious padlock to R133",
-      "sha": "75ec005de298a93cc8a7eac60d3649b57e25e3f4",
+      "message": "Disable padlock until I completely fix it",
+      "sha": "000692af943c75a9b692dd61b127cab1ec35b069",
       "author": "Zoi",
-      "date": "2026-10-20T21:37:32Z",
-      "tags": ["fix"],
-      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/75ec005de298a93cc8a7eac60d3649b57e25e3f4"
+      "date": "2026-10-28T09:33:47Z",
+      "tags": [],
+      "commit_url": "https://github.com/FurryZoi/Devious-Obligate-Great-Stuff/commit/000692af943c75a9b692dd61b127cab1ec35b069"
     }
   ]
 }
